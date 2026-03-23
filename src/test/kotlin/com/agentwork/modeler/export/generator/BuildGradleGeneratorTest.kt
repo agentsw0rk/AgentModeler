@@ -3,6 +3,7 @@ package com.agentwork.modeler.export.generator
 import com.agentwork.modeler.export.model.*
 import org.junit.jupiter.api.Test
 import kotlin.test.assertContains
+import kotlin.test.assertFalse
 
 class BuildGradleGeneratorTest {
     private val generator = BuildGradleGenerator()
@@ -34,5 +35,21 @@ class BuildGradleGeneratorTest {
         assertContains(code, "kotlinx-coroutines-reactor")
         assertContains(code, "koog-spring-boot-starter")
         assertContains(code, "koog-agents")
+    }
+
+    @Test
+    fun `includes SQLite dependency when Memory tool present`() {
+        val agent = KoogAgent("Agent1", "Help", ModelProvider.OPENAI, null, null, emptyList(),
+            listOf(KoogBuiltinTool(BuiltinToolType.MEMORY)))
+        val code = generator.generate(agent)
+        assertContains(code, "sqlite-jdbc")
+    }
+
+    @Test
+    fun `omits SQLite dependency when no Memory tool`() {
+        val agent = KoogAgent("Agent1", "Help", ModelProvider.OPENAI, null, null, emptyList(),
+            listOf(KoogBuiltinTool(BuiltinToolType.SHELL)))
+        val code = generator.generate(agent)
+        assertFalse(code.contains("sqlite-jdbc"))
     }
 }
