@@ -1,4 +1,4 @@
-import { ProjectGraph } from "@/types/graph";
+import { ProjectGraph, BuiltinToolConfig, BUILTIN_TOOL_TYPES } from "@/types/graph";
 import { AgentConfig, ToolConfig } from "@/types/koog";
 
 export interface ValidationError {
@@ -36,6 +36,17 @@ export function validateGraph(graph: ProjectGraph): ValidationError[] {
         if (!param.name.trim()) {
           errors.push({ nodeId: node.id, severity: "error", message: "Parameter requires a name" });
         }
+      }
+    }
+
+    if (node.type === "builtin-tool") {
+      const data = node.data as BuiltinToolConfig;
+      if (!data.toolType || !BUILTIN_TOOL_TYPES.includes(data.toolType)) {
+        errors.push({ nodeId: node.id, severity: "error", message: "Built-in tool has invalid type" });
+      }
+      const isConnected = graph.edges.some((e) => e.source === node.id);
+      if (!isConnected) {
+        errors.push({ nodeId: node.id, severity: "error", message: "Built-in tool must be connected to an Agent" });
       }
     }
   }
