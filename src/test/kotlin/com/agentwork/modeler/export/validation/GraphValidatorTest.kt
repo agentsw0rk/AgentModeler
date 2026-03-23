@@ -72,4 +72,48 @@ class GraphValidatorTest {
         val errors = validator.validate(graph)
         assertTrue(errors.any { it.contains("single-agent") || it.contains("Only single") })
     }
+
+    @Test
+    fun `valid builtin-tool passes validation`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("bt1", "builtin-tool", Position(200.0, 0.0), mapOf("toolType" to "shell"))
+            ),
+            listOf(GraphEdge("e1", "bt1", "a1")))
+        assertTrue(validator.validate(graph).isEmpty())
+    }
+
+    @Test
+    fun `reports builtin-tool without toolType`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("bt1", "builtin-tool", Position(200.0, 0.0), mapOf<String, Any?>())
+            ),
+            listOf(GraphEdge("e1", "bt1", "a1")))
+        assertTrue(validator.validate(graph).any { it.contains("toolType") })
+    }
+
+    @Test
+    fun `reports builtin-tool with invalid toolType`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("bt1", "builtin-tool", Position(200.0, 0.0), mapOf("toolType" to "invalid"))
+            ),
+            listOf(GraphEdge("e1", "bt1", "a1")))
+        assertTrue(validator.validate(graph).any { it.contains("toolType") })
+    }
+
+    @Test
+    fun `reports builtin-tool not connected to agent`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("bt1", "builtin-tool", Position(200.0, 0.0), mapOf("toolType" to "shell"))
+            ),
+            emptyList())
+        assertTrue(validator.validate(graph).any { it.contains("connected") })
+    }
 }

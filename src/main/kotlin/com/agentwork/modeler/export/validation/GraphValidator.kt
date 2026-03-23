@@ -31,6 +31,17 @@ class GraphValidator {
                         if (paramName.isBlank()) errors.add("[${node.id}] Parameter requires a name")
                     }
                 }
+                "builtin-tool" -> {
+                    val toolType = node.data["toolType"] as? String ?: ""
+                    val validTypes = setOf("think", "shell", "filesystem", "fetch", "memory", "todo", "user_prompt")
+                    if (toolType.isBlank()) {
+                        errors.add("[${node.id}] Built-in tool requires a toolType")
+                    } else if (toolType !in validTypes) {
+                        errors.add("[${node.id}] Invalid toolType: $toolType")
+                    }
+                    val isConnected = graph.edges.any { it.source == node.id }
+                    if (!isConnected) errors.add("[${node.id}] Built-in tool must be connected to an Agent")
+                }
             }
         }
         return errors
