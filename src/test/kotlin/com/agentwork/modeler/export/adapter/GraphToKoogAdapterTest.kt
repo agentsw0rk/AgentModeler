@@ -1,6 +1,7 @@
 package com.agentwork.modeler.export.adapter
 
 import com.agentwork.modeler.export.model.*
+import com.agentwork.modeler.export.model.BuiltinToolType
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
@@ -62,5 +63,23 @@ class GraphToKoogAdapterTest {
         )
         val agents = adapter.convert(graph)
         assertEquals(0, agents[0].tools.size)
+    }
+
+    @Test
+    fun `converts builtin-tool nodes to KoogBuiltinTool list`() {
+        val graph = ProjectGraph(
+            version = 1, name = "Test",
+            nodes = listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("bt1", "builtin-tool", Position(200.0, 0.0), mapOf("toolType" to "shell", "workingDir" to "/app")),
+                GraphNode("bt2", "builtin-tool", Position(400.0, 0.0), mapOf("toolType" to "think"))
+            ),
+            edges = listOf(GraphEdge("e1", "bt1", "a1"), GraphEdge("e2", "bt2", "a1"))
+        )
+        val agents = adapter.convert(graph)
+        assertEquals(2, agents[0].builtinTools.size)
+        assertEquals(BuiltinToolType.SHELL, agents[0].builtinTools[0].type)
+        assertEquals("/app", agents[0].builtinTools[0].config["workingDir"])
+        assertEquals(BuiltinToolType.THINK, agents[0].builtinTools[1].type)
     }
 }

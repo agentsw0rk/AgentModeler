@@ -1,6 +1,8 @@
 package com.agentwork.modeler.export.adapter
 
 import com.agentwork.modeler.export.model.*
+import com.agentwork.modeler.export.model.KoogBuiltinTool
+import com.agentwork.modeler.export.model.BuiltinToolType
 import org.springframework.stereotype.Component
 
 @Component
@@ -8,6 +10,7 @@ class GraphToKoogAdapter {
 
     fun convert(graph: ProjectGraph): List<KoogAgent> {
         val toolNodes = graph.nodes.filter { it.type == "tool" }
+        val builtinToolNodes = graph.nodes.filter { it.type == "builtin-tool" }
         val agentNodes = graph.nodes.filter { it.type == "agent" }
 
         return agentNodes.map { agentNode ->
@@ -22,15 +25,27 @@ class GraphToKoogAdapter {
                 .filter { it.id in connectedToolIds }
                 .map { convertTool(it) }
 
+            val builtinTools = builtinToolNodes
+                .filter { it.id in connectedToolIds }
+                .map { convertBuiltinTool(it) }
+
             KoogAgent(
                 name = name,
                 systemPrompt = agentNode.data["systemPrompt"] as? String ?: "",
                 modelProvider = parseProvider(agentNode.data["modelProvider"] as? String ?: "openai"),
                 modelId = agentNode.data["modelId"] as? String,
                 temperature = (agentNode.data["temperature"] as? Number)?.toDouble(),
-                tools = tools
+                tools = tools,
+                builtinTools = builtinTools
             )
         }
+    }
+
+    private fun convertBuiltinTool(node: GraphNode): KoogBuiltinTool {
+        val typeStr = node.data["toolType"] as? String ?: ""
+        val type = BuiltinToolType.valueOf(typeStr.uppercase())
+        val config = node.data.filterKeys { it != "toolType" }
+        return KoogBuiltinTool(type = type, config = config)
     }
 
     private fun convertTool(node: GraphNode): KoogTool {
