@@ -1,6 +1,8 @@
 package com.agentwork.modeler.export.generator
 
 import com.agentwork.modeler.export.model.*
+import com.agentwork.modeler.export.model.KoogBuiltinTool
+import com.agentwork.modeler.export.model.BuiltinToolType
 import org.junit.jupiter.api.Test
 import kotlin.test.assertContains
 import kotlin.test.assertFalse
@@ -46,5 +48,20 @@ class AgentGeneratorTest {
         val code = generator.generate(agent)
         assertFalse(code.contains("class MyAgent"))
         assertFalse(code.contains("suspend fun run("))
+    }
+
+    @Test
+    fun `appends think instruction to system prompt when THINK builtin tool present`() {
+        val agent = KoogAgent("Agent1", "You are helpful.", ModelProvider.OPENAI, null, null, emptyList(),
+            listOf(KoogBuiltinTool(BuiltinToolType.THINK)))
+        val code = generator.generate(agent)
+        assertContains(code, "Think step by step")
+    }
+
+    @Test
+    fun `does not append think instruction when no THINK builtin tool`() {
+        val agent = KoogAgent("Agent1", "You are helpful.", ModelProvider.OPENAI, null, null, emptyList())
+        val code = generator.generate(agent)
+        assertFalse(code.contains("Think step by step"))
     }
 }

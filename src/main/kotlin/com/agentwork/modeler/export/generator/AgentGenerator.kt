@@ -1,5 +1,6 @@
 package com.agentwork.modeler.export.generator
 
+import com.agentwork.modeler.export.model.BuiltinToolType
 import com.agentwork.modeler.export.model.KoogAgent
 import com.agentwork.modeler.export.model.ModelProvider
 import org.springframework.stereotype.Component
@@ -8,12 +9,18 @@ import org.springframework.stereotype.Component
 class AgentGenerator {
 
     fun generate(agent: KoogAgent): String {
+        val hasThink = agent.builtinTools.any { it.type == BuiltinToolType.THINK }
+        val effectivePrompt = if (hasThink) {
+            agent.systemPrompt + "\nThink step by step before answering."
+        } else {
+            agent.systemPrompt
+        }
         val modelImport = agent.modelProvider.importPackage
         val modelRef = agent.modelId?.let { mapModelId(agent.modelProvider, it) } ?: agent.modelProvider.defaultModel
 
         val params = mutableListOf(
             """promptExecutor = ${agent.modelProvider.executorFactory}(System.getenv("${agent.modelProvider.name}_API_KEY"))""",
-            """systemPrompt = "${agent.systemPrompt.replace("\"", "\\\"")}"""",
+            """systemPrompt = "${effectivePrompt.replace("\"", "\\\"")}"""",
             "llmModel = $modelRef"
         )
         agent.temperature?.let { params.add("temperature = $it") }
