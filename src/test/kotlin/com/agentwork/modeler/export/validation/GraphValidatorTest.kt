@@ -3,6 +3,7 @@ package com.agentwork.modeler.export.validation
 import com.agentwork.modeler.export.model.*
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 
 class GraphValidatorTest {
     private val validator = GraphValidator()
@@ -115,5 +116,131 @@ class GraphValidatorTest {
             ),
             emptyList())
         assertTrue(validator.validate(graph).any { it.contains("connected") })
+    }
+
+    @Test
+    fun `valid sub-agent connected to agent passes validation`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
+                    "name" to "ResearchAgent", "description" to "Researches topics",
+                    "systemPrompt" to "You research.", "inputDescription" to "A topic",
+                    "modelProvider" to "openai"
+                ))
+            ),
+            listOf(GraphEdge("e1", "sa1", "a1")))
+        assertTrue(validator.validate(graph).isEmpty())
+    }
+
+    @Test
+    fun `reports sub-agent without name`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
+                    "name" to "", "description" to "Desc",
+                    "systemPrompt" to "Prompt", "inputDescription" to "Input",
+                    "modelProvider" to "openai"
+                ))
+            ),
+            listOf(GraphEdge("e1", "sa1", "a1")))
+        assertTrue(validator.validate(graph).any { it.contains("name") && it.contains("sa1") })
+    }
+
+    @Test
+    fun `reports sub-agent without description`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
+                    "name" to "SA", "description" to "",
+                    "systemPrompt" to "Prompt", "inputDescription" to "Input",
+                    "modelProvider" to "openai"
+                ))
+            ),
+            listOf(GraphEdge("e1", "sa1", "a1")))
+        assertTrue(validator.validate(graph).any { it.contains("description") })
+    }
+
+    @Test
+    fun `reports sub-agent without system prompt`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
+                    "name" to "SA", "description" to "Desc",
+                    "systemPrompt" to "", "inputDescription" to "Input",
+                    "modelProvider" to "openai"
+                ))
+            ),
+            listOf(GraphEdge("e1", "sa1", "a1")))
+        assertTrue(validator.validate(graph).any { it.contains("prompt") })
+    }
+
+    @Test
+    fun `reports sub-agent without input description`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
+                    "name" to "SA", "description" to "Desc",
+                    "systemPrompt" to "Prompt", "inputDescription" to "",
+                    "modelProvider" to "openai"
+                ))
+            ),
+            listOf(GraphEdge("e1", "sa1", "a1")))
+        assertTrue(validator.validate(graph).any { it.contains("input description") })
+    }
+
+    @Test
+    fun `reports sub-agent not connected to agent`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
+                    "name" to "SA", "description" to "Desc",
+                    "systemPrompt" to "Prompt", "inputDescription" to "Input",
+                    "modelProvider" to "openai"
+                ))
+            ),
+            emptyList())
+        assertTrue(validator.validate(graph).any { it.contains("connected") })
+    }
+
+    @Test
+    fun `reports sub-agent connected to another sub-agent`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
+                    "name" to "SA1", "description" to "Desc",
+                    "systemPrompt" to "Prompt", "inputDescription" to "Input",
+                    "modelProvider" to "openai"
+                )),
+                GraphNode("sa2", "sub-agent", Position(400.0, 0.0), mapOf(
+                    "name" to "SA2", "description" to "Desc",
+                    "systemPrompt" to "Prompt", "inputDescription" to "Input",
+                    "modelProvider" to "openai"
+                ))
+            ),
+            listOf(GraphEdge("e1", "sa1", "a1"), GraphEdge("e2", "sa2", "sa1")))
+        assertTrue(validator.validate(graph).any { it.contains("cannot delegate") || it.contains("Sub-Agent") })
+    }
+
+    @Test
+    fun `sub-agent does not count toward single-agent limit`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
+                    "name" to "SA1", "description" to "Desc",
+                    "systemPrompt" to "Prompt", "inputDescription" to "Input",
+                    "modelProvider" to "openai"
+                ))
+            ),
+            listOf(GraphEdge("e1", "sa1", "a1")))
+        val errors = validator.validate(graph)
+        assertFalse(errors.any { it.contains("single-agent") || it.contains("Only single") })
     }
 }
