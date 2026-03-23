@@ -1,13 +1,13 @@
 This is a Kotlin Multiplatform project targeting Web.
 
-* [/koogelis](./koogelis/src) is for the code that will be shared between all targets in the project.
-  The most important subfolder is [commonMain](./koogelis/src/commonMain/kotlin). If preferred, you
+* [/koogelis](koogelis/src) is for the code that will be shared between all targets in the project.
+  The most important subfolder is [commonMain](koogelis/src/commonMain/kotlin). If preferred, you
   can add code to the platform-specific folders here too.
 
-* [/webApp](./webApp) contains web React application. It uses the Kotlin/JS library produced
-  by the [koogelis](./koogelis) module.
+* [/webApp](webApp) contains web React application. It uses the Kotlin/JS library produced
+  by the [koogelis](koogelis) module.
 
-* [/demo](./demo) contains Node script with examples of agent configuration with custom logger, custom persistence provider, MCP server and optional AbortSignal for cancellation.
+* [/demo](demo) contains Node script with examples of agent configuration with custom logger, custom persistence provider, MCP server and optional AbortSignal for cancellation.
 
 ### Prerequisites
 In order to run your agents with example code you need either a local LLM (llama3.2:1b) or an API key for Gemini models.

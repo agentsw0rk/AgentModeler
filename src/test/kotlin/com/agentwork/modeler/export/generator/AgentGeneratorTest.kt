@@ -64,4 +64,15 @@ class AgentGeneratorTest {
         val code = generator.generate(agent)
         assertFalse(code.contains("Think step by step"))
     }
+
+    @Test
+    fun `generates valid string literal for multi-line system prompt`() {
+        val multiLinePrompt = "You are a helpful assistant.\nAlways be polite.\nNever lie."
+        val agent = KoogAgent("Agent1", multiLinePrompt, ModelProvider.OPENAI, null, null, emptyList())
+        val code = generator.generate(agent)
+        // Must be a single-line string literal with escaped newlines, not actual line breaks inside quotes
+        val promptLine = code.lines().first { it.contains("systemPrompt") }
+        assertContains(promptLine, "\\n")
+        assertFalse(promptLine.endsWith("assistant."))
+    }
 }

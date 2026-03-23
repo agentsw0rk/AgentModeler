@@ -11,7 +11,7 @@ This project demonstrates the capabilities of the Koog framework by implementing
 - Provides iterative plan suggestions based on user feedback
 
 ## Schema
-![](./assets/agent_schema.svg)
+![](assets/agent_schema.svg)
 
 ### Core Components
 

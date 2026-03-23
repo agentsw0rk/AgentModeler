@@ -20,7 +20,7 @@ class AgentGenerator {
 
         val params = mutableListOf(
             """promptExecutor = ${agent.modelProvider.executorFactory}(System.getenv("${agent.modelProvider.name}_API_KEY"))""",
-            """systemPrompt = "${effectivePrompt.replace("\"", "\\\"")}"""",
+            """systemPrompt = "${effectivePrompt.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "")}"""",
             "llmModel = $modelRef"
         )
         agent.temperature?.let { params.add("temperature = $it") }
