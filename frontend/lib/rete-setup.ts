@@ -20,6 +20,7 @@ import {
   AppConnection,
   AgentReteNode,
   ToolReteNode,
+  BuiltinToolReteNode,
 } from "./rete-nodes";
 
 export type Schemes = GetSchemes<AppNode, AppConnection>;
@@ -61,10 +62,8 @@ export async function createEditor(container: HTMLElement) {
       const { source, target } = context.data;
       const sourceNode = editor.getNode(source);
       const targetNode = editor.getNode(target);
-      if (
-        !(sourceNode instanceof ToolReteNode) ||
-        !(targetNode instanceof AgentReteNode)
-      ) {
+      const isToolSource = sourceNode instanceof ToolReteNode || sourceNode instanceof BuiltinToolReteNode;
+      if (!isToolSource || !(targetNode instanceof AgentReteNode)) {
         return undefined;
       }
     }

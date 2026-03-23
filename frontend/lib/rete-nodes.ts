@@ -31,7 +31,17 @@ export class ToolReteNode extends ClassicPreset.Node {
   }
 }
 
-export type AppNode = AgentReteNode | ToolReteNode;
+export class BuiltinToolReteNode extends ClassicPreset.Node {
+  width = 200;
+  height = 80;
+
+  constructor(public storeNodeId: string, label: string) {
+    super(label || "Built-in Tool");
+    this.addOutput("agent", new ClassicPreset.Output(toolSocket, "Agent"));
+  }
+}
+
+export type AppNode = AgentReteNode | ToolReteNode | BuiltinToolReteNode;
 export type AppConnection = ClassicPreset.Connection<
   ClassicPreset.Node,
   ClassicPreset.Node
