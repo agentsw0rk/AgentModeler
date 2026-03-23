@@ -1,0 +1,69 @@
+#!/usr/bin/env docker agent run
+
+# Run the demo command with:
+# docker agent run thinking_budget.yaml -c demo
+
+agents:
+  root:
+    model: gpt-5-mini-min # <- try with gpt-5-mini-high
+    # model: claude-4-5-sonnet-min # <- try with claude-4-5-sonnet-high or claude-opus-4-6-adaptive
+    # model: gemini-2-5-flash-dynamic-thinking # <- try with -no-thinking, -low or -high variants
+    description: a helpful assistant that thinks
+    instruction: you are a helpful assistant who can also use tools, but only if you need to
+    commands:
+      demo: "hey i need python code for a mandelbrot fractal"
+    toolsets:
+      - type: shell
+
+models:
+  gpt-5-mini-min:
+    provider: openai
+    model: gpt-5-mini
+    thinking_budget: minimal # <- openai supports "minimal", "low", "medium", "high"
+
+  gpt-5-mini-high:
+    provider: openai
+    model: gpt-5-mini
+    thinking_budget: high
+
+  claude-4-5-sonnet-min:
+    provider: anthropic
+    model: claude-sonnet-4-5-20250929
+    thinking_budget: 1024 # <- explicit token budget (1024-32768) for older models
+
+  claude-4-5-sonnet-high:
+    provider: anthropic
+    model: claude-sonnet-4-5-20250929
+    thinking_budget: 32768 # <- explicit token budget (32768 is the Anthropic suggested maximum)
+    provider_opts:
+      interleaved_thinking: true # <- enables interleaved thinking, aka tool calling during model reasoning
+
+  claude-opus-4-6-adaptive:
+    provider: anthropic
+    model: claude-opus-4-6
+    thinking_budget: adaptive # <- lets the model decide when and how much to think (recommended for 4.6)
+
+  claude-opus-4-6-low:
+    provider: anthropic
+    model: claude-opus-4-6
+    thinking_budget: low # <- adaptive thinking with low effort: "low", "medium", "high", "max"
+
+  gemini-2-5-flash-dynamic-thinking:
+    provider: google
+    model: gemini-2.5-flash
+    thinking_budget: -1 # <- google only, dynamic thinking
+
+  gemini-2-5-flash-no-thinking:
+    provider: google
+    model: gemini-2.5-flash
+    thinking_budget: 0 # <- google only, no thinking
+
+  gemini-2-5-flash-low:
+    provider: google
+    model: gemini-2.5-flash
+    thinking_budget: 1024
+
+  gemini-2-5-flash-high:
+    provider: google
+    model: gemini-2.5-flash
+    thinking_budget: 24576 # <- google's maximum thinking budget for all models except Gemini 2.5 Pro (max 32768)

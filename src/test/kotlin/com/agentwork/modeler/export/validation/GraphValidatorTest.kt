@@ -60,4 +60,16 @@ class GraphValidatorTest {
             listOf(GraphEdge("e1", "t1", "a1")))
         assertTrue(validator.validate(graph).any { it.contains("Parameter") })
     }
+
+    @Test
+    fun `reports error for multiple agent nodes`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("a2", "agent", Position(300.0, 0.0), mapOf("name" to "Agent2", "systemPrompt" to "Help2", "modelProvider" to "anthropic"))
+            ),
+            emptyList())
+        val errors = validator.validate(graph)
+        assertTrue(errors.any { it.contains("single-agent") || it.contains("Only single") })
+    }
 }
