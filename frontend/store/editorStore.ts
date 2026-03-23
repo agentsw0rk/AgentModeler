@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { GraphNode, GraphEdge, NodeType } from "@/types/graph";
+import { GraphNode, GraphEdge, NodeType, BuiltinToolType, BuiltinToolConfig } from "@/types/graph";
 import { AgentConfig, ToolConfig } from "@/types/koog";
 
 interface EditorState {
@@ -8,9 +8,9 @@ interface EditorState {
   selectedNodeId: string | null;
   projectName: string;
 
-  addNode: (type: NodeType, position: { x: number; y: number }) => void;
+  addNode: (type: NodeType, position: { x: number; y: number }, toolType?: BuiltinToolType) => void;
   removeNode: (id: string) => void;
-  updateNodeData: (id: string, data: Partial<AgentConfig | ToolConfig>) => void;
+  updateNodeData: (id: string, data: Partial<AgentConfig | ToolConfig | BuiltinToolConfig>) => void;
   updateNodePosition: (id: string, position: { x: number; y: number }) => void;
   addEdge: (source: string, target: string) => void;
   removeEdge: (id: string) => void;
@@ -31,6 +31,16 @@ const defaultToolData: ToolConfig = {
   parameters: [],
 };
 
+const builtinToolDefaults: Record<BuiltinToolType, BuiltinToolConfig> = {
+  think:       { toolType: "think" },
+  shell:       { toolType: "shell" },
+  filesystem:  { toolType: "filesystem" },
+  fetch:       { toolType: "fetch" },
+  memory:      { toolType: "memory" },
+  todo:        { toolType: "todo" },
+  user_prompt: { toolType: "user_prompt" },
+};
+
 let nextId = 1;
 
 export const useEditorStore = create<EditorState>((set) => ({
@@ -39,18 +49,23 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedNodeId: null,
   projectName: "Untitled Project",
 
-  addNode: (type, position) =>
-    set((state) => ({
-      nodes: [
-        ...state.nodes,
-        {
-          id: `node-${nextId++}`,
-          type,
-          position,
-          data: type === "agent" ? { ...defaultAgentData } : { ...defaultToolData },
-        },
-      ],
-    })),
+  addNode: (type, position, toolType?) =>
+    set((state) => {
+      let data: AgentConfig | ToolConfig | BuiltinToolConfig;
+      if (type === "agent") {
+        data = { ...defaultAgentData };
+      } else if (type === "builtin-tool" && toolType) {
+        data = { ...builtinToolDefaults[toolType] };
+      } else {
+        data = { ...defaultToolData };
+      }
+      return {
+        nodes: [
+          ...state.nodes,
+          { id: `node-${nextId++}`, type, position, data },
+        ],
+      };
+    }),
 
   removeNode: (id) =>
     set((state) => ({
