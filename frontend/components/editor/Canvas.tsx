@@ -3,7 +3,8 @@
 import { useEffect, useRef } from "react";
 import { createEditor } from "@/lib/rete-setup";
 import { useEditorStore } from "@/store/editorStore";
-import { AgentReteNode, ToolReteNode } from "@/lib/rete-nodes";
+import { AgentReteNode, ToolReteNode, BuiltinToolReteNode } from "@/lib/rete-nodes";
+import { BuiltinToolType, BUILTIN_TOOL_LABELS } from "@/types/graph";
 import type { Schemes } from "@/lib/rete-setup";
 import type { NodeEditor } from "rete";
 import type { AreaPlugin } from "rete-area-plugin";
@@ -56,9 +57,11 @@ export function Canvas() {
           const conn = context.data;
           const sourceNode = editor.getNode(conn.source);
           const targetNode = editor.getNode(conn.target);
-          if (sourceNode instanceof ToolReteNode && targetNode instanceof AgentReteNode) {
+          const isToolSource = sourceNode instanceof ToolReteNode || sourceNode instanceof BuiltinToolReteNode;
+          if (isToolSource && targetNode instanceof AgentReteNode) {
             syncing = true;
-            useEditorStore.getState().addEdge(sourceNode.storeNodeId, targetNode.storeNodeId);
+            const sourceStoreId = (sourceNode as ToolReteNode | BuiltinToolReteNode).storeNodeId;
+            useEditorStore.getState().addEdge(sourceStoreId, targetNode.storeNodeId);
             syncing = false;
           }
         }
@@ -71,11 +74,13 @@ export function Canvas() {
           const conn = context.data;
           const sourceNode = editor.getNode(conn.source);
           const targetNode = editor.getNode(conn.target);
-          if (sourceNode instanceof ToolReteNode && targetNode instanceof AgentReteNode) {
+          const isToolSource = sourceNode instanceof ToolReteNode || sourceNode instanceof BuiltinToolReteNode;
+          if (isToolSource && targetNode instanceof AgentReteNode) {
             syncing = true;
+            const sourceStoreId = (sourceNode as ToolReteNode | BuiltinToolReteNode).storeNodeId;
             const edges = useEditorStore.getState().edges;
             const edge = edges.find(
-              (e) => e.source === sourceNode.storeNodeId && e.target === targetNode.storeNodeId
+              (e) => e.source === sourceStoreId && e.target === targetNode.storeNodeId
             );
             if (edge) useEditorStore.getState().removeEdge(edge.id);
             syncing = false;
@@ -93,9 +98,16 @@ export function Canvas() {
 
         for (const node of state.nodes) {
           if (!findReteNode(node.id)) {
-            const reteNode = node.type === "agent"
-              ? new AgentReteNode(node.id, (node.data as any).name || "Agent")
-              : new ToolReteNode(node.id, (node.data as any).name || "Tool");
+            let reteNode;
+            if (node.type === "agent") {
+              reteNode = new AgentReteNode(node.id, (node.data as any).name || "Agent");
+            } else if (node.type === "builtin-tool") {
+              const toolType = (node.data as any).toolType || "tool";
+              const label = BUILTIN_TOOL_LABELS[toolType as BuiltinToolType] || toolType;
+              reteNode = new BuiltinToolReteNode(node.id, label);
+            } else {
+              reteNode = new ToolReteNode(node.id, (node.data as any).name || "Tool");
+            }
             await editorRef!.addNode(reteNode);
             await areaRef!.translate(reteNode.id, node.position);
           }
@@ -113,7 +125,13 @@ export function Canvas() {
         for (const node of state.nodes) {
           const reteNode = findReteNode(node.id);
           if (reteNode) {
-            const newLabel = (node.data as any).name || node.type.charAt(0).toUpperCase() + node.type.slice(1);
+            let newLabel: string;
+            if (node.type === "builtin-tool") {
+              const toolType = (node.data as any).toolType || "tool";
+              newLabel = BUILTIN_TOOL_LABELS[toolType as BuiltinToolType] || toolType;
+            } else {
+              newLabel = (node.data as any).name || node.type.charAt(0).toUpperCase() + node.type.slice(1);
+            }
             if (reteNode.label !== newLabel) {
               reteNode.label = newLabel;
               areaRef!.update("node", reteNode.id);
