@@ -1,10 +1,7 @@
 package com.agentwork.modeler.export
 
 import com.agentwork.modeler.export.adapter.GraphToKoogAdapter
-import com.agentwork.modeler.export.generator.AgentGenerator
-import com.agentwork.modeler.export.generator.MainGenerator
-import com.agentwork.modeler.export.generator.RegistryGenerator
-import com.agentwork.modeler.export.generator.ToolGenerator
+import com.agentwork.modeler.export.generator.*
 import com.agentwork.modeler.export.model.*
 import com.agentwork.modeler.export.validation.GraphValidator
 import com.agentwork.modeler.export.zip.ZipBuilder
@@ -13,7 +10,7 @@ import org.junit.jupiter.api.assertThrows
 import java.util.zip.ZipInputStream
 import java.io.ByteArrayInputStream
 import kotlin.test.assertTrue
-import kotlin.test.assertEquals
+import kotlin.test.assertContains
 
 class ExportServiceTest {
 
@@ -23,12 +20,18 @@ class ExportServiceTest {
         agentGenerator = AgentGenerator(),
         toolGenerator = ToolGenerator(),
         registryGenerator = RegistryGenerator(),
-        mainGenerator = MainGenerator(),
+        applicationGenerator = ApplicationGenerator(),
+        buildGradleGenerator = BuildGradleGenerator(),
+        settingsGradleGenerator = SettingsGradleGenerator(),
+        gradlePropertiesGenerator = GradlePropertiesGenerator(),
+        applicationPropertiesGenerator = ApplicationPropertiesGenerator(),
+        dockerfileGenerator = DockerfileGenerator(),
+        controllerGenerator = ControllerGenerator(),
         zipBuilder = ZipBuilder()
     )
 
     @Test
-    fun `exports a valid graph as ZIP with expected files`() {
+    fun `exports a valid graph as ZIP with full project structure`() {
         val graph = ProjectGraph(1, "TestProject",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MyAgent", "systemPrompt" to "Help", "modelProvider" to "openai")),
@@ -39,10 +42,40 @@ class ExportServiceTest {
         )
         val zip = service.export(graph)
         val entries = readZipEntries(zip)
-        assertTrue(entries.any { it.contains("MyAgent.kt") })
-        assertTrue(entries.any { it.contains("SearchToolToolSet.kt") })
-        assertTrue(entries.any { it.contains("ToolRegistry.kt") })
-        assertTrue(entries.any { it.contains("Main.kt") })
+
+        // Infrastructure files
+        assertTrue(entries.contains("build.gradle.kts"))
+        assertTrue(entries.contains("settings.gradle.kts"))
+        assertTrue(entries.contains("gradle.properties"))
+        assertTrue(entries.contains("Dockerfile"))
+        assertTrue(entries.contains("src/main/resources/application.properties"))
+
+        // Kotlin sources
+        assertTrue(entries.contains("src/main/kotlin/generated/Application.kt"))
+        assertTrue(entries.contains("src/main/kotlin/generated/AgentConfig.kt"))
+        assertTrue(entries.contains("src/main/kotlin/generated/ChatController.kt"))
+        assertTrue(entries.contains("src/main/kotlin/generated/ToolRegistry.kt"))
+        assertTrue(entries.contains("src/main/kotlin/generated/tools/SearchToolToolSet.kt"))
+
+        // Verify content wiring (spot check)
+        val settingsContent = readZipFileContent(zip, "settings.gradle.kts")
+        assertContains(settingsContent, "TestProject")
+        val buildContent = readZipFileContent(zip, "build.gradle.kts")
+        assertContains(buildContent, "koog-prompt-executor-openai")
+    }
+
+    @Test
+    fun `exports agent without tools omits ToolRegistry`() {
+        val graph = ProjectGraph(1, "TestProject",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "SimpleAgent", "systemPrompt" to "Help", "modelProvider" to "openai"))
+            ),
+            emptyList()
+        )
+        val zip = service.export(graph)
+        val entries = readZipEntries(zip)
+        assertTrue(entries.contains("src/main/kotlin/generated/AgentConfig.kt"))
+        assertTrue(!entries.contains("src/main/kotlin/generated/ToolRegistry.kt"))
     }
 
     @Test
@@ -54,6 +87,18 @@ class ExportServiceTest {
         assertTrue(ex.errors.isNotEmpty())
     }
 
+    @Test
+    fun `throws ExportValidationException for multi-agent graph`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("a2", "agent", Position(300.0, 0.0), mapOf("name" to "Agent2", "systemPrompt" to "Help2", "modelProvider" to "openai"))
+            ),
+            emptyList())
+        val ex = assertThrows<ExportValidationException> { service.export(graph) }
+        assertTrue(ex.errors.any { it.contains("single-agent") || it.contains("Only single") })
+    }
+
     private fun readZipEntries(data: ByteArray): List<String> {
         val entries = mutableListOf<String>()
         ZipInputStream(ByteArrayInputStream(data)).use { zis ->
@@ -61,5 +106,16 @@ class ExportServiceTest {
             while (entry != null) { entries.add(entry.name); entry = zis.nextEntry }
         }
         return entries
+    }
+
+    private fun readZipFileContent(data: ByteArray, fileName: String): String {
+        ZipInputStream(ByteArrayInputStream(data)).use { zis ->
+            var entry = zis.nextEntry
+            while (entry != null) {
+                if (entry.name == fileName) return zis.readBytes().toString(Charsets.UTF_8)
+                entry = zis.nextEntry
+            }
+        }
+        error("File $fileName not found in ZIP")
     }
 }

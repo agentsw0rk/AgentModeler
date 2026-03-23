@@ -1,10 +1,7 @@
 package com.agentwork.modeler.export
 
 import com.agentwork.modeler.export.adapter.GraphToKoogAdapter
-import com.agentwork.modeler.export.generator.AgentGenerator
-import com.agentwork.modeler.export.generator.MainGenerator
-import com.agentwork.modeler.export.generator.RegistryGenerator
-import com.agentwork.modeler.export.generator.ToolGenerator
+import com.agentwork.modeler.export.generator.*
 import com.agentwork.modeler.export.model.ProjectGraph
 import com.agentwork.modeler.export.validation.GraphValidator
 import com.agentwork.modeler.export.zip.ZipBuilder
@@ -19,7 +16,13 @@ class ExportService(
     private val agentGenerator: AgentGenerator,
     private val toolGenerator: ToolGenerator,
     private val registryGenerator: RegistryGenerator,
-    private val mainGenerator: MainGenerator,
+    private val applicationGenerator: ApplicationGenerator,
+    private val buildGradleGenerator: BuildGradleGenerator,
+    private val settingsGradleGenerator: SettingsGradleGenerator,
+    private val gradlePropertiesGenerator: GradlePropertiesGenerator,
+    private val applicationPropertiesGenerator: ApplicationPropertiesGenerator,
+    private val dockerfileGenerator: DockerfileGenerator,
+    private val controllerGenerator: ControllerGenerator,
     private val zipBuilder: ZipBuilder
 ) {
     fun export(graph: ProjectGraph): ByteArray {
@@ -29,18 +32,29 @@ class ExportService(
         }
 
         val agents = adapter.convert(graph)
+        val agent = agents.first()
+        val pkg = "src/main/kotlin/generated"
         val files = mutableMapOf<String, String>()
 
-        for (agent in agents) {
-            files["src/${agent.name}.kt"] = agentGenerator.generate(agent)
-            for (tool in agent.tools) {
-                val className = tool.name.replaceFirstChar { it.uppercase() } + "ToolSet"
-                files["src/tools/${className}.kt"] = toolGenerator.generate(tool)
-            }
-            if (agent.tools.isNotEmpty()) {
-                files["src/ToolRegistry.kt"] = registryGenerator.generate(agent.tools)
-            }
-            files["src/Main.kt"] = mainGenerator.generate(agent)
+        // Infrastructure
+        files["build.gradle.kts"] = buildGradleGenerator.generate(agent)
+        files["settings.gradle.kts"] = settingsGradleGenerator.generate(graph.name)
+        files["gradle.properties"] = gradlePropertiesGenerator.generate()
+        files["Dockerfile"] = dockerfileGenerator.generate()
+        files["src/main/resources/application.properties"] = applicationPropertiesGenerator.generate()
+
+        // Kotlin sources
+        files["$pkg/Application.kt"] = applicationGenerator.generate()
+        files["$pkg/AgentConfig.kt"] = agentGenerator.generate(agent)
+        files["$pkg/ChatController.kt"] = controllerGenerator.generate()
+
+        // Tools
+        for (tool in agent.tools) {
+            val className = tool.name.replaceFirstChar { it.uppercase() } + "ToolSet"
+            files["$pkg/tools/${className}.kt"] = toolGenerator.generate(tool)
+        }
+        if (agent.tools.isNotEmpty()) {
+            files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(agent.tools)
         }
 
         return zipBuilder.buildZip(files)
