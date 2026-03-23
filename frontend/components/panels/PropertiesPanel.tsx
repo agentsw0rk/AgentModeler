@@ -5,6 +5,8 @@ import { AgentProperties } from "./AgentProperties";
 import { ToolProperties } from "./ToolProperties";
 import { AgentConfig, ToolConfig } from "@/types/koog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { BuiltinToolProperties } from "./BuiltinToolProperties";
+import { BuiltinToolConfig } from "@/types/graph";
 
 export function PropertiesPanel() {
   const selectedNodeId = useEditorStore((s) => s.selectedNodeId);
@@ -22,12 +24,17 @@ export function PropertiesPanel() {
   return (
     <ScrollArea className="w-80 border-l bg-background">
       <div className="p-4">
-        <h3 className="font-semibold mb-4 capitalize">{selectedNode.type} Properties</h3>
+        <h3 className="font-semibold mb-4 capitalize">
+          {selectedNode.type === "builtin-tool" ? "Built-in Tool" : selectedNode.type} Properties
+        </h3>
         {selectedNode.type === "agent" && (
           <AgentProperties nodeId={selectedNode.id} data={selectedNode.data as AgentConfig} />
         )}
         {selectedNode.type === "tool" && (
           <ToolProperties nodeId={selectedNode.id} data={selectedNode.data as ToolConfig} />
+        )}
+        {selectedNode.type === "builtin-tool" && (
+          <BuiltinToolProperties nodeId={selectedNode.id} data={selectedNode.data as BuiltinToolConfig} />
         )}
       </div>
     </ScrollArea>
