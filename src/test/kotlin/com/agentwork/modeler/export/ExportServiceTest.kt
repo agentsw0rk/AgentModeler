@@ -2,6 +2,7 @@ package com.agentwork.modeler.export
 
 import com.agentwork.modeler.export.adapter.GraphToKoogAdapter
 import com.agentwork.modeler.export.generator.*
+import com.agentwork.modeler.export.generator.SubAgentGenerator
 import com.agentwork.modeler.export.model.*
 import com.agentwork.modeler.export.validation.GraphValidator
 import com.agentwork.modeler.export.zip.ZipBuilder
@@ -28,6 +29,7 @@ class ExportServiceTest {
         dockerfileGenerator = DockerfileGenerator(),
         controllerGenerator = ControllerGenerator(),
         builtinToolGenerator = BuiltinToolGenerator(),
+        subAgentGenerator = SubAgentGenerator(),
         zipBuilder = ZipBuilder()
     )
 
@@ -134,6 +136,40 @@ class ExportServiceTest {
             emptyList())
         val ex = assertThrows<ExportValidationException> { service.export(graph) }
         assertTrue(ex.errors.any { it.contains("single-agent") || it.contains("Only single") })
+    }
+
+    @Test
+    fun `exports graph with sub-agent and sub-agent tools`() {
+        val graph = ProjectGraph(1, "TestProject",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MainAgent", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
+                    "name" to "ResearchAgent", "description" to "Researches",
+                    "systemPrompt" to "Research.", "inputDescription" to "A topic",
+                    "modelProvider" to "anthropic", "delegationMode" to "automatic"
+                )),
+                GraphNode("t1", "tool", Position(100.0, 200.0), mapOf(
+                    "name" to "fetchTool", "description" to "Fetches",
+                    "parameters" to emptyList<Any>()
+                ))
+            ),
+            listOf(
+                GraphEdge("e1", "sa1", "a1"),
+                GraphEdge("e2", "t1", "sa1")
+            )
+        )
+        val zip = service.export(graph)
+        val entries = readZipEntries(zip)
+
+        assertTrue(entries.contains("src/main/kotlin/generated/AgentConfig.kt"))
+        assertTrue(entries.contains("src/main/kotlin/generated/ToolRegistry.kt"))
+        assertTrue(entries.contains("src/main/kotlin/generated/subagents/ResearchAgentSubAgent.kt"))
+        assertTrue(entries.contains("src/main/kotlin/generated/subagents/ResearchAgentToolRegistry.kt"))
+        assertTrue(entries.contains("src/main/kotlin/generated/tools/FetchToolToolSet.kt"))
+
+        val registryContent = readZipFileContent(zip, "src/main/kotlin/generated/ToolRegistry.kt")
+        assertContains(registryContent, "createResearchAgent()")
+        assertContains(registryContent, "createAgentTool")
     }
 
     private fun readZipEntries(data: ByteArray): List<String> {

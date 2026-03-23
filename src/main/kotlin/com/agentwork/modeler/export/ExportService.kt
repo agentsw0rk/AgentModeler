@@ -24,6 +24,7 @@ class ExportService(
     private val dockerfileGenerator: DockerfileGenerator,
     private val controllerGenerator: ControllerGenerator,
     private val builtinToolGenerator: BuiltinToolGenerator,
+    private val subAgentGenerator: SubAgentGenerator,
     private val zipBuilder: ZipBuilder
 ) {
     fun export(graph: ProjectGraph): ByteArray {
@@ -64,8 +65,37 @@ class ExportService(
             }
         }
 
-        if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty()) {
-            files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(agent.tools, agent.builtinTools)
+        // Sub-agents
+        for (subAgent in agent.subAgents) {
+            val saFileName = "${subAgent.name.replaceFirstChar { it.uppercase() }}SubAgent"
+            files["$pkg/subagents/$saFileName.kt"] = subAgentGenerator.generate(subAgent)
+
+            val registryCode = subAgentGenerator.generateRegistry(subAgent)
+            if (registryCode != null) {
+                val regFileName = "${subAgent.name.replaceFirstChar { it.uppercase() }}ToolRegistry"
+                files["$pkg/subagents/$regFileName.kt"] = registryCode
+            }
+
+            // Generate ToolSet files for sub-agent's custom tools
+            for (tool in subAgent.tools) {
+                val className = tool.name.replaceFirstChar { it.uppercase() } + "ToolSet"
+                if (!files.containsKey("$pkg/tools/$className.kt")) {
+                    files["$pkg/tools/$className.kt"] = toolGenerator.generate(tool)
+                }
+            }
+
+            // Generate ToolSet files for sub-agent's built-in tools
+            for (builtinTool in subAgent.builtinTools) {
+                val code = builtinToolGenerator.generate(builtinTool)
+                val fileName = builtinTool.type.toFileName()
+                if (code != null && fileName != null && !files.containsKey("$pkg/tools/$fileName")) {
+                    files["$pkg/tools/$fileName"] = code
+                }
+            }
+        }
+
+        if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty() || agent.subAgents.isNotEmpty()) {
+            files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(agent.tools, agent.builtinTools, agent.subAgents)
         }
 
         return zipBuilder.buildZip(files)
