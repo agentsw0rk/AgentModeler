@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { createEditor } from "@/lib/rete-setup";
 import { useEditorStore } from "@/store/editorStore";
-import { AgentReteNode, ToolReteNode, BuiltinToolReteNode } from "@/lib/rete-nodes";
+import { AgentReteNode, ToolReteNode, BuiltinToolReteNode, SubAgentReteNode } from "@/lib/rete-nodes";
 import { BuiltinToolType, BUILTIN_TOOL_LABELS } from "@/types/graph";
 import type { Schemes } from "@/lib/rete-setup";
 import type { NodeEditor } from "rete";
@@ -58,10 +58,15 @@ export function Canvas() {
           const sourceNode = editor.getNode(conn.source);
           const targetNode = editor.getNode(conn.target);
           const isToolSource = sourceNode instanceof ToolReteNode || sourceNode instanceof BuiltinToolReteNode;
-          if (isToolSource && targetNode instanceof AgentReteNode) {
+          const isSubAgentSource = sourceNode instanceof SubAgentReteNode;
+          const isAgentTarget = targetNode instanceof AgentReteNode;
+          const isSubAgentTarget = targetNode instanceof SubAgentReteNode;
+
+          if ((isToolSource || isSubAgentSource) && (isAgentTarget || isSubAgentTarget)) {
             syncing = true;
-            const sourceStoreId = (sourceNode as ToolReteNode | BuiltinToolReteNode).storeNodeId;
-            useEditorStore.getState().addEdge(sourceStoreId, targetNode.storeNodeId);
+            const sourceStoreId = (sourceNode as any).storeNodeId;
+            const targetStoreId = (targetNode as any).storeNodeId;
+            useEditorStore.getState().addEdge(sourceStoreId, targetStoreId);
             syncing = false;
           }
         }
@@ -75,12 +80,17 @@ export function Canvas() {
           const sourceNode = editor.getNode(conn.source);
           const targetNode = editor.getNode(conn.target);
           const isToolSource = sourceNode instanceof ToolReteNode || sourceNode instanceof BuiltinToolReteNode;
-          if (isToolSource && targetNode instanceof AgentReteNode) {
+          const isSubAgentSource = sourceNode instanceof SubAgentReteNode;
+          const isAgentTarget = targetNode instanceof AgentReteNode;
+          const isSubAgentTarget = targetNode instanceof SubAgentReteNode;
+
+          if ((isToolSource || isSubAgentSource) && (isAgentTarget || isSubAgentTarget)) {
             syncing = true;
-            const sourceStoreId = (sourceNode as ToolReteNode | BuiltinToolReteNode).storeNodeId;
+            const sourceStoreId = (sourceNode as any).storeNodeId;
+            const targetStoreId = (targetNode as any).storeNodeId;
             const edges = useEditorStore.getState().edges;
             const edge = edges.find(
-              (e) => e.source === sourceStoreId && e.target === targetNode.storeNodeId
+              (e) => e.source === sourceStoreId && e.target === targetStoreId
             );
             if (edge) useEditorStore.getState().removeEdge(edge.id);
             syncing = false;
@@ -101,6 +111,8 @@ export function Canvas() {
             let reteNode;
             if (node.type === "agent") {
               reteNode = new AgentReteNode(node.id, (node.data as any).name || "Agent");
+            } else if (node.type === "sub-agent") {
+              reteNode = new SubAgentReteNode(node.id, (node.data as any).name || "Sub-Agent");
             } else if (node.type === "builtin-tool") {
               const toolType = (node.data as any).toolType || "tool";
               const label = BUILTIN_TOOL_LABELS[toolType as BuiltinToolType] || toolType;
