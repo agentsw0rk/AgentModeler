@@ -3,6 +3,7 @@ package com.agentwork.modeler.export.adapter
 import com.agentwork.modeler.export.model.*
 import com.agentwork.modeler.export.model.KoogBuiltinTool
 import com.agentwork.modeler.export.model.BuiltinToolType
+import com.agentwork.modeler.export.model.KoogSubAgent
 import org.springframework.stereotype.Component
 
 @Component
@@ -12,22 +13,41 @@ class GraphToKoogAdapter {
         val toolNodes = graph.nodes.filter { it.type == "tool" }
         val builtinToolNodes = graph.nodes.filter { it.type == "builtin-tool" }
         val agentNodes = graph.nodes.filter { it.type == "agent" }
+        val subAgentNodes = graph.nodes.filter { it.type == "sub-agent" }
 
         return agentNodes.map { agentNode ->
             val name = agentNode.data["name"] as? String ?: ""
             require(name.isNotBlank()) { "Agent requires a name" }
 
-            val connectedToolIds = graph.edges
+            val connectedToAgent = graph.edges
                 .filter { it.target == agentNode.id }
                 .map { it.source }
 
+            // Sub-agent IDs connected to this agent
+            val subAgentIds = subAgentNodes
+                .filter { it.id in connectedToAgent }
+                .map { it.id }
+                .toSet()
+
+            // Tool/builtin IDs connected to sub-agents (not main agent)
+            val connectedToSubAgents = graph.edges
+                .filter { it.target in subAgentIds }
+                .map { it.source }
+                .toSet()
+
+            // Main agent tools: connected to agent, NOT also connected to a sub-agent
             val tools = toolNodes
-                .filter { it.id in connectedToolIds }
+                .filter { it.id in connectedToAgent && it.id !in connectedToSubAgents }
                 .map { convertTool(it) }
 
             val builtinTools = builtinToolNodes
-                .filter { it.id in connectedToolIds }
+                .filter { it.id in connectedToAgent && it.id !in connectedToSubAgents }
                 .map { convertBuiltinTool(it) }
+
+            // Sub-agents with their own tools
+            val subAgents = subAgentNodes
+                .filter { it.id in connectedToAgent }
+                .map { saNode -> convertSubAgent(saNode, graph, toolNodes, builtinToolNodes) }
 
             KoogAgent(
                 name = name,
@@ -36,9 +56,42 @@ class GraphToKoogAdapter {
                 modelId = agentNode.data["modelId"] as? String,
                 temperature = (agentNode.data["temperature"] as? Number)?.toDouble(),
                 tools = tools,
-                builtinTools = builtinTools
+                builtinTools = builtinTools,
+                subAgents = subAgents
             )
         }
+    }
+
+    private fun convertSubAgent(
+        saNode: GraphNode,
+        graph: ProjectGraph,
+        toolNodes: List<GraphNode>,
+        builtinToolNodes: List<GraphNode>
+    ): KoogSubAgent {
+        val connectedIds = graph.edges
+            .filter { it.target == saNode.id }
+            .map { it.source }
+
+        val tools = toolNodes
+            .filter { it.id in connectedIds }
+            .map { convertTool(it) }
+
+        val builtinTools = builtinToolNodes
+            .filter { it.id in connectedIds }
+            .map { convertBuiltinTool(it) }
+
+        return KoogSubAgent(
+            name = saNode.data["name"] as? String ?: "",
+            description = saNode.data["description"] as? String ?: "",
+            systemPrompt = saNode.data["systemPrompt"] as? String ?: "",
+            modelProvider = parseProvider(saNode.data["modelProvider"] as? String ?: "openai"),
+            modelId = saNode.data["modelId"] as? String,
+            temperature = (saNode.data["temperature"] as? Number)?.toDouble(),
+            delegationMode = saNode.data["delegationMode"] as? String ?: "automatic",
+            inputDescription = saNode.data["inputDescription"] as? String ?: "",
+            tools = tools,
+            builtinTools = builtinTools
+        )
     }
 
     private fun convertBuiltinTool(node: GraphNode): KoogBuiltinTool {
