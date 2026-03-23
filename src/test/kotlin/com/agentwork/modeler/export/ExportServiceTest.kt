@@ -27,6 +27,7 @@ class ExportServiceTest {
         applicationPropertiesGenerator = ApplicationPropertiesGenerator(),
         dockerfileGenerator = DockerfileGenerator(),
         controllerGenerator = ControllerGenerator(),
+        builtinToolGenerator = BuiltinToolGenerator(),
         zipBuilder = ZipBuilder()
     )
 
@@ -85,6 +86,42 @@ class ExportServiceTest {
             emptyList())
         val ex = assertThrows<ExportValidationException> { service.export(graph) }
         assertTrue(ex.errors.isNotEmpty())
+    }
+
+    @Test
+    fun `exports graph with builtin shell tool`() {
+        val graph = ProjectGraph(1, "TestProject",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MyAgent", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("bt1", "builtin-tool", Position(200.0, 0.0), mapOf("toolType" to "shell", "workingDir" to "/app"))
+            ),
+            listOf(GraphEdge("e1", "bt1", "a1"))
+        )
+        val zip = service.export(graph)
+        val entries = readZipEntries(zip)
+        assertTrue(entries.contains("src/main/kotlin/generated/tools/ShellToolSet.kt"))
+        assertTrue(entries.contains("src/main/kotlin/generated/ToolRegistry.kt"))
+
+        val shellContent = readZipFileContent(zip, "src/main/kotlin/generated/tools/ShellToolSet.kt")
+        assertContains(shellContent, "ProcessBuilder")
+    }
+
+    @Test
+    fun `exports graph with filesystem builtin creates no file but has registry`() {
+        val graph = ProjectGraph(1, "TestProject",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MyAgent", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("bt1", "builtin-tool", Position(200.0, 0.0), mapOf("toolType" to "filesystem"))
+            ),
+            listOf(GraphEdge("e1", "bt1", "a1"))
+        )
+        val zip = service.export(graph)
+        val entries = readZipEntries(zip)
+        assertTrue(!entries.any { it.contains("FilesystemToolSet") })
+        assertTrue(entries.contains("src/main/kotlin/generated/ToolRegistry.kt"))
+
+        val registryContent = readZipFileContent(zip, "src/main/kotlin/generated/ToolRegistry.kt")
+        assertContains(registryContent, "ReadFileTool")
     }
 
     @Test

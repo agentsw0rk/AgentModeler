@@ -23,6 +23,7 @@ class ExportService(
     private val applicationPropertiesGenerator: ApplicationPropertiesGenerator,
     private val dockerfileGenerator: DockerfileGenerator,
     private val controllerGenerator: ControllerGenerator,
+    private val builtinToolGenerator: BuiltinToolGenerator,
     private val zipBuilder: ZipBuilder
 ) {
     fun export(graph: ProjectGraph): ByteArray {
@@ -53,8 +54,18 @@ class ExportService(
             val className = tool.name.replaceFirstChar { it.uppercase() } + "ToolSet"
             files["$pkg/tools/${className}.kt"] = toolGenerator.generate(tool)
         }
-        if (agent.tools.isNotEmpty()) {
-            files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(agent.tools)
+
+        // Built-in tools
+        for (builtinTool in agent.builtinTools) {
+            val code = builtinToolGenerator.generate(builtinTool)
+            val fileName = builtinTool.type.toFileName()
+            if (code != null && fileName != null) {
+                files["$pkg/tools/$fileName"] = code
+            }
+        }
+
+        if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty()) {
+            files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(agent.tools, agent.builtinTools)
         }
 
         return zipBuilder.buildZip(files)

@@ -24,7 +24,7 @@ class AgentGenerator {
             "llmModel = $modelRef"
         )
         agent.temperature?.let { params.add("temperature = $it") }
-        if (agent.tools.isNotEmpty()) {
+        if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty()) {
             params.add("toolRegistry = createToolRegistry()")
         }
 
@@ -34,7 +34,7 @@ class AgentGenerator {
             appendLine("package generated")
             appendLine()
             appendLine("import ai.koog.agents.core.agent.AIAgent")
-            if (agent.tools.isNotEmpty()) {
+            if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty()) {
                 appendLine("import ai.koog.agents.core.tools.ToolRegistry")
             }
             appendLine("import ai.koog.prompt.executor.llms.all.${agent.modelProvider.executorFactory}")
