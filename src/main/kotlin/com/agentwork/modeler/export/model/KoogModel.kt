@@ -6,7 +6,8 @@ data class KoogAgent(
     val modelProvider: ModelProvider,
     val modelId: String?,
     val temperature: Double?,
-    val tools: List<KoogTool>
+    val tools: List<KoogTool>,
+    val builtinTools: List<KoogBuiltinTool> = emptyList()
 )
 
 enum class ModelProvider(val importPackage: String, val executorFactory: String, val defaultModel: String) {
@@ -35,3 +36,20 @@ enum class KoogParamType(val kotlinType: String) {
     FLOAT("Float"),
     BOOLEAN("Boolean")
 }
+
+enum class BuiltinToolType {
+    THINK, SHELL, FILESYSTEM, FETCH, MEMORY, TODO, USER_PROMPT;
+
+    fun toFileName(): String? = when (this) {
+        SHELL -> "ShellToolSet.kt"
+        FETCH -> "FetchToolSet.kt"
+        MEMORY -> "MemoryToolSet.kt"
+        TODO -> "TodoToolSet.kt"
+        else -> null
+    }
+}
+
+data class KoogBuiltinTool(
+    val type: BuiltinToolType,
+    val config: Map<String, Any?> = emptyMap()
+)
