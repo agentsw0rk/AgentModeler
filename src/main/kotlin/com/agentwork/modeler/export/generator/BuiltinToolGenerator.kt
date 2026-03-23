@@ -1,9 +1,201 @@
 package com.agentwork.modeler.export.generator
 
+import com.agentwork.modeler.export.model.BuiltinToolType
 import com.agentwork.modeler.export.model.KoogBuiltinTool
 import org.springframework.stereotype.Component
 
 @Component
 class BuiltinToolGenerator {
-    fun generate(tool: KoogBuiltinTool): String? = null
+
+    fun generate(tool: KoogBuiltinTool): String? = when (tool.type) {
+        BuiltinToolType.THINK -> null
+        BuiltinToolType.USER_PROMPT -> null
+        BuiltinToolType.FILESYSTEM -> null
+        BuiltinToolType.SHELL -> generateShell(tool)
+        BuiltinToolType.FETCH -> generateFetch(tool)
+        BuiltinToolType.MEMORY -> generateMemory(tool)
+        BuiltinToolType.TODO -> generateTodo()
+    }
+
+    private fun generateShell(tool: KoogBuiltinTool): String {
+        val workingDir = tool.config["workingDir"] as? String ?: "."
+        return buildString {
+            appendLine("package generated.tools")
+            appendLine()
+            appendLine("import ai.koog.agents.core.tools.annotations.Tool")
+            appendLine("import ai.koog.agents.core.tools.annotations.LLMDescription")
+            appendLine("import ai.koog.agents.core.tools.reflect.ToolSet")
+            appendLine("import java.io.File")
+            appendLine()
+            appendLine("""@LLMDescription("Tools for executing shell commands")""")
+            appendLine("""class ShellToolSet(private val workingDir: String = "$workingDir") : ToolSet {""")
+            appendLine("    @Tool")
+            appendLine("""    @LLMDescription("Execute a shell command and return its output")""")
+            appendLine("    fun executeCommand(")
+            appendLine("""        @LLMDescription("The shell command to execute") command: String""")
+            appendLine("    ): String {")
+            appendLine("""        val process = ProcessBuilder("sh", "-c", command)""")
+            appendLine("            .directory(File(workingDir))")
+            appendLine("            .redirectErrorStream(true)")
+            appendLine("            .start()")
+            appendLine("        val output = process.inputStream.bufferedReader().readText()")
+            appendLine("        process.waitFor(60, java.util.concurrent.TimeUnit.SECONDS)")
+            appendLine("        return output.take(100_000)")
+            appendLine("    }")
+            appendLine("}")
+        }
+    }
+
+    private fun generateFetch(tool: KoogBuiltinTool): String {
+        val baseUrl = tool.config["baseUrl"] as? String ?: ""
+        return buildString {
+            appendLine("package generated.tools")
+            appendLine()
+            appendLine("import ai.koog.agents.core.tools.annotations.Tool")
+            appendLine("import ai.koog.agents.core.tools.annotations.LLMDescription")
+            appendLine("import ai.koog.agents.core.tools.reflect.ToolSet")
+            appendLine("import java.net.URI")
+            appendLine("import java.net.http.HttpClient")
+            appendLine("import java.net.http.HttpRequest")
+            appendLine("import java.net.http.HttpResponse")
+            appendLine()
+            appendLine("""@LLMDescription("Tools for making HTTP requests")""")
+            appendLine("""class FetchToolSet(private val baseUrl: String = "$baseUrl") : ToolSet {""")
+            appendLine("    private val client = HttpClient.newHttpClient()")
+            appendLine()
+            appendLine("    @Tool")
+            appendLine("""    @LLMDescription("Make an HTTP request and return the response body")""")
+            appendLine("    fun fetch(")
+            appendLine("""        @LLMDescription("The URL to fetch") url: String,""")
+            appendLine("""        @LLMDescription("HTTP method (GET, POST, PUT, DELETE)") method: String""")
+            appendLine("    ): String {")
+            appendLine("        val fullUrl = if (baseUrl.isNotEmpty()) baseUrl + url else url")
+            appendLine("        val request = HttpRequest.newBuilder()")
+            appendLine("            .uri(URI.create(fullUrl))")
+            appendLine("            .method(method.uppercase(), HttpRequest.BodyPublishers.noBody())")
+            appendLine("            .build()")
+            appendLine("        val response = client.send(request, HttpResponse.BodyHandlers.ofString())")
+            appendLine("        return \"HTTP \" + response.statusCode().toString() + \"\\n\" + response.body()")
+            appendLine("    }")
+            appendLine("}")
+        }
+    }
+
+    private fun generateMemory(tool: KoogBuiltinTool): String {
+        val path = tool.config["path"] as? String ?: "memory.db"
+        return buildString {
+            appendLine("package generated.tools")
+            appendLine()
+            appendLine("import ai.koog.agents.core.tools.annotations.Tool")
+            appendLine("import ai.koog.agents.core.tools.annotations.LLMDescription")
+            appendLine("import ai.koog.agents.core.tools.reflect.ToolSet")
+            appendLine("import java.sql.DriverManager")
+            appendLine()
+            appendLine("""@LLMDescription("Persistent key-value memory storage")""")
+            appendLine("""class MemoryToolSet(private val path: String = "$path") : ToolSet {""")
+            appendLine("    init {")
+            appendLine("        DriverManager.getConnection(\"jdbc:sqlite:\" + path).use { conn ->")
+            appendLine("            conn.createStatement().execute(\"CREATE TABLE IF NOT EXISTS memory (key TEXT PRIMARY KEY, value TEXT)\")")
+            appendLine("        }")
+            appendLine("    }")
+            appendLine()
+            appendLine("    private fun connection() = DriverManager.getConnection(\"jdbc:sqlite:\" + path)")
+            appendLine()
+            appendLine("    @Tool")
+            appendLine("""    @LLMDescription("Store a value with a key")""")
+            appendLine("    fun store(")
+            appendLine("""        @LLMDescription("The key") key: String,""")
+            appendLine("""        @LLMDescription("The value to store") value: String""")
+            appendLine("    ): String {")
+            appendLine("        connection().use { conn ->")
+            appendLine("            conn.prepareStatement(\"INSERT OR REPLACE INTO memory (key, value) VALUES (?, ?)\").use { stmt ->")
+            appendLine("                stmt.setString(1, key)")
+            appendLine("                stmt.setString(2, value)")
+            appendLine("                stmt.executeUpdate()")
+            appendLine("            }")
+            appendLine("        }")
+            appendLine("        return \"Stored key: \" + key")
+            appendLine("    }")
+            appendLine()
+            appendLine("    @Tool")
+            appendLine("""    @LLMDescription("Retrieve a value by key")""")
+            appendLine("    fun retrieve(")
+            appendLine("""        @LLMDescription("The key to look up") key: String""")
+            appendLine("    ): String {")
+            appendLine("        connection().use { conn ->")
+            appendLine("            conn.prepareStatement(\"SELECT value FROM memory WHERE key = ?\").use { stmt ->")
+            appendLine("                stmt.setString(1, key)")
+            appendLine("                val rs = stmt.executeQuery()")
+            appendLine("                return if (rs.next()) rs.getString(\"value\") else \"Key not found: \" + key")
+            appendLine("            }")
+            appendLine("        }")
+            appendLine("    }")
+            appendLine()
+            appendLine("    @Tool")
+            appendLine("""    @LLMDescription("List all stored keys")""")
+            appendLine("    fun listKeys(): String {")
+            appendLine("        val keys = mutableListOf<String>()")
+            appendLine("        connection().use { conn ->")
+            appendLine("            conn.createStatement().executeQuery(\"SELECT key FROM memory\").use { rs ->")
+            appendLine("                while (rs.next()) keys.add(rs.getString(\"key\"))")
+            appendLine("            }")
+            appendLine("        }")
+            appendLine("        return if (keys.isEmpty()) \"No keys stored\" else keys.joinToString(\"\\n\")")
+            appendLine("    }")
+            appendLine("}")
+        }
+    }
+
+    private fun generateTodo(): String {
+        return buildString {
+            appendLine("package generated.tools")
+            appendLine()
+            appendLine("import ai.koog.agents.core.tools.annotations.Tool")
+            appendLine("import ai.koog.agents.core.tools.annotations.LLMDescription")
+            appendLine("import ai.koog.agents.core.tools.reflect.ToolSet")
+            appendLine()
+            appendLine("""@LLMDescription("Task list management tools")""")
+            appendLine("class TodoToolSet : ToolSet {")
+            appendLine("    data class Task(val id: Int, val description: String, var completed: Boolean = false)")
+            appendLine("    private val tasks = mutableListOf<Task>()")
+            appendLine("    private var nextId = 1")
+            appendLine()
+            appendLine("    @Tool")
+            appendLine("""    @LLMDescription("Add a new task to the list")""")
+            appendLine("    fun addTask(")
+            appendLine("""        @LLMDescription("Task description") description: String""")
+            appendLine("    ): String {")
+            appendLine("        val task = Task(nextId++, description)")
+            appendLine("        tasks.add(task)")
+            appendLine("        return \"Added task #\" + task.id + \": \" + task.description")
+            appendLine("    }")
+            appendLine()
+            appendLine("    @Tool")
+            appendLine("""    @LLMDescription("Mark a task as completed")""")
+            appendLine("    fun completeTask(")
+            appendLine("""        @LLMDescription("Task ID") id: Int""")
+            appendLine("    ): String {")
+            appendLine("        val task = tasks.find { it.id == id } ?: return \"Task #\" + id + \" not found\"")
+            appendLine("        task.completed = true")
+            appendLine("        return \"Completed task #\" + id + \": \" + task.description")
+            appendLine("    }")
+            appendLine()
+            appendLine("    @Tool")
+            appendLine("""    @LLMDescription("List all tasks")""")
+            appendLine("    fun listTasks(): String {")
+            appendLine("        if (tasks.isEmpty()) return \"No tasks\"")
+            appendLine("        return tasks.joinToString(\"\\n\") { \"#\" + it.id + \" [\" + (if (it.completed) \"x\" else \" \") + \"] \" + it.description }")
+            appendLine("    }")
+            appendLine()
+            appendLine("    @Tool")
+            appendLine("""    @LLMDescription("Remove a task from the list")""")
+            appendLine("    fun removeTask(")
+            appendLine("""        @LLMDescription("Task ID") id: Int""")
+            appendLine("    ): String {")
+            appendLine("        val removed = tasks.removeIf { it.id == id }")
+            appendLine("        return if (removed) \"Removed task #\" + id else \"Task #\" + id + \" not found\"")
+            appendLine("    }")
+            appendLine("}")
+        }
+    }
 }
