@@ -78,6 +78,9 @@ export function Toolbar() {
           </div>
         )}
       </div>
+      <Button variant="outline" size="sm" onClick={() => addNode("sub-agent", { x: 200, y: 200 })}>
+        + Sub-Agent
+      </Button>
       <div className="flex-1" />
       <Button variant="outline" size="sm" onClick={handleValidate}>
         Validate
