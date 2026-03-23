@@ -7,7 +7,8 @@ data class KoogAgent(
     val modelId: String?,
     val temperature: Double?,
     val tools: List<KoogTool>,
-    val builtinTools: List<KoogBuiltinTool> = emptyList()
+    val builtinTools: List<KoogBuiltinTool> = emptyList(),
+    val subAgents: List<KoogSubAgent> = emptyList()
 )
 
 enum class ModelProvider(val importPackage: String, val executorFactory: String, val defaultModel: String) {
@@ -52,4 +53,17 @@ enum class BuiltinToolType {
 data class KoogBuiltinTool(
     val type: BuiltinToolType,
     val config: Map<String, Any?> = emptyMap()
+)
+
+data class KoogSubAgent(
+    val name: String,
+    val description: String,
+    val systemPrompt: String,
+    val modelProvider: ModelProvider,
+    val modelId: String?,
+    val temperature: Double?,
+    val delegationMode: String,
+    val inputDescription: String,
+    val tools: List<KoogTool>,
+    val builtinTools: List<KoogBuiltinTool>
 )
