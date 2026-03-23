@@ -2,12 +2,13 @@ package com.agentwork.modeler.export.generator
 
 import com.agentwork.modeler.export.model.BuiltinToolType
 import com.agentwork.modeler.export.model.KoogBuiltinTool
+import com.agentwork.modeler.export.model.KoogSubAgent
 import com.agentwork.modeler.export.model.KoogTool
 import org.springframework.stereotype.Component
 
 @Component
 class RegistryGenerator {
-    fun generate(tools: List<KoogTool>, builtinTools: List<KoogBuiltinTool> = emptyList()): String {
+    fun generate(tools: List<KoogTool>, builtinTools: List<KoogBuiltinTool> = emptyList(), subAgents: List<KoogSubAgent> = emptyList()): String {
         val hasUserPrompt = builtinTools.any { it.type == BuiltinToolType.USER_PROMPT }
         val hasFilesystem = builtinTools.any { it.type == BuiltinToolType.FILESYSTEM }
         val customBuiltins = builtinTools.filter {
@@ -31,6 +32,12 @@ class RegistryGenerator {
                 appendLine("import ai.koog.agents.ext.tool.file.WriteFileTool")
                 appendLine("import ai.koog.agents.ext.tool.file.ListDirectoryTool")
                 appendLine("import ai.koog.rag.base.files.JVMFileSystemProvider")
+            }
+            if (subAgents.isNotEmpty()) {
+                appendLine("import generated.subagents.*")
+                appendLine("import ai.koog.agents.core.agent.AIAgentService")
+                appendLine("import ai.koog.agents.core.agent.GraphAIAgent")
+                appendLine("import ai.koog.agents.core.agent.createAgentTool")
             }
             appendLine()
             appendLine("fun createToolRegistry(): ToolRegistry {")
@@ -82,6 +89,20 @@ class RegistryGenerator {
                 appendLine("        tool(ReadFileTool(JVMFileSystemProvider.ReadWrite))")
                 appendLine("        tool(WriteFileTool(JVMFileSystemProvider.ReadWrite))")
                 appendLine("        tool(ListDirectoryTool(JVMFileSystemProvider.ReadWrite))")
+            }
+
+            // Sub-agents as tools
+            for (sa in subAgents) {
+                val funcName = "create${sa.name.replaceFirstChar { it.uppercase() }}"
+                val desc = sa.description.replace("\"", "\\\"")
+                val inputDesc = sa.inputDescription.replace("\"", "\\\"")
+                appendLine("        tool(")
+                appendLine("            AIAgentService.fromAgent($funcName() as GraphAIAgent<String, String>).createAgentTool<String, String>(")
+                appendLine("                agentName = \"${sa.name}\",")
+                appendLine("                agentDescription = \"$desc\",")
+                appendLine("                inputDescription = \"$inputDesc\"")
+                appendLine("            )")
+                appendLine("        )")
             }
 
             appendLine("    }")
