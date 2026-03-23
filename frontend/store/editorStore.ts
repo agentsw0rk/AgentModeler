@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { GraphNode, GraphEdge, NodeType, BuiltinToolType, BuiltinToolConfig } from "@/types/graph";
 import { AgentConfig, ToolConfig } from "@/types/koog";
+import { SubAgentConfig } from "@/types/subagent";
 
 interface EditorState {
   nodes: GraphNode[];
@@ -10,7 +11,7 @@ interface EditorState {
 
   addNode: (type: NodeType, position: { x: number; y: number }, toolType?: BuiltinToolType) => void;
   removeNode: (id: string) => void;
-  updateNodeData: (id: string, data: Partial<AgentConfig | ToolConfig | BuiltinToolConfig>) => void;
+  updateNodeData: (id: string, data: Partial<AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig>) => void;
   updateNodePosition: (id: string, position: { x: number; y: number }) => void;
   addEdge: (source: string, target: string) => void;
   removeEdge: (id: string) => void;
@@ -29,6 +30,15 @@ const defaultToolData: ToolConfig = {
   name: "",
   description: "",
   parameters: [],
+};
+
+const defaultSubAgentData: SubAgentConfig = {
+  name: "",
+  description: "",
+  systemPrompt: "",
+  modelProvider: "openai",
+  delegationMode: "automatic",
+  inputDescription: "",
 };
 
 const builtinToolDefaults: Record<BuiltinToolType, BuiltinToolConfig> = {
@@ -51,9 +61,11 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   addNode: (type, position, toolType?) =>
     set((state) => {
-      let data: AgentConfig | ToolConfig | BuiltinToolConfig;
+      let data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig;
       if (type === "agent") {
         data = { ...defaultAgentData };
+      } else if (type === "sub-agent") {
+        data = { ...defaultSubAgentData };
       } else if (type === "builtin-tool" && toolType) {
         data = { ...builtinToolDefaults[toolType] };
       } else {
