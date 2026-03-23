@@ -1,4 +1,5 @@
 import { AgentConfig, ToolConfig } from "./koog";
+import { SubAgentConfig } from "./subagent";
 
 export type BuiltinToolType = "think" | "shell" | "filesystem" | "fetch" | "memory" | "todo" | "user_prompt";
 
@@ -22,13 +23,13 @@ export interface BuiltinToolConfig {
   path?: string;
 }
 
-export type NodeType = "agent" | "tool" | "builtin-tool";
+export type NodeType = "agent" | "tool" | "builtin-tool" | "sub-agent";
 
 export interface GraphNode {
   id: string;
   type: NodeType;
   position: { x: number; y: number };
-  data: AgentConfig | ToolConfig | BuiltinToolConfig;
+  data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig;
 }
 
 export interface GraphEdge {

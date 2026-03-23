@@ -22,3 +22,5 @@ export interface ToolConfig {
   parameters: ToolParameter[];
   handlerStubName?: string;
 }
+
+export type { SubAgentConfig, DelegationMode } from "./subagent";
