@@ -1,12 +1,34 @@
 import { AgentConfig, ToolConfig } from "./koog";
 
-export type NodeType = "agent" | "tool";
+export type BuiltinToolType = "think" | "shell" | "filesystem" | "fetch" | "memory" | "todo" | "user_prompt";
+
+export const BUILTIN_TOOL_TYPES: BuiltinToolType[] = ["think", "shell", "filesystem", "fetch", "memory", "todo", "user_prompt"];
+
+export const BUILTIN_TOOL_LABELS: Record<BuiltinToolType, string> = {
+  think: "Think",
+  shell: "Shell",
+  filesystem: "Filesystem",
+  fetch: "Fetch",
+  memory: "Memory",
+  todo: "Todo",
+  user_prompt: "User Prompt",
+};
+
+export interface BuiltinToolConfig {
+  toolType: BuiltinToolType;
+  workingDir?: string;
+  rootDir?: string;
+  baseUrl?: string;
+  path?: string;
+}
+
+export type NodeType = "agent" | "tool" | "builtin-tool";
 
 export interface GraphNode {
   id: string;
   type: NodeType;
   position: { x: number; y: number };
-  data: AgentConfig | ToolConfig;
+  data: AgentConfig | ToolConfig | BuiltinToolConfig;
 }
 
 export interface GraphEdge {
