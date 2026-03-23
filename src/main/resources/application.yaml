@@ -1,0 +1,16 @@
+spring:
+  ai:
+    openai:
+      api-key: x
+    model:
+      chat: openai
+  application:
+    name: modeler
+
+koog:
+  spring:
+    ai:
+      chat:
+        enabled: true
+        dispatcher:
+          type: AUTO

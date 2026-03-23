@@ -1,0 +1,3241 @@
+{
+	"id": 0,
+	"name": "rete-engine",
+	"variant": "project",
+	"kind": 1,
+	"flags": {},
+	"children": [
+		{
+			"id": 1,
+			"name": "Cancelled",
+			"variant": "declaration",
+			"kind": 128,
+			"flags": {},
+			"comment": {
+				"summary": [
+					{
+						"kind": "text",
+						"text": "Cancelled exception. Thrown when "
+					},
+					{
+						"kind": "code",
+						"text": "`reset`"
+					},
+					{
+						"kind": "text",
+						"text": " is called while fetching data."
+					}
+				]
+			},
+			"sources": [
+				{
+					"fileName": "src/utils/cancellable.ts",
+					"line": 4,
+					"character": 13,
+					"url": "https://github.com/retejs/engine/blob/06c5665/src/utils/cancellable.ts#L4"
+				}
+			],
+			"extendedTypes": [
+				{
+					"type": "reference",
+					"target": {
+						"sourceFileName": "node_modules/typescript/lib/lib.es5.d.ts",
+						"qualifiedName": "Error"
+					},
+					"name": "Error",
+					"package": "typescript"
+				}
+			]
+		},
+		{
+			"id": 22,
+			"name": "ControlFlow",
+			"variant": "declaration",
+			"kind": 128,
+			"flags": {},
+			"comment": {
+				"summary": [
+					{
+						"kind": "text",
+						"text": "ControlFlow is a class that allows to execute nodes in a graph using Control flow approach."
+					}
+				],
+				"blockTags": [
+					{
+						"tag": "@priority",
+						"content": [
+							{
+								"kind": "text",
+								"text": "7"
+							}
+						]
+					}
+				]
+			},
+			"children": [
+				{
+					"id": 23,
+					"name": "constructor",
+					"variant": "declaration",
+					"kind": 512,
+					"flags": {},
+					"sources": [
+						{
+							"fileName": "src/control-flow.ts",
+							"line": 27,
+							"character": 2,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L27"
+						}
+					],
+					"signatures": [
+						{
+							"id": 24,
+							"name": "new ControlFlow",
+							"variant": "signature",
+							"kind": 16384,
+							"flags": {},
+							"sources": [
+								{
+									"fileName": "src/control-flow.ts",
+									"line": 27,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L27"
+								}
+							],
+							"typeParameter": [
+								{
+									"id": 25,
+									"name": "Schemes",
+									"variant": "typeParam",
+									"kind": 131072,
+									"flags": {},
+									"type": {
+										"type": "reference",
+										"target": {
+											"sourceFileName": "src/types.ts",
+											"qualifiedName": "ClassicScheme"
+										},
+										"name": "ClassicScheme",
+										"package": "rete-engine"
+									}
+								}
+							],
+							"parameters": [
+								{
+									"id": 26,
+									"name": "editor",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "NodeEditor instance"
+											}
+										]
+									},
+									"type": {
+										"type": "reference",
+										"target": {
+											"sourceFileName": "node_modules/src/editor.ts",
+											"qualifiedName": "NodeEditor"
+										},
+										"typeArguments": [
+											{
+												"type": "reference",
+												"target": -1,
+												"name": "Schemes",
+												"refersToTypeParameter": true
+											}
+										],
+										"name": "NodeEditor",
+										"package": "rete"
+									}
+								}
+							],
+							"type": {
+								"type": "reference",
+								"target": 22,
+								"typeArguments": [
+									{
+										"type": "reference",
+										"target": -1,
+										"name": "Schemes",
+										"refersToTypeParameter": true
+									}
+								],
+								"name": "ControlFlow",
+								"package": "rete-engine"
+							}
+						}
+					]
+				},
+				{
+					"id": 29,
+					"name": "add",
+					"variant": "declaration",
+					"kind": 2048,
+					"flags": {
+						"isPublic": true
+					},
+					"sources": [
+						{
+							"fileName": "src/control-flow.ts",
+							"line": 34,
+							"character": 9,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L34"
+						}
+					],
+					"signatures": [
+						{
+							"id": 30,
+							"name": "add",
+							"variant": "signature",
+							"kind": 4096,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Adds the node to the control flow."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "src/control-flow.ts",
+									"line": 34,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L34"
+								}
+							],
+							"typeParameter": [
+								{
+									"id": 31,
+									"name": "T",
+									"variant": "typeParam",
+									"kind": 131072,
+									"flags": {},
+									"type": {
+										"type": "reference",
+										"target": {
+											"sourceFileName": "node_modules/src/presets/classic.ts",
+											"qualifiedName": "Node"
+										},
+										"typeArguments": [
+											{
+												"type": "reflection",
+												"declaration": {
+													"id": 32,
+													"name": "__type",
+													"variant": "declaration",
+													"kind": 65536,
+													"flags": {},
+													"sources": [
+														{
+															"fileName": "node_modules/rete/_types/presets/classic.d.ts",
+															"line": 75,
+															"character": 4
+														}
+													]
+												}
+											},
+											{
+												"type": "reflection",
+												"declaration": {
+													"id": 33,
+													"name": "__type",
+													"variant": "declaration",
+													"kind": 65536,
+													"flags": {},
+													"sources": [
+														{
+															"fileName": "node_modules/rete/_types/presets/classic.d.ts",
+															"line": 79,
+															"character": 4
+														}
+													]
+												}
+											},
+											{
+												"type": "reflection",
+												"declaration": {
+													"id": 34,
+													"name": "__type",
+													"variant": "declaration",
+													"kind": 65536,
+													"flags": {},
+													"sources": [
+														{
+															"fileName": "node_modules/rete/_types/presets/classic.d.ts",
+															"line": 83,
+															"character": 4
+														}
+													]
+												}
+											},
+											{
+												"type": "reference",
+												"target": -1,
+												"name": "T",
+												"refersToTypeParameter": true
+											}
+										],
+										"name": "Node",
+										"package": "rete"
+									}
+								}
+							],
+							"parameters": [
+								{
+									"id": 35,
+									"name": "node",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Node instance"
+											}
+										]
+									},
+									"type": {
+										"type": "reference",
+										"target": -1,
+										"name": "T",
+										"refersToTypeParameter": true
+									}
+								},
+								{
+									"id": 36,
+									"name": "setup",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Set of functions that define how to execute the node"
+											}
+										]
+									},
+									"type": {
+										"type": "reference",
+										"target": 4,
+										"typeArguments": [
+											{
+												"type": "reference",
+												"target": -1,
+												"name": "T",
+												"refersToTypeParameter": true
+											},
+											{
+												"type": "array",
+												"elementType": {
+													"type": "typeOperator",
+													"operator": "keyof",
+													"target": {
+														"type": "indexedAccess",
+														"indexType": {
+															"type": "literal",
+															"value": "inputs"
+														},
+														"objectType": {
+															"type": "reference",
+															"target": -1,
+															"name": "T",
+															"refersToTypeParameter": true
+														}
+													}
+												}
+											},
+											{
+												"type": "array",
+												"elementType": {
+													"type": "typeOperator",
+													"operator": "keyof",
+													"target": {
+														"type": "indexedAccess",
+														"indexType": {
+															"type": "literal",
+															"value": "outputs"
+														},
+														"objectType": {
+															"type": "reference",
+															"target": -1,
+															"name": "T",
+															"refersToTypeParameter": true
+														}
+													}
+												}
+											}
+										],
+										"name": "ControlFlowNodeSetup",
+										"package": "rete-engine"
+									}
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 40,
+					"name": "execute",
+					"variant": "declaration",
+					"kind": 2048,
+					"flags": {
+						"isPublic": true
+					},
+					"sources": [
+						{
+							"fileName": "src/control-flow.ts",
+							"line": 56,
+							"character": 9,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L56"
+						}
+					],
+					"signatures": [
+						{
+							"id": 41,
+							"name": "execute",
+							"variant": "signature",
+							"kind": 4096,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Execute the node and its successors (in case "
+									},
+									{
+										"kind": "code",
+										"text": "`forward`"
+									},
+									{
+										"kind": "text",
+										"text": " is called for some output)."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "src/control-flow.ts",
+									"line": 56,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L56"
+								}
+							],
+							"parameters": [
+								{
+									"id": 42,
+									"name": "nodeId",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Node id"
+											}
+										]
+									},
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									}
+								},
+								{
+									"id": 43,
+									"name": "input",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {
+										"isOptional": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Input key that will be considered as the initiator of the execution"
+											}
+										]
+									},
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 37,
+					"name": "remove",
+					"variant": "declaration",
+					"kind": 2048,
+					"flags": {
+						"isPublic": true
+					},
+					"sources": [
+						{
+							"fileName": "src/control-flow.ts",
+							"line": 47,
+							"character": 9,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L47"
+						}
+					],
+					"signatures": [
+						{
+							"id": 38,
+							"name": "remove",
+							"variant": "signature",
+							"kind": 4096,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Removes the node from the control flow."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "src/control-flow.ts",
+									"line": 47,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L47"
+								}
+							],
+							"parameters": [
+								{
+									"id": 39,
+									"name": "nodeId",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Node id"
+											}
+										]
+									},
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "void"
+							}
+						}
+					]
+				}
+			],
+			"groups": [
+				{
+					"title": "Constructors",
+					"children": [
+						23
+					]
+				},
+				{
+					"title": "Methods",
+					"children": [
+						29,
+						40,
+						37
+					]
+				}
+			],
+			"sources": [
+				{
+					"fileName": "src/control-flow.ts",
+					"line": 21,
+					"character": 13,
+					"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L21"
+				}
+			],
+			"typeParameters": [
+				{
+					"id": 44,
+					"name": "Schemes",
+					"variant": "typeParam",
+					"kind": 131072,
+					"flags": {},
+					"type": {
+						"type": "reference",
+						"target": {
+							"sourceFileName": "src/types.ts",
+							"qualifiedName": "ClassicScheme"
+						},
+						"name": "ClassicScheme",
+						"package": "rete-engine"
+					}
+				}
+			]
+		},
+		{
+			"id": 54,
+			"name": "ControlFlowEngine",
+			"variant": "declaration",
+			"kind": 128,
+			"flags": {},
+			"comment": {
+				"summary": [
+					{
+						"kind": "text",
+						"text": "ControlFlowEngine is a plugin that integrates ControlFlow with NodeEditor making it easy to use"
+					}
+				],
+				"blockTags": [
+					{
+						"tag": "@priority",
+						"content": [
+							{
+								"kind": "text",
+								"text": "9"
+							}
+						]
+					},
+					{
+						"tag": "@listens",
+						"content": [
+							{
+								"kind": "text",
+								"text": "nodecreated"
+							}
+						]
+					},
+					{
+						"tag": "@listens",
+						"content": [
+							{
+								"kind": "text",
+								"text": "noderemoved"
+							}
+						]
+					}
+				]
+			},
+			"children": [
+				{
+					"id": 55,
+					"name": "constructor",
+					"variant": "declaration",
+					"kind": 512,
+					"flags": {},
+					"sources": [
+						{
+							"fileName": "src/control-flow-engine.ts",
+							"line": 29,
+							"character": 2,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow-engine.ts#L29"
+						}
+					],
+					"signatures": [
+						{
+							"id": 56,
+							"name": "new ControlFlowEngine",
+							"variant": "signature",
+							"kind": 16384,
+							"flags": {},
+							"sources": [
+								{
+									"fileName": "src/control-flow-engine.ts",
+									"line": 29,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow-engine.ts#L29"
+								}
+							],
+							"typeParameter": [
+								{
+									"id": 57,
+									"name": "Schemes",
+									"variant": "typeParam",
+									"kind": 131072,
+									"flags": {},
+									"type": {
+										"type": "reference",
+										"target": {
+											"sourceFileName": "src/control-flow-engine.ts",
+											"qualifiedName": "ControlFlowEngineScheme"
+										},
+										"name": "ControlFlowEngineScheme",
+										"package": "rete-engine"
+									}
+								}
+							],
+							"parameters": [
+								{
+									"id": 58,
+									"name": "configure",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {
+										"isOptional": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Allows to specify which inputs and outputs are part of the control flow"
+											}
+										]
+									},
+									"type": {
+										"type": "reference",
+										"target": {
+											"sourceFileName": "src/control-flow-engine.ts",
+											"qualifiedName": "Configure"
+										},
+										"typeArguments": [
+											{
+												"type": "reference",
+												"target": -1,
+												"name": "Schemes",
+												"refersToTypeParameter": true
+											}
+										],
+										"name": "Configure",
+										"package": "rete-engine"
+									}
+								}
+							],
+							"type": {
+								"type": "reference",
+								"target": 54,
+								"typeArguments": [
+									{
+										"type": "reference",
+										"target": -1,
+										"name": "Schemes",
+										"refersToTypeParameter": true
+									}
+								],
+								"name": "ControlFlowEngine",
+								"package": "rete-engine"
+							},
+							"overwrites": {
+								"type": "reference",
+								"target": -1,
+								"name": "Scope<never, [Root<Schemes>]>.constructor"
+							}
+						}
+					],
+					"overwrites": {
+						"type": "reference",
+						"target": -1,
+						"name": "Scope<never, [Root<Schemes>]>.constructor"
+					}
+				},
+				{
+					"id": 71,
+					"name": "execute",
+					"variant": "declaration",
+					"kind": 2048,
+					"flags": {
+						"isPublic": true
+					},
+					"sources": [
+						{
+							"fileName": "src/control-flow-engine.ts",
+							"line": 73,
+							"character": 9,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow-engine.ts#L73"
+						}
+					],
+					"signatures": [
+						{
+							"id": 72,
+							"name": "execute",
+							"variant": "signature",
+							"kind": 4096,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Trigger execution starting from the specified node."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "src/control-flow-engine.ts",
+									"line": 73,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow-engine.ts#L73"
+								}
+							],
+							"parameters": [
+								{
+									"id": 73,
+									"name": "nodeId",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Node id"
+											}
+										]
+									},
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									}
+								},
+								{
+									"id": 74,
+									"name": "input",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {
+										"isOptional": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Input key that will be considered as the initiator of the execution"
+											}
+										]
+									},
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "void"
+							}
+						}
+					]
+				}
+			],
+			"groups": [
+				{
+					"title": "Constructors",
+					"children": [
+						55
+					]
+				},
+				{
+					"title": "Methods",
+					"children": [
+						71
+					]
+				}
+			],
+			"sources": [
+				{
+					"fileName": "src/control-flow-engine.ts",
+					"line": 22,
+					"character": 13,
+					"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow-engine.ts#L22"
+				}
+			],
+			"typeParameters": [
+				{
+					"id": 75,
+					"name": "Schemes",
+					"variant": "typeParam",
+					"kind": 131072,
+					"flags": {},
+					"type": {
+						"type": "reference",
+						"target": {
+							"sourceFileName": "src/control-flow-engine.ts",
+							"qualifiedName": "ControlFlowEngineScheme"
+						},
+						"name": "ControlFlowEngineScheme",
+						"package": "rete-engine"
+					}
+				}
+			],
+			"extendedTypes": [
+				{
+					"type": "reference",
+					"target": {
+						"sourceFileName": "node_modules/src/scope.ts",
+						"qualifiedName": "Scope"
+					},
+					"typeArguments": [
+						{
+							"type": "intrinsic",
+							"name": "never"
+						},
+						{
+							"type": "tuple",
+							"elements": [
+								{
+									"type": "reference",
+									"target": {
+										"sourceFileName": "node_modules/src/editor.ts",
+										"qualifiedName": "Root"
+									},
+									"typeArguments": [
+										{
+											"type": "reference",
+											"target": -1,
+											"name": "Schemes",
+											"refersToTypeParameter": true
+										}
+									],
+									"name": "Root",
+									"package": "rete"
+								}
+							]
+						}
+					],
+					"name": "Scope",
+					"package": "rete"
+				}
+			]
+		},
+		{
+			"id": 92,
+			"name": "Dataflow",
+			"variant": "declaration",
+			"kind": 128,
+			"flags": {},
+			"comment": {
+				"summary": [
+					{
+						"kind": "text",
+						"text": "Dataflow is a class that allows to process nodes in a graph using Dataflow approach."
+					}
+				],
+				"blockTags": [
+					{
+						"tag": "@priority",
+						"content": [
+							{
+								"kind": "text",
+								"text": "8"
+							}
+						]
+					}
+				]
+			},
+			"children": [
+				{
+					"id": 93,
+					"name": "constructor",
+					"variant": "declaration",
+					"kind": 512,
+					"flags": {},
+					"sources": [
+						{
+							"fileName": "src/dataflow.ts",
+							"line": 28,
+							"character": 2,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L28"
+						}
+					],
+					"signatures": [
+						{
+							"id": 94,
+							"name": "new Dataflow",
+							"variant": "signature",
+							"kind": 16384,
+							"flags": {},
+							"sources": [
+								{
+									"fileName": "src/dataflow.ts",
+									"line": 28,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L28"
+								}
+							],
+							"typeParameter": [
+								{
+									"id": 95,
+									"name": "Schemes",
+									"variant": "typeParam",
+									"kind": 131072,
+									"flags": {},
+									"type": {
+										"type": "reference",
+										"target": {
+											"sourceFileName": "src/types.ts",
+											"qualifiedName": "ClassicScheme"
+										},
+										"name": "ClassicScheme",
+										"package": "rete-engine"
+									}
+								}
+							],
+							"parameters": [
+								{
+									"id": 96,
+									"name": "editor",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "NodeEditor instance"
+											}
+										]
+									},
+									"type": {
+										"type": "reference",
+										"target": {
+											"sourceFileName": "node_modules/src/editor.ts",
+											"qualifiedName": "NodeEditor"
+										},
+										"typeArguments": [
+											{
+												"type": "reference",
+												"target": -1,
+												"name": "Schemes",
+												"refersToTypeParameter": true
+											}
+										],
+										"name": "NodeEditor",
+										"package": "rete"
+									}
+								}
+							],
+							"type": {
+								"type": "reference",
+								"target": 92,
+								"typeArguments": [
+									{
+										"type": "reference",
+										"target": -1,
+										"name": "Schemes",
+										"refersToTypeParameter": true
+									}
+								],
+								"name": "Dataflow",
+								"package": "rete-engine"
+							}
+						}
+					]
+				},
+				{
+					"id": 99,
+					"name": "add",
+					"variant": "declaration",
+					"kind": 2048,
+					"flags": {
+						"isPublic": true
+					},
+					"sources": [
+						{
+							"fileName": "src/dataflow.ts",
+							"line": 35,
+							"character": 9,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L35"
+						}
+					],
+					"signatures": [
+						{
+							"id": 100,
+							"name": "add",
+							"variant": "signature",
+							"kind": 4096,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Adds the node to the dataflow."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "src/dataflow.ts",
+									"line": 35,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L35"
+								}
+							],
+							"typeParameter": [
+								{
+									"id": 101,
+									"name": "T",
+									"variant": "typeParam",
+									"kind": 131072,
+									"flags": {},
+									"type": {
+										"type": "reference",
+										"target": {
+											"sourceFileName": "node_modules/src/presets/classic.ts",
+											"qualifiedName": "Node"
+										},
+										"typeArguments": [
+											{
+												"type": "reflection",
+												"declaration": {
+													"id": 102,
+													"name": "__type",
+													"variant": "declaration",
+													"kind": 65536,
+													"flags": {},
+													"sources": [
+														{
+															"fileName": "node_modules/rete/_types/presets/classic.d.ts",
+															"line": 75,
+															"character": 4
+														}
+													]
+												}
+											},
+											{
+												"type": "reflection",
+												"declaration": {
+													"id": 103,
+													"name": "__type",
+													"variant": "declaration",
+													"kind": 65536,
+													"flags": {},
+													"sources": [
+														{
+															"fileName": "node_modules/rete/_types/presets/classic.d.ts",
+															"line": 79,
+															"character": 4
+														}
+													]
+												}
+											},
+											{
+												"type": "reflection",
+												"declaration": {
+													"id": 104,
+													"name": "__type",
+													"variant": "declaration",
+													"kind": 65536,
+													"flags": {},
+													"sources": [
+														{
+															"fileName": "node_modules/rete/_types/presets/classic.d.ts",
+															"line": 83,
+															"character": 4
+														}
+													]
+												}
+											},
+											{
+												"type": "reference",
+												"target": -1,
+												"name": "T",
+												"refersToTypeParameter": true
+											}
+										],
+										"name": "Node",
+										"package": "rete"
+									}
+								}
+							],
+							"parameters": [
+								{
+									"id": 105,
+									"name": "node",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Node instance"
+											}
+										]
+									},
+									"type": {
+										"type": "reference",
+										"target": -1,
+										"name": "T",
+										"refersToTypeParameter": true
+									}
+								},
+								{
+									"id": 106,
+									"name": "setup",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Set of functions that define how to process the node"
+											}
+										]
+									},
+									"type": {
+										"type": "reference",
+										"target": 76,
+										"typeArguments": [
+											{
+												"type": "reference",
+												"target": -1,
+												"name": "T",
+												"refersToTypeParameter": true
+											},
+											{
+												"type": "intrinsic",
+												"name": "any"
+											},
+											{
+												"type": "intrinsic",
+												"name": "any"
+											}
+										],
+										"name": "DataflowNodeSetup",
+										"package": "rete-engine"
+									}
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "void"
+							}
+						}
+					]
+				},
+				{
+					"id": 113,
+					"name": "fetch",
+					"variant": "declaration",
+					"kind": 2048,
+					"flags": {
+						"isPublic": true
+					},
+					"sources": [
+						{
+							"fileName": "src/dataflow.ts",
+							"line": 92,
+							"character": 15,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L92"
+						}
+					],
+					"signatures": [
+						{
+							"id": 114,
+							"name": "fetch",
+							"variant": "signature",
+							"kind": 4096,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Fetches outputs of the node.\nThis method recursively calls "
+									},
+									{
+										"kind": "code",
+										"text": "`data`"
+									},
+									{
+										"kind": "text",
+										"text": " function of the predecessor nodes until receives all of the required inputs and calls "
+									},
+									{
+										"kind": "code",
+										"text": "`data`"
+									},
+									{
+										"kind": "text",
+										"text": " function of the specified node."
+									}
+								],
+								"blockTags": [
+									{
+										"tag": "@returns",
+										"content": [
+											{
+												"kind": "text",
+												"text": "Object with outputs"
+											}
+										]
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "src/dataflow.ts",
+									"line": 92,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L92"
+								}
+							],
+							"parameters": [
+								{
+									"id": 115,
+									"name": "nodeId",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Node id"
+											}
+										]
+									},
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "reference",
+								"target": {
+									"sourceFileName": "node_modules/typescript/lib/lib.es5.d.ts",
+									"qualifiedName": "Promise"
+								},
+								"typeArguments": [
+									{
+										"type": "reference",
+										"target": {
+											"sourceFileName": "node_modules/typescript/lib/lib.es5.d.ts",
+											"qualifiedName": "Record"
+										},
+										"typeArguments": [
+											{
+												"type": "intrinsic",
+												"name": "string"
+											},
+											{
+												"type": "intrinsic",
+												"name": "any"
+											}
+										],
+										"name": "Record",
+										"package": "typescript"
+									}
+								],
+								"name": "Promise",
+								"package": "typescript"
+							}
+						}
+					]
+				},
+				{
+					"id": 110,
+					"name": "fetchInputs",
+					"variant": "declaration",
+					"kind": 2048,
+					"flags": {
+						"isPublic": true
+					},
+					"sources": [
+						{
+							"fileName": "src/dataflow.ts",
+							"line": 58,
+							"character": 15,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L58"
+						}
+					],
+					"signatures": [
+						{
+							"id": 111,
+							"name": "fetchInputs",
+							"variant": "signature",
+							"kind": 4096,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Fetches inputs of the node.\nUnlike "
+									},
+									{
+										"kind": "code",
+										"text": "`fetch`"
+									},
+									{
+										"kind": "text",
+										"text": " method, this method doesn't call "
+									},
+									{
+										"kind": "code",
+										"text": "`data`"
+									},
+									{
+										"kind": "text",
+										"text": " function of the specified node (but does call "
+									},
+									{
+										"kind": "code",
+										"text": "`data`"
+									},
+									{
+										"kind": "text",
+										"text": " for predecessor nodes recursively)."
+									}
+								],
+								"blockTags": [
+									{
+										"tag": "@returns",
+										"content": [
+											{
+												"kind": "text",
+												"text": "Object with inputs"
+											}
+										]
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "src/dataflow.ts",
+									"line": 58,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L58"
+								}
+							],
+							"parameters": [
+								{
+									"id": 112,
+									"name": "nodeId",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Node id"
+											}
+										]
+									},
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "reference",
+								"target": {
+									"sourceFileName": "node_modules/typescript/lib/lib.es5.d.ts",
+									"qualifiedName": "Promise"
+								},
+								"typeArguments": [
+									{
+										"type": "reference",
+										"target": {
+											"sourceFileName": "node_modules/typescript/lib/lib.es5.d.ts",
+											"qualifiedName": "Record"
+										},
+										"typeArguments": [
+											{
+												"type": "intrinsic",
+												"name": "string"
+											},
+											{
+												"type": "intrinsic",
+												"name": "any"
+											}
+										],
+										"name": "Record",
+										"package": "typescript"
+									}
+								],
+								"name": "Promise",
+								"package": "typescript"
+							}
+						}
+					]
+				},
+				{
+					"id": 107,
+					"name": "remove",
+					"variant": "declaration",
+					"kind": 2048,
+					"flags": {
+						"isPublic": true
+					},
+					"sources": [
+						{
+							"fileName": "src/dataflow.ts",
+							"line": 48,
+							"character": 9,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L48"
+						}
+					],
+					"signatures": [
+						{
+							"id": 108,
+							"name": "remove",
+							"variant": "signature",
+							"kind": 4096,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Removes the node from the dataflow."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "src/dataflow.ts",
+									"line": 48,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L48"
+								}
+							],
+							"parameters": [
+								{
+									"id": 109,
+									"name": "nodeId",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Node id"
+											}
+										]
+									},
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "void"
+							}
+						}
+					]
+				}
+			],
+			"groups": [
+				{
+					"title": "Constructors",
+					"children": [
+						93
+					]
+				},
+				{
+					"title": "Methods",
+					"children": [
+						99,
+						113,
+						110,
+						107
+					]
+				}
+			],
+			"sources": [
+				{
+					"fileName": "src/dataflow.ts",
+					"line": 22,
+					"character": 13,
+					"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L22"
+				}
+			],
+			"typeParameters": [
+				{
+					"id": 116,
+					"name": "Schemes",
+					"variant": "typeParam",
+					"kind": 131072,
+					"flags": {},
+					"type": {
+						"type": "reference",
+						"target": {
+							"sourceFileName": "src/types.ts",
+							"qualifiedName": "ClassicScheme"
+						},
+						"name": "ClassicScheme",
+						"package": "rete-engine"
+					}
+				}
+			]
+		},
+		{
+			"id": 123,
+			"name": "DataflowEngine",
+			"variant": "declaration",
+			"kind": 128,
+			"flags": {},
+			"comment": {
+				"summary": [
+					{
+						"kind": "text",
+						"text": "DataflowEngine is a plugin that integrates Dataflow with NodeEditor making it easy to use.\nAdditionally, it provides a cache for the data of each node in order to avoid recurring calculations."
+					}
+				],
+				"blockTags": [
+					{
+						"tag": "@priority",
+						"content": [
+							{
+								"kind": "text",
+								"text": "10"
+							}
+						]
+					},
+					{
+						"tag": "@listens",
+						"content": [
+							{
+								"kind": "text",
+								"text": "nodecreated"
+							}
+						]
+					},
+					{
+						"tag": "@listens",
+						"content": [
+							{
+								"kind": "text",
+								"text": "noderemoved"
+							}
+						]
+					}
+				]
+			},
+			"children": [
+				{
+					"id": 149,
+					"name": "fetch",
+					"variant": "declaration",
+					"kind": 2048,
+					"flags": {
+						"isPublic": true
+					},
+					"sources": [
+						{
+							"fileName": "src/dataflow-engine.ts",
+							"line": 121,
+							"character": 15,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow-engine.ts#L121"
+						}
+					],
+					"signatures": [
+						{
+							"id": 150,
+							"name": "fetch",
+							"variant": "signature",
+							"kind": 4096,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Fetches output data of the node"
+									}
+								],
+								"blockTags": [
+									{
+										"tag": "@throws",
+										"content": [
+											{
+												"kind": "code",
+												"text": "`Cancelled`"
+											},
+											{
+												"kind": "text",
+												"text": " when "
+											},
+											{
+												"kind": "code",
+												"text": "`reset`"
+											},
+											{
+												"kind": "text",
+												"text": " is called while fetching data"
+											}
+										]
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "src/dataflow-engine.ts",
+									"line": 121,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow-engine.ts#L121"
+								}
+							],
+							"parameters": [
+								{
+									"id": 151,
+									"name": "nodeId",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Node id to fetch data from"
+											}
+										]
+									},
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "reference",
+								"target": {
+									"sourceFileName": "node_modules/typescript/lib/lib.es5.d.ts",
+									"qualifiedName": "Promise"
+								},
+								"typeArguments": [
+									{
+										"type": "reference",
+										"target": {
+											"sourceFileName": "node_modules/typescript/lib/lib.es5.d.ts",
+											"qualifiedName": "Record"
+										},
+										"typeArguments": [
+											{
+												"type": "intrinsic",
+												"name": "string"
+											},
+											{
+												"type": "intrinsic",
+												"name": "any"
+											}
+										],
+										"name": "Record",
+										"package": "typescript"
+									}
+								],
+								"name": "Promise",
+								"package": "typescript"
+							}
+						}
+					]
+				},
+				{
+					"id": 146,
+					"name": "fetchInputs",
+					"variant": "declaration",
+					"kind": 2048,
+					"flags": {
+						"isPublic": true
+					},
+					"sources": [
+						{
+							"fileName": "src/dataflow-engine.ts",
+							"line": 112,
+							"character": 15,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow-engine.ts#L112"
+						}
+					],
+					"signatures": [
+						{
+							"id": 147,
+							"name": "fetchInputs",
+							"variant": "signature",
+							"kind": 4096,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Fetches input data for the node by fetching data for all its predecessors recursively."
+									}
+								],
+								"blockTags": [
+									{
+										"tag": "@throws",
+										"content": [
+											{
+												"kind": "code",
+												"text": "`Cancelled when `"
+											},
+											{
+												"kind": "text",
+												"text": "reset` is called while fetching data"
+											}
+										]
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "src/dataflow-engine.ts",
+									"line": 112,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow-engine.ts#L112"
+								}
+							],
+							"parameters": [
+								{
+									"id": 148,
+									"name": "nodeId",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Node id to fetch input data for"
+											}
+										]
+									},
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "reference",
+								"target": {
+									"sourceFileName": "node_modules/typescript/lib/lib.es5.d.ts",
+									"qualifiedName": "Promise"
+								},
+								"typeArguments": [
+									{
+										"type": "reference",
+										"target": {
+											"sourceFileName": "node_modules/typescript/lib/lib.es5.d.ts",
+											"qualifiedName": "Record"
+										},
+										"typeArguments": [
+											{
+												"type": "intrinsic",
+												"name": "string"
+											},
+											{
+												"type": "intrinsic",
+												"name": "any"
+											}
+										],
+										"name": "Record",
+										"package": "typescript"
+									}
+								],
+								"name": "Promise",
+								"package": "typescript"
+							}
+						}
+					]
+				},
+				{
+					"id": 143,
+					"name": "reset",
+					"variant": "declaration",
+					"kind": 2048,
+					"flags": {
+						"isPublic": true
+					},
+					"sources": [
+						{
+							"fileName": "src/dataflow-engine.ts",
+							"line": 90,
+							"character": 9,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow-engine.ts#L90"
+						}
+					],
+					"signatures": [
+						{
+							"id": 144,
+							"name": "reset",
+							"variant": "signature",
+							"kind": 4096,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Resets the cache of the node and all its predecessors."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "src/dataflow-engine.ts",
+									"line": 90,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow-engine.ts#L90"
+								}
+							],
+							"parameters": [
+								{
+									"id": 145,
+									"name": "nodeId",
+									"variant": "param",
+									"kind": 32768,
+									"flags": {
+										"isOptional": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Node id to reset. If not specified, all nodes will be reset."
+											}
+										]
+									},
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									}
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "void"
+							}
+						}
+					]
+				}
+			],
+			"groups": [
+				{
+					"title": "Methods",
+					"children": [
+						149,
+						146,
+						143
+					]
+				}
+			],
+			"sources": [
+				{
+					"fileName": "src/dataflow-engine.ts",
+					"line": 26,
+					"character": 13,
+					"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow-engine.ts#L26"
+				}
+			],
+			"typeParameters": [
+				{
+					"id": 152,
+					"name": "Schemes",
+					"variant": "typeParam",
+					"kind": 131072,
+					"flags": {},
+					"type": {
+						"type": "reference",
+						"target": {
+							"sourceFileName": "src/dataflow-engine.ts",
+							"qualifiedName": "DataflowEngineScheme"
+						},
+						"name": "DataflowEngineScheme",
+						"package": "rete-engine"
+					}
+				}
+			],
+			"extendedTypes": [
+				{
+					"type": "reference",
+					"target": {
+						"sourceFileName": "node_modules/src/scope.ts",
+						"qualifiedName": "Scope"
+					},
+					"typeArguments": [
+						{
+							"type": "intrinsic",
+							"name": "never"
+						},
+						{
+							"type": "tuple",
+							"elements": [
+								{
+									"type": "reference",
+									"target": {
+										"sourceFileName": "node_modules/src/editor.ts",
+										"qualifiedName": "Root"
+									},
+									"typeArguments": [
+										{
+											"type": "reference",
+											"target": -1,
+											"name": "Schemes",
+											"refersToTypeParameter": true
+										}
+									],
+									"name": "Root",
+									"package": "rete"
+								}
+							]
+						}
+					],
+					"name": "Scope",
+					"package": "rete"
+				}
+			]
+		},
+		{
+			"id": 4,
+			"name": "ControlFlowNodeSetup",
+			"variant": "declaration",
+			"kind": 4194304,
+			"flags": {},
+			"comment": {
+				"summary": [
+					{
+						"kind": "text",
+						"text": "ControlFlowNodeSetup is a set of functions that define how to execute a node."
+					}
+				]
+			},
+			"sources": [
+				{
+					"fileName": "src/control-flow.ts",
+					"line": 8,
+					"character": 12,
+					"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L8"
+				}
+			],
+			"typeParameters": [
+				{
+					"id": 19,
+					"name": "T",
+					"variant": "typeParam",
+					"kind": 131072,
+					"flags": {},
+					"type": {
+						"type": "indexedAccess",
+						"indexType": {
+							"type": "literal",
+							"value": "Node"
+						},
+						"objectType": {
+							"type": "reference",
+							"target": {
+								"sourceFileName": "src/types.ts",
+								"qualifiedName": "ClassicScheme"
+							},
+							"name": "ClassicScheme",
+							"package": "rete-engine"
+						}
+					}
+				},
+				{
+					"id": 20,
+					"name": "I",
+					"variant": "typeParam",
+					"kind": 131072,
+					"flags": {},
+					"type": {
+						"type": "array",
+						"elementType": {
+							"type": "typeOperator",
+							"operator": "keyof",
+							"target": {
+								"type": "indexedAccess",
+								"indexType": {
+									"type": "literal",
+									"value": "inputs"
+								},
+								"objectType": {
+									"type": "reference",
+									"target": -1,
+									"name": "T",
+									"refersToTypeParameter": true
+								}
+							}
+						}
+					},
+					"default": {
+						"type": "array",
+						"elementType": {
+							"type": "intrinsic",
+							"name": "string"
+						}
+					}
+				},
+				{
+					"id": 21,
+					"name": "O",
+					"variant": "typeParam",
+					"kind": 131072,
+					"flags": {},
+					"type": {
+						"type": "array",
+						"elementType": {
+							"type": "typeOperator",
+							"operator": "keyof",
+							"target": {
+								"type": "indexedAccess",
+								"indexType": {
+									"type": "literal",
+									"value": "outputs"
+								},
+								"objectType": {
+									"type": "reference",
+									"target": -1,
+									"name": "T",
+									"refersToTypeParameter": true
+								}
+							}
+						}
+					},
+					"default": {
+						"type": "array",
+						"elementType": {
+							"type": "intrinsic",
+							"name": "string"
+						}
+					}
+				}
+			],
+			"type": {
+				"type": "reflection",
+				"declaration": {
+					"id": 5,
+					"name": "__type",
+					"variant": "declaration",
+					"kind": 65536,
+					"flags": {},
+					"children": [
+						{
+							"id": 6,
+							"name": "inputs",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"sources": [
+								{
+									"fileName": "src/control-flow.ts",
+									"line": 10,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L10"
+								}
+							],
+							"type": {
+								"type": "reflection",
+								"declaration": {
+									"id": 7,
+									"name": "__type",
+									"variant": "declaration",
+									"kind": 65536,
+									"flags": {},
+									"sources": [
+										{
+											"fileName": "src/control-flow.ts",
+											"line": 10,
+											"character": 10,
+											"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L10"
+										}
+									],
+									"signatures": [
+										{
+											"id": 8,
+											"name": "__type",
+											"variant": "signature",
+											"kind": 4096,
+											"flags": {},
+											"comment": {
+												"summary": [
+													{
+														"kind": "text",
+														"text": "Specifies the inputs which are part of the control flow"
+													}
+												]
+											},
+											"type": {
+												"type": "reference",
+												"target": -1,
+												"name": "I",
+												"refersToTypeParameter": true
+											}
+										}
+									]
+								}
+							}
+						},
+						{
+							"id": 9,
+							"name": "outputs",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"sources": [
+								{
+									"fileName": "src/control-flow.ts",
+									"line": 12,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L12"
+								}
+							],
+							"type": {
+								"type": "reflection",
+								"declaration": {
+									"id": 10,
+									"name": "__type",
+									"variant": "declaration",
+									"kind": 65536,
+									"flags": {},
+									"sources": [
+										{
+											"fileName": "src/control-flow.ts",
+											"line": 12,
+											"character": 11,
+											"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L12"
+										}
+									],
+									"signatures": [
+										{
+											"id": 11,
+											"name": "__type",
+											"variant": "signature",
+											"kind": 4096,
+											"flags": {},
+											"comment": {
+												"summary": [
+													{
+														"kind": "text",
+														"text": "Specifies the outputs which are part of the control flow"
+													}
+												]
+											},
+											"type": {
+												"type": "reference",
+												"target": -1,
+												"name": "O",
+												"refersToTypeParameter": true
+											}
+										}
+									]
+								}
+							}
+						},
+						{
+							"id": 12,
+							"name": "execute",
+							"variant": "declaration",
+							"kind": 2048,
+							"flags": {},
+							"sources": [
+								{
+									"fileName": "src/control-flow.ts",
+									"line": 14,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L14"
+								}
+							],
+							"signatures": [
+								{
+									"id": 13,
+									"name": "execute",
+									"variant": "signature",
+									"kind": 4096,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Called when the node received control from the previous node"
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "src/control-flow.ts",
+											"line": 14,
+											"character": 2,
+											"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L14"
+										}
+									],
+									"parameters": [
+										{
+											"id": 14,
+											"name": "input",
+											"variant": "param",
+											"kind": 32768,
+											"flags": {},
+											"type": {
+												"type": "indexedAccess",
+												"indexType": {
+													"type": "intrinsic",
+													"name": "number"
+												},
+												"objectType": {
+													"type": "reference",
+													"target": -1,
+													"name": "I",
+													"refersToTypeParameter": true
+												}
+											}
+										},
+										{
+											"id": 15,
+											"name": "forward",
+											"variant": "param",
+											"kind": 32768,
+											"flags": {},
+											"type": {
+												"type": "reflection",
+												"declaration": {
+													"id": 16,
+													"name": "__type",
+													"variant": "declaration",
+													"kind": 65536,
+													"flags": {},
+													"sources": [
+														{
+															"fileName": "src/control-flow.ts",
+															"line": 14,
+															"character": 37,
+															"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L14"
+														}
+													],
+													"signatures": [
+														{
+															"id": 17,
+															"name": "__type",
+															"variant": "signature",
+															"kind": 4096,
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "src/control-flow.ts",
+																	"line": 14,
+																	"character": 37,
+																	"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L14"
+																}
+															],
+															"parameters": [
+																{
+																	"id": 18,
+																	"name": "output",
+																	"variant": "param",
+																	"kind": 32768,
+																	"flags": {},
+																	"type": {
+																		"type": "indexedAccess",
+																		"indexType": {
+																			"type": "intrinsic",
+																			"name": "number"
+																		},
+																		"objectType": {
+																			"type": "reference",
+																			"target": -1,
+																			"name": "O",
+																			"refersToTypeParameter": true
+																		}
+																	}
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "any"
+															}
+														}
+													]
+												}
+											}
+										}
+									],
+									"type": {
+										"type": "intrinsic",
+										"name": "any"
+									}
+								}
+							]
+						}
+					],
+					"groups": [
+						{
+							"title": "Properties",
+							"children": [
+								6,
+								9
+							]
+						},
+						{
+							"title": "Methods",
+							"children": [
+								12
+							]
+						}
+					],
+					"sources": [
+						{
+							"fileName": "src/control-flow.ts",
+							"line": 8,
+							"character": 157,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/control-flow.ts#L8"
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": 76,
+			"name": "DataflowNodeSetup",
+			"variant": "declaration",
+			"kind": 4194304,
+			"flags": {},
+			"comment": {
+				"summary": [
+					{
+						"kind": "text",
+						"text": "DataflowNodeSetup is a set of functions that define how to process a node."
+					}
+				]
+			},
+			"sources": [
+				{
+					"fileName": "src/dataflow.ts",
+					"line": 8,
+					"character": 12,
+					"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L8"
+				}
+			],
+			"typeParameters": [
+				{
+					"id": 89,
+					"name": "T",
+					"variant": "typeParam",
+					"kind": 131072,
+					"flags": {},
+					"type": {
+						"type": "indexedAccess",
+						"indexType": {
+							"type": "literal",
+							"value": "Node"
+						},
+						"objectType": {
+							"type": "reference",
+							"target": {
+								"sourceFileName": "src/types.ts",
+								"qualifiedName": "ClassicScheme"
+							},
+							"name": "ClassicScheme",
+							"package": "rete-engine"
+						}
+					}
+				},
+				{
+					"id": 90,
+					"name": "I",
+					"variant": "typeParam",
+					"kind": 131072,
+					"flags": {},
+					"type": {
+						"type": "mapped",
+						"parameter": "key",
+						"parameterType": {
+							"type": "typeOperator",
+							"operator": "keyof",
+							"target": {
+								"type": "indexedAccess",
+								"indexType": {
+									"type": "literal",
+									"value": "inputs"
+								},
+								"objectType": {
+									"type": "reference",
+									"target": -1,
+									"name": "T",
+									"refersToTypeParameter": true
+								}
+							}
+						},
+						"templateType": {
+							"type": "intrinsic",
+							"name": "any"
+						}
+					}
+				},
+				{
+					"id": 91,
+					"name": "O",
+					"variant": "typeParam",
+					"kind": 131072,
+					"flags": {},
+					"type": {
+						"type": "mapped",
+						"parameter": "key",
+						"parameterType": {
+							"type": "typeOperator",
+							"operator": "keyof",
+							"target": {
+								"type": "indexedAccess",
+								"indexType": {
+									"type": "literal",
+									"value": "outputs"
+								},
+								"objectType": {
+									"type": "reference",
+									"target": -1,
+									"name": "T",
+									"refersToTypeParameter": true
+								}
+							}
+						},
+						"templateType": {
+							"type": "intrinsic",
+							"name": "any"
+						}
+					}
+				}
+			],
+			"type": {
+				"type": "reflection",
+				"declaration": {
+					"id": 77,
+					"name": "__type",
+					"variant": "declaration",
+					"kind": 65536,
+					"flags": {},
+					"children": [
+						{
+							"id": 78,
+							"name": "inputs",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"sources": [
+								{
+									"fileName": "src/dataflow.ts",
+									"line": 13,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L13"
+								}
+							],
+							"type": {
+								"type": "reflection",
+								"declaration": {
+									"id": 79,
+									"name": "__type",
+									"variant": "declaration",
+									"kind": 65536,
+									"flags": {},
+									"sources": [
+										{
+											"fileName": "src/dataflow.ts",
+											"line": 13,
+											"character": 10,
+											"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L13"
+										}
+									],
+									"signatures": [
+										{
+											"id": 80,
+											"name": "__type",
+											"variant": "signature",
+											"kind": 4096,
+											"flags": {},
+											"type": {
+												"type": "array",
+												"elementType": {
+													"type": "typeOperator",
+													"operator": "keyof",
+													"target": {
+														"type": "reference",
+														"target": -1,
+														"name": "I",
+														"refersToTypeParameter": true
+													}
+												}
+											}
+										}
+									]
+								}
+							}
+						},
+						{
+							"id": 81,
+							"name": "outputs",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"sources": [
+								{
+									"fileName": "src/dataflow.ts",
+									"line": 14,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L14"
+								}
+							],
+							"type": {
+								"type": "reflection",
+								"declaration": {
+									"id": 82,
+									"name": "__type",
+									"variant": "declaration",
+									"kind": 65536,
+									"flags": {},
+									"sources": [
+										{
+											"fileName": "src/dataflow.ts",
+											"line": 14,
+											"character": 11,
+											"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L14"
+										}
+									],
+									"signatures": [
+										{
+											"id": 83,
+											"name": "__type",
+											"variant": "signature",
+											"kind": 4096,
+											"flags": {},
+											"type": {
+												"type": "array",
+												"elementType": {
+													"type": "typeOperator",
+													"operator": "keyof",
+													"target": {
+														"type": "reference",
+														"target": -1,
+														"name": "O",
+														"refersToTypeParameter": true
+													}
+												}
+											}
+										}
+									]
+								}
+							}
+						},
+						{
+							"id": 84,
+							"name": "data",
+							"variant": "declaration",
+							"kind": 2048,
+							"flags": {},
+							"sources": [
+								{
+									"fileName": "src/dataflow.ts",
+									"line": 15,
+									"character": 2,
+									"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L15"
+								}
+							],
+							"signatures": [
+								{
+									"id": 85,
+									"name": "data",
+									"variant": "signature",
+									"kind": 4096,
+									"flags": {},
+									"sources": [
+										{
+											"fileName": "src/dataflow.ts",
+											"line": 15,
+											"character": 2,
+											"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L15"
+										}
+									],
+									"parameters": [
+										{
+											"id": 86,
+											"name": "fetchInputs",
+											"variant": "param",
+											"kind": 32768,
+											"flags": {},
+											"type": {
+												"type": "reflection",
+												"declaration": {
+													"id": 87,
+													"name": "__type",
+													"variant": "declaration",
+													"kind": 65536,
+													"flags": {},
+													"sources": [
+														{
+															"fileName": "src/dataflow.ts",
+															"line": 15,
+															"character": 20,
+															"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L15"
+														}
+													],
+													"signatures": [
+														{
+															"id": 88,
+															"name": "__type",
+															"variant": "signature",
+															"kind": 4096,
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "src/dataflow.ts",
+																	"line": 15,
+																	"character": 20,
+																	"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L15"
+																}
+															],
+															"type": {
+																"type": "reference",
+																"target": {
+																	"sourceFileName": "node_modules/typescript/lib/lib.es5.d.ts",
+																	"qualifiedName": "Promise"
+																},
+																"typeArguments": [
+																	{
+																		"type": "mapped",
+																		"parameter": "key",
+																		"parameterType": {
+																			"type": "union",
+																			"types": [
+																				{
+																					"type": "intrinsic",
+																					"name": "string"
+																				},
+																				{
+																					"type": "intrinsic",
+																					"name": "number"
+																				},
+																				{
+																					"type": "intrinsic",
+																					"name": "symbol"
+																				}
+																			]
+																		},
+																		"templateType": {
+																			"type": "array",
+																			"elementType": {
+																				"type": "indexedAccess",
+																				"indexType": {
+																					"type": "reference",
+																					"target": -1,
+																					"name": "key",
+																					"refersToTypeParameter": true
+																				},
+																				"objectType": {
+																					"type": "reference",
+																					"target": -1,
+																					"name": "I",
+																					"refersToTypeParameter": true
+																				}
+																			}
+																		}
+																	}
+																],
+																"name": "Promise",
+																"package": "typescript"
+															}
+														}
+													]
+												}
+											}
+										}
+									],
+									"type": {
+										"type": "union",
+										"types": [
+											{
+												"type": "reference",
+												"target": -1,
+												"name": "O",
+												"refersToTypeParameter": true
+											},
+											{
+												"type": "reference",
+												"target": {
+													"sourceFileName": "node_modules/typescript/lib/lib.es5.d.ts",
+													"qualifiedName": "Promise"
+												},
+												"typeArguments": [
+													{
+														"type": "reference",
+														"target": -1,
+														"name": "O",
+														"refersToTypeParameter": true
+													}
+												],
+												"name": "Promise",
+												"package": "typescript"
+											}
+										]
+									}
+								}
+							]
+						}
+					],
+					"groups": [
+						{
+							"title": "Properties",
+							"children": [
+								78,
+								81
+							]
+						},
+						{
+							"title": "Methods",
+							"children": [
+								84
+							]
+						}
+					],
+					"sources": [
+						{
+							"fileName": "src/dataflow.ts",
+							"line": 12,
+							"character": 4,
+							"url": "https://github.com/retejs/engine/blob/06c5665/src/dataflow.ts#L12"
+						}
+					]
+				}
+			}
+		}
+	],
+	"groups": [
+		{
+			"title": "Classes",
+			"children": [
+				1,
+				22,
+				54,
+				92,
+				123
+			]
+		},
+		{
+			"title": "Type Aliases",
+			"children": [
+				4,
+				76
+			]
+		}
+	],
+	"packageName": "rete-engine",
+	"readme": [
+		{
+			"kind": "text",
+			"text": "Rete.js Engine\n====\n[![Made in Ukraine](https://img.shields.io/badge/made_in-ukraine-ffd700.svg?labelColor=0057b7)](https://stand-with-ukraine.pp.ua)\n[![Discord](https://img.shields.io/discord/1081223198055604244?color=%237289da&label=Discord)](https://discord.gg/cxSFkPZdsV)\n\n**Rete.js plugin**\n\n## Key features\n\n- **Dataflow**: enables the flow of data between processing nodes and subsequent nodes in the data pipeline\n- **Control flow**: manages the sequence and logic of operations, including branching, loops, etc.\n\n## Getting Started\n\nPlease refer to the [Dataflow](https://retejs.org/docs/guides/processing/dataflow) and [Control flow](https://retejs.org/docs/guides/processing/control-flow) guides, and corresponding examples: [Dataflow](https://retejs.org/examples) and [Control flow](https://retejs.org/examples/processing/control-flow)\n\n## Contribution\n\nPlease refer to the [Contribution](https://retejs.org/docs/contribution) guide\n\n## License\n\n[MIT](https://github.com/retejs/area-plugin/blob/main/LICENSE)"
+		}
+	],
+	"symbolIdMap": {
+		"0": {
+			"sourceFileName": "src/index.ts",
+			"qualifiedName": ""
+		},
+		"1": {
+			"sourceFileName": "src/utils/cancellable.ts",
+			"qualifiedName": "Cancelled"
+		},
+		"4": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "ControlFlowNodeSetup"
+		},
+		"5": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "__type"
+		},
+		"6": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "__type.inputs"
+		},
+		"7": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "__type"
+		},
+		"8": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "__type"
+		},
+		"9": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "__type.outputs"
+		},
+		"10": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "__type"
+		},
+		"11": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "__type"
+		},
+		"12": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "__type.execute"
+		},
+		"13": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "__type.execute"
+		},
+		"14": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "input"
+		},
+		"15": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "forward"
+		},
+		"16": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "__type"
+		},
+		"17": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "__type"
+		},
+		"18": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "output"
+		},
+		"19": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "T"
+		},
+		"20": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "I"
+		},
+		"21": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "O"
+		},
+		"22": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "ControlFlow"
+		},
+		"23": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "ControlFlow.__constructor"
+		},
+		"24": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "ControlFlow"
+		},
+		"25": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "ControlFlow.Schemes"
+		},
+		"26": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "editor"
+		},
+		"29": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "ControlFlow.add"
+		},
+		"30": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "ControlFlow.add"
+		},
+		"31": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "T"
+		},
+		"32": {
+			"sourceFileName": "node_modules/src/presets/classic.ts",
+			"qualifiedName": "__type"
+		},
+		"33": {
+			"sourceFileName": "node_modules/src/presets/classic.ts",
+			"qualifiedName": "__type"
+		},
+		"34": {
+			"sourceFileName": "node_modules/src/presets/classic.ts",
+			"qualifiedName": "__type"
+		},
+		"35": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "node"
+		},
+		"36": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "setup"
+		},
+		"37": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "ControlFlow.remove"
+		},
+		"38": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "ControlFlow.remove"
+		},
+		"39": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "nodeId"
+		},
+		"40": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "ControlFlow.execute"
+		},
+		"41": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "ControlFlow.execute"
+		},
+		"42": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "nodeId"
+		},
+		"43": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "input"
+		},
+		"44": {
+			"sourceFileName": "src/control-flow.ts",
+			"qualifiedName": "ControlFlow.Schemes"
+		},
+		"54": {
+			"sourceFileName": "src/control-flow-engine.ts",
+			"qualifiedName": "ControlFlowEngine"
+		},
+		"55": {
+			"sourceFileName": "src/control-flow-engine.ts",
+			"qualifiedName": "ControlFlowEngine.__constructor"
+		},
+		"56": {
+			"sourceFileName": "src/control-flow-engine.ts",
+			"qualifiedName": "ControlFlowEngine"
+		},
+		"57": {
+			"sourceFileName": "src/control-flow-engine.ts",
+			"qualifiedName": "ControlFlowEngine.Schemes"
+		},
+		"58": {
+			"sourceFileName": "src/control-flow-engine.ts",
+			"qualifiedName": "configure"
+		},
+		"71": {
+			"sourceFileName": "src/control-flow-engine.ts",
+			"qualifiedName": "ControlFlowEngine.execute"
+		},
+		"72": {
+			"sourceFileName": "src/control-flow-engine.ts",
+			"qualifiedName": "ControlFlowEngine.execute"
+		},
+		"73": {
+			"sourceFileName": "src/control-flow-engine.ts",
+			"qualifiedName": "nodeId"
+		},
+		"74": {
+			"sourceFileName": "src/control-flow-engine.ts",
+			"qualifiedName": "input"
+		},
+		"75": {
+			"sourceFileName": "src/control-flow-engine.ts",
+			"qualifiedName": "ControlFlowEngine.Schemes"
+		},
+		"76": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "DataflowNodeSetup"
+		},
+		"77": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "__type"
+		},
+		"78": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "__type.inputs"
+		},
+		"79": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "__type"
+		},
+		"80": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "__type"
+		},
+		"81": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "__type.outputs"
+		},
+		"82": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "__type"
+		},
+		"83": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "__type"
+		},
+		"84": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "__type.data"
+		},
+		"85": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "__type.data"
+		},
+		"86": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "fetchInputs"
+		},
+		"87": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "__type"
+		},
+		"88": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "__type"
+		},
+		"89": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "T"
+		},
+		"90": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "I"
+		},
+		"91": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "O"
+		},
+		"92": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "Dataflow"
+		},
+		"93": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "Dataflow.__constructor"
+		},
+		"94": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "Dataflow"
+		},
+		"95": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "Dataflow.Schemes"
+		},
+		"96": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "editor"
+		},
+		"99": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "Dataflow.add"
+		},
+		"100": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "Dataflow.add"
+		},
+		"101": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "T"
+		},
+		"102": {
+			"sourceFileName": "node_modules/src/presets/classic.ts",
+			"qualifiedName": "__type"
+		},
+		"103": {
+			"sourceFileName": "node_modules/src/presets/classic.ts",
+			"qualifiedName": "__type"
+		},
+		"104": {
+			"sourceFileName": "node_modules/src/presets/classic.ts",
+			"qualifiedName": "__type"
+		},
+		"105": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "node"
+		},
+		"106": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "setup"
+		},
+		"107": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "Dataflow.remove"
+		},
+		"108": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "Dataflow.remove"
+		},
+		"109": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "nodeId"
+		},
+		"110": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "Dataflow.fetchInputs"
+		},
+		"111": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "Dataflow.fetchInputs"
+		},
+		"112": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "nodeId"
+		},
+		"113": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "Dataflow.fetch"
+		},
+		"114": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "Dataflow.fetch"
+		},
+		"115": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "nodeId"
+		},
+		"116": {
+			"sourceFileName": "src/dataflow.ts",
+			"qualifiedName": "Dataflow.Schemes"
+		},
+		"123": {
+			"sourceFileName": "src/dataflow-engine.ts",
+			"qualifiedName": "DataflowEngine"
+		},
+		"143": {
+			"sourceFileName": "src/dataflow-engine.ts",
+			"qualifiedName": "DataflowEngine.reset"
+		},
+		"144": {
+			"sourceFileName": "src/dataflow-engine.ts",
+			"qualifiedName": "DataflowEngine.reset"
+		},
+		"145": {
+			"sourceFileName": "src/dataflow-engine.ts",
+			"qualifiedName": "nodeId"
+		},
+		"146": {
+			"sourceFileName": "src/dataflow-engine.ts",
+			"qualifiedName": "DataflowEngine.fetchInputs"
+		},
+		"147": {
+			"sourceFileName": "src/dataflow-engine.ts",
+			"qualifiedName": "DataflowEngine.fetchInputs"
+		},
+		"148": {
+			"sourceFileName": "src/dataflow-engine.ts",
+			"qualifiedName": "nodeId"
+		},
+		"149": {
+			"sourceFileName": "src/dataflow-engine.ts",
+			"qualifiedName": "DataflowEngine.fetch"
+		},
+		"150": {
+			"sourceFileName": "src/dataflow-engine.ts",
+			"qualifiedName": "DataflowEngine.fetch"
+		},
+		"151": {
+			"sourceFileName": "src/dataflow-engine.ts",
+			"qualifiedName": "nodeId"
+		},
+		"152": {
+			"sourceFileName": "src/dataflow-engine.ts",
+			"qualifiedName": "DataflowEngine.Schemes"
+		}
+	}
+}
