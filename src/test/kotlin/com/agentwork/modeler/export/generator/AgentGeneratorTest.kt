@@ -3,16 +3,19 @@ package com.agentwork.modeler.export.generator
 import com.agentwork.modeler.export.model.*
 import org.junit.jupiter.api.Test
 import kotlin.test.assertContains
+import kotlin.test.assertFalse
 
 class AgentGeneratorTest {
 
     private val generator = AgentGenerator()
 
     @Test
-    fun `generates agent definition with correct model and prompt`() {
+    fun `generates Spring Configuration with Bean`() {
         val agent = KoogAgent("MyAgent", "You are a helpful assistant.", ModelProvider.OPENAI, "gpt-4o", 0.7, emptyList())
         val code = generator.generate(agent)
-        assertContains(code, "class MyAgent")
+        assertContains(code, "@Configuration")
+        assertContains(code, "@Bean")
+        assertContains(code, "fun agent(): AIAgent<String, String>")
         assertContains(code, "simpleOpenAIExecutor")
         assertContains(code, "You are a helpful assistant.")
         assertContains(code, "GPT4o")
@@ -24,7 +27,24 @@ class AgentGeneratorTest {
         val agent = KoogAgent("AgentWithTools", "Help", ModelProvider.ANTHROPIC, null, null,
             listOf(KoogTool("searchTool", "Searches", emptyList(), null)))
         val code = generator.generate(agent)
-        assertContains(code, "toolRegistry")
+        assertContains(code, "toolRegistry = createToolRegistry()")
         assertContains(code, "AnthropicModels")
+        assertContains(code, "ANTHROPIC_API_KEY")
+    }
+
+    @Test
+    fun `omits toolRegistry when no tools`() {
+        val agent = KoogAgent("SimpleAgent", "Help", ModelProvider.GOOGLE, null, null, emptyList())
+        val code = generator.generate(agent)
+        assertFalse(code.contains("toolRegistry"))
+        assertContains(code, "GoogleModels")
+    }
+
+    @Test
+    fun `does not produce old standalone class pattern`() {
+        val agent = KoogAgent("MyAgent", "Help", ModelProvider.OPENAI, null, null, emptyList())
+        val code = generator.generate(agent)
+        assertFalse(code.contains("class MyAgent"))
+        assertFalse(code.contains("suspend fun run("))
     }
 }
