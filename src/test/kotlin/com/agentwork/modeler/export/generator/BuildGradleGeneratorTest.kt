@@ -22,7 +22,7 @@ class BuildGradleGeneratorTest {
         val agent = KoogAgent("Agent1", "Help", ModelProvider.OPENAI, null, null, emptyList())
         val code = generator.generate(agent)
         assertContains(code, "mavenCentral()")
-        assertContains(code, "packages.jetbrains.team/maven/p/grazi/koog-public")
+        assertContains(code, "packages.jetbrains.team/maven/p/grazi/grazie-platform-public")
     }
 
     @Test
@@ -32,27 +32,7 @@ class BuildGradleGeneratorTest {
         assertContains(code, "spring-boot-starter-webflux")
         assertContains(code, "kotlin-reflect")
         assertContains(code, "kotlinx-coroutines-reactor")
+        assertContains(code, "koog-spring-boot-starter")
         assertContains(code, "koog-agents")
-    }
-
-    @Test
-    fun `includes OpenAI executor dependency for OpenAI provider`() {
-        val agent = KoogAgent("Agent1", "Help", ModelProvider.OPENAI, null, null, emptyList())
-        val code = generator.generate(agent)
-        assertContains(code, "koog-prompt-executor-openai")
-    }
-
-    @Test
-    fun `includes Anthropic executor dependency for Anthropic provider`() {
-        val agent = KoogAgent("Agent1", "Help", ModelProvider.ANTHROPIC, null, null, emptyList())
-        val code = generator.generate(agent)
-        assertContains(code, "koog-prompt-executor-anthropic")
-    }
-
-    @Test
-    fun `includes Google executor dependency for Google provider`() {
-        val agent = KoogAgent("Agent1", "Help", ModelProvider.GOOGLE, null, null, emptyList())
-        val code = generator.generate(agent)
-        assertContains(code, "koog-prompt-executor-google")
     }
 }

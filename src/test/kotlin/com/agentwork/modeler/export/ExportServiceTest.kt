@@ -61,7 +61,7 @@ class ExportServiceTest {
         val settingsContent = readZipFileContent(zip, "settings.gradle.kts")
         assertContains(settingsContent, "TestProject")
         val buildContent = readZipFileContent(zip, "build.gradle.kts")
-        assertContains(buildContent, "koog-prompt-executor-openai")
+        assertContains(buildContent, "koog-spring-boot-starter")
     }
 
     @Test
