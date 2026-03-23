@@ -21,6 +21,7 @@ import {
   AgentReteNode,
   ToolReteNode,
   BuiltinToolReteNode,
+  SubAgentReteNode,
 } from "./rete-nodes";
 
 export type Schemes = GetSchemes<AppNode, AppConnection>;
@@ -56,16 +57,30 @@ export async function createEditor(container: HTMLElement) {
   AreaExtensions.selectableNodes(area, selector, { accumulating });
   AreaExtensions.simpleNodesOrder(area);
 
-  // Connection validation: only Tool output -> Agent input
+  // Connection validation:
+  // - Tool/BuiltinTool output -> Agent or SubAgent input
+  // - SubAgent output -> Agent input (NOT SubAgent)
   editor.addPipe((context) => {
     if (context.type === "connectioncreate") {
       const { source, target } = context.data;
       const sourceNode = editor.getNode(source);
       const targetNode = editor.getNode(target);
+
       const isToolSource = sourceNode instanceof ToolReteNode || sourceNode instanceof BuiltinToolReteNode;
-      if (!isToolSource || !(targetNode instanceof AgentReteNode)) {
-        return undefined;
+      const isSubAgentSource = sourceNode instanceof SubAgentReteNode;
+      const isAgentTarget = targetNode instanceof AgentReteNode;
+      const isSubAgentTarget = targetNode instanceof SubAgentReteNode;
+
+      // Tool/Builtin -> Agent or SubAgent: OK
+      if (isToolSource && (isAgentTarget || isSubAgentTarget)) {
+        return context;
       }
+      // SubAgent -> Agent: OK
+      if (isSubAgentSource && isAgentTarget) {
+        return context;
+      }
+      // Everything else: blocked
+      return undefined;
     }
     return context;
   });
