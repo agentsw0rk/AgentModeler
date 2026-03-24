@@ -22,6 +22,7 @@ import {
   ToolReteNode,
   BuiltinToolReteNode,
   SubAgentReteNode,
+  McpServerReteNode,
 } from "./rete-nodes";
 
 export type Schemes = GetSchemes<AppNode, AppConnection>;
@@ -68,6 +69,7 @@ export async function createEditor(container: HTMLElement) {
 
       const isToolSource = sourceNode instanceof ToolReteNode || sourceNode instanceof BuiltinToolReteNode;
       const isSubAgentSource = sourceNode instanceof SubAgentReteNode;
+      const isMcpSource = sourceNode instanceof McpServerReteNode;
       const isAgentTarget = targetNode instanceof AgentReteNode;
       const isSubAgentTarget = targetNode instanceof SubAgentReteNode;
 
@@ -77,6 +79,10 @@ export async function createEditor(container: HTMLElement) {
       }
       // SubAgent -> Agent: OK
       if (isSubAgentSource && isAgentTarget) {
+        return context;
+      }
+      // MCP -> Agent or SubAgent: OK
+      if (isMcpSource && (isAgentTarget || isSubAgentTarget)) {
         return context;
       }
       // Everything else: blocked

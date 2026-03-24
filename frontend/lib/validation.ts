@@ -1,6 +1,7 @@
 import { ProjectGraph, BuiltinToolConfig, BUILTIN_TOOL_TYPES } from "@/types/graph";
 import { AgentConfig, ToolConfig } from "@/types/koog";
 import { SubAgentConfig } from "@/types/subagent";
+import { McpServerConfig } from "@/types/mcp";
 
 export interface ValidationError {
   nodeId: string;
@@ -90,8 +91,42 @@ export function validateGraph(graph: ProjectGraph): ValidationError[] {
       }
     }
 
+    if (node.type === "mcp-server") {
+      const data = node.data as McpServerConfig;
+      if (!data.name.trim()) {
+        errors.push({ nodeId: node.id, severity: "error", message: "MCP Server requires a name" });
+      }
+      const validTransports = ["sse", "stdio"];
+      if (!validTransports.includes(data.transportType)) {
+        errors.push({ nodeId: node.id, severity: "error", message: "MCP Server has invalid transport type" });
+      } else if (data.transportType === "sse" && !(data.url || "").trim()) {
+        errors.push({ nodeId: node.id, severity: "error", message: "MCP Server (SSE) requires a URL" });
+      } else if (data.transportType === "stdio" && !(data.command || "").trim()) {
+        errors.push({ nodeId: node.id, severity: "error", message: "MCP Server (STDIO) requires a command" });
+      }
+
+      const isConnected = graph.edges.some((e) => e.source === node.id);
+      if (!isConnected) {
+        errors.push({ nodeId: node.id, severity: "error", message: "MCP Server must be connected to an Agent" });
+      }
+
+      if (data.discoveredTools.length === 0) {
+        errors.push({ nodeId: node.id, severity: "warning", message: "MCP Server has no discovered tools — click Discover to fetch tools" });
+      }
+
+      // Warning: MCP connected to sub-agent
+      const mcpTargets = graph.edges
+        .filter((e) => e.source === node.id)
+        .map((e) => graph.nodes.find((n) => n.id === e.target));
+      for (const target of mcpTargets) {
+        if (target?.type === "sub-agent") {
+          errors.push({ nodeId: node.id, severity: "warning", message: "MCP Server connected to Sub-Agent will only be exported for the main Agent" });
+        }
+      }
+    }
+
     // Check: tool connected to multiple agents/sub-agents
-    if (node.type === "tool" || node.type === "builtin-tool") {
+    if (node.type === "tool" || node.type === "builtin-tool" || node.type === "mcp-server") {
       const connectedTargets = graph.edges
         .filter((e) => e.source === node.id)
         .map((e) => graph.nodes.find((n) => n.id === e.target))
