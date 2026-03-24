@@ -30,6 +30,11 @@ export function ChatArea({ onSendMessage }: ChatAreaProps) {
   return (
     <div className="flex flex-col flex-1">
       <div ref={scrollRef} className="flex-1 p-3 overflow-y-auto space-y-2">
+        {messages.length === 0 && !error && (
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-muted-foreground text-xs">Send a message to start the conversation</p>
+          </div>
+        )}
         {messages.map((msg) => (
           <div
             key={msg.id}
