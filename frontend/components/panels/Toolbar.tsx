@@ -18,6 +18,7 @@ import { ExportDialog } from "@/components/dialogs/ExportDialog";
 import { SaveLoadDialog } from "@/components/dialogs/SaveLoadDialog";
 import { ProjectGraph } from "@/types/graph";
 import type { BuiltinToolType } from "@/types/graph";
+import { BotIcon, WrenchIcon, UsersIcon, ServerIcon } from "lucide-react";
 
 const builtinToolOptions: { type: BuiltinToolType; label: string }[] = [
   { type: "think", label: "Think" },
@@ -70,12 +71,12 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
               className="cursor-pointer"
               onClick={() => addNode("agent", { x: 100, y: 100 })}
             >
-              + Agent
+              <BotIcon className="size-4" /> Agent
             </NavigationMenuLink>
           </NavigationMenuItem>
 
           <NavigationMenuItem>
-            <NavigationMenuTrigger>+ Tool</NavigationMenuTrigger>
+            <NavigationMenuTrigger><WrenchIcon className="size-4" /> Tool</NavigationMenuTrigger>
             <NavigationMenuContent>
               <div className="w-48">
                 <NavigationMenuLink
@@ -103,7 +104,7 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
               className="cursor-pointer"
               onClick={() => addNode("sub-agent", { x: 200, y: 200 })}
             >
-              + Sub-Agent
+              <UsersIcon className="size-4" /> Sub-Agent
             </NavigationMenuLink>
           </NavigationMenuItem>
 
@@ -112,7 +113,7 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
               className="cursor-pointer"
               onClick={() => addNode("mcp-server", { x: 100, y: 300 })}
             >
-              + MCP Server
+              <ServerIcon className="size-4" /> MCP Server
             </NavigationMenuLink>
           </NavigationMenuItem>
         </NavigationMenuList>
