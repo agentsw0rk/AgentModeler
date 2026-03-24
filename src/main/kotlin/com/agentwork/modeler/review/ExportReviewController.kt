@@ -16,9 +16,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 class ExportReviewController(
     private val exportService: ExportService,
     private val reviewService: ReviewService,
-    private val runManager: ExportReviewRunManager,
-    private val objectMapper: ObjectMapper
+    private val runManager: ExportReviewRunManager
 ) {
+    private val objectMapper = ObjectMapper()
     @PostMapping(produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun exportAndReview(@RequestBody graph: ProjectGraph): SseEmitter {
         val emitter = SseEmitter(0L)
