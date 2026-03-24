@@ -1,5 +1,6 @@
 import { AgentConfig, ToolConfig } from "./koog";
 import { SubAgentConfig } from "./subagent";
+import { McpServerConfig } from "./mcp";
 
 export type BuiltinToolType = "think" | "shell" | "filesystem" | "fetch" | "memory" | "todo" | "user_prompt";
 
@@ -23,13 +24,13 @@ export interface BuiltinToolConfig {
   path?: string;
 }
 
-export type NodeType = "agent" | "tool" | "builtin-tool" | "sub-agent";
+export type NodeType = "agent" | "tool" | "builtin-tool" | "sub-agent" | "mcp-server";
 
 export interface GraphNode {
   id: string;
   type: NodeType;
   position: { x: number; y: number };
-  data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig;
+  data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig;
 }
 
 export interface GraphEdge {
