@@ -8,7 +8,8 @@ data class KoogAgent(
     val temperature: Double?,
     val tools: List<KoogTool>,
     val builtinTools: List<KoogBuiltinTool> = emptyList(),
-    val subAgents: List<KoogSubAgent> = emptyList()
+    val subAgents: List<KoogSubAgent> = emptyList(),
+    val mcpServers: List<KoogMcpServer> = emptyList()
 )
 
 enum class ModelProvider(val importPackage: String, val executorFactory: String, val defaultModel: String) {
