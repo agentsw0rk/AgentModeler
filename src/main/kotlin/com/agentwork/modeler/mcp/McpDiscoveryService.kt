@@ -1,9 +1,18 @@
 package com.agentwork.modeler.mcp
 
+import ai.koog.agents.mcp.McpToolRegistryProvider
+import ai.koog.agents.mcp.defaultStdioTransport
+import ai.koog.agents.core.tools.ToolRegistry
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.springframework.stereotype.Service
 
 @Service
 class McpDiscoveryService {
+
+    companion object {
+        private const val DISCOVERY_TIMEOUT_MS = 10_000L
+    }
 
     fun discover(request: McpDiscoveryRequest): McpDiscoveryResponse {
         return try {
@@ -19,23 +28,51 @@ class McpDiscoveryService {
 
     private fun discoverSse(request: McpDiscoveryRequest): McpDiscoveryResponse {
         val url = request.url ?: return McpDiscoveryResponse(error = "URL is required for SSE transport")
-        // TODO: Replace with real Koog McpToolRegistryProvider.defaultSseTransport() integration
-        return McpDiscoveryResponse(
-            tools = listOf(
-                McpToolDto("mock-tool-1", "Mock tool from SSE server at $url"),
-                McpToolDto("mock-tool-2", "Another mock tool")
-            )
-        )
+
+        return runBlocking {
+            withTimeout(DISCOVERY_TIMEOUT_MS) {
+                val transport = McpToolRegistryProvider.defaultSseTransport(url)
+                val toolRegistry = McpToolRegistryProvider.fromTransport(transport = transport)
+                extractTools(toolRegistry)
+            }
+        }
     }
 
     private fun discoverStdio(request: McpDiscoveryRequest): McpDiscoveryResponse {
         val command = request.command ?: return McpDiscoveryResponse(error = "Command is required for STDIO transport")
-        // TODO: Replace with real Koog McpToolRegistryProvider.defaultStdioTransport() integration
-        return McpDiscoveryResponse(
-            tools = listOf(
-                McpToolDto("mock-tool-1", "Mock tool from STDIO command: $command"),
-                McpToolDto("mock-tool-2", "Another mock tool")
+
+        val cmdList = mutableListOf(command)
+        request.args?.let { cmdList.addAll(it) }
+
+        val processBuilder = ProcessBuilder(cmdList)
+        request.envVars?.forEach { envVar ->
+            if (envVar.value != null) {
+                processBuilder.environment()[envVar.name] = envVar.value
+            }
+        }
+
+        val process = processBuilder.start()
+
+        return try {
+            runBlocking {
+                withTimeout(DISCOVERY_TIMEOUT_MS) {
+                    val transport = McpToolRegistryProvider.defaultStdioTransport(process)
+                    val toolRegistry = McpToolRegistryProvider.fromTransport(transport = transport)
+                    extractTools(toolRegistry)
+                }
+            }
+        } finally {
+            process.destroy()
+        }
+    }
+
+    private fun extractTools(toolRegistry: ToolRegistry): McpDiscoveryResponse {
+        val tools = toolRegistry.tools.map { tool ->
+            McpToolDto(
+                name = tool.name,
+                description = tool.descriptor.toString()
             )
-        )
+        }
+        return McpDiscoveryResponse(tools = tools)
     }
 }

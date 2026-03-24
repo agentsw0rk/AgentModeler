@@ -10,20 +10,18 @@ class McpDiscoveryControllerTest {
     private val service = McpDiscoveryService()
 
     @Test
-    fun `discovers tools via SSE`() {
-        val request = McpDiscoveryRequest("sse", "http://localhost:8931", null, null, null)
+    fun `returns error when SSE server is not reachable`() {
+        val request = McpDiscoveryRequest("sse", "http://localhost:19999", null, null, null)
         val response = service.discover(request)
-        assertNull(response.error)
-        assertNotNull(response.tools)
-        assertEquals(2, response.tools!!.size)
+        assertNotNull(response.error)
+        assertNull(response.tools)
     }
 
     @Test
-    fun `discovers tools via STDIO`() {
-        val request = McpDiscoveryRequest("stdio", null, "npx", listOf("@playwright/mcp"), null)
+    fun `returns error when STDIO command does not exist`() {
+        val request = McpDiscoveryRequest("stdio", null, "nonexistent-mcp-binary-xyz", null, null)
         val response = service.discover(request)
-        assertNull(response.error)
-        assertNotNull(response.tools)
+        assertNotNull(response.error)
     }
 
     @Test
