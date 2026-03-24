@@ -8,11 +8,11 @@ import org.springframework.stereotype.Component
 @Component
 class OpenAIReviewProvider(
     chatClientBuilder: ChatClient.Builder,
-    private val objectMapper: ObjectMapper,
     @Value("\${review.model:gpt-4o}") private val model: String
 ) : ReviewProvider {
 
     private val chatClient = chatClientBuilder.build()
+    private val objectMapper = ObjectMapper()
 
     override suspend fun review(request: ReviewRequest): ReviewResult {
         val startTime = System.currentTimeMillis()
