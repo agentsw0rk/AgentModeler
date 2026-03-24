@@ -100,7 +100,14 @@ export function CustomNode(props: {
                 color: "#94a3b8",
               }}
             >
-              <Presets.classic.Socket data={(input as any).socket} />
+              <Presets.classic.RefSocket
+                name="input-socket"
+                emit={emit}
+                side="input"
+                nodeId={data.id}
+                socketKey={key}
+                payload={(input as ClassicPreset.Input<ClassicPreset.Socket>).socket}
+              />
               <span style={{ marginLeft: 8 }}>{(input as ClassicPreset.Input<ClassicPreset.Socket>).label || key}</span>
             </div>
           ) : null
@@ -119,7 +126,14 @@ export function CustomNode(props: {
               }}
             >
               <span style={{ marginRight: 8 }}>{(output as ClassicPreset.Output<ClassicPreset.Socket>).label || key}</span>
-              <Presets.classic.Socket data={(output as any).socket} />
+              <Presets.classic.RefSocket
+                name="output-socket"
+                emit={emit}
+                side="output"
+                nodeId={data.id}
+                socketKey={key}
+                payload={(output as ClassicPreset.Output<ClassicPreset.Socket>).socket}
+              />
             </div>
           ) : null
         )}
