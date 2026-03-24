@@ -12,6 +12,7 @@ import {
 } from "@/lib/rete-nodes";
 import type { Schemes } from "@/lib/rete-setup";
 import { BotIcon, WrenchIcon, UsersIcon, ServerIcon } from "lucide-react";
+import { useValidationStore } from "@/store/validationStore";
 
 const nodeIcons: Record<string, React.ReactNode> = {
   agent: <BotIcon size={10} />,
@@ -57,6 +58,51 @@ export function CustomNode(props: {
   const colors = nodeColors[nodeType] || nodeColors.tool;
   const typeLabel = nodeTypeLabels[nodeType] || "NODE";
 
+  const storeNodeId = "storeNodeId" in data ? (data as any).storeNodeId : null;
+  const nodeErrors = storeNodeId
+    ? useValidationStore.getState().errorsForNode(storeNodeId)
+    : [];
+  const hasErrors = nodeErrors.some((e) => e.severity === "error");
+  const hasWarnings = nodeErrors.some((e) => e.severity === "warning");
+
+  // Read store node data for configured check and subtitles
+  const { useEditorStore } = require("@/store/editorStore");
+  const storeNode = storeNodeId
+    ? useEditorStore.getState().nodes.find((n: any) => n.id === storeNodeId)
+    : null;
+  const isConfigured = storeNode && (storeNode.data as any).name?.trim();
+
+  const borderColor = hasErrors
+    ? "rgba(239, 68, 68, 0.5)"
+    : hasWarnings
+    ? "rgba(251, 191, 36, 0.5)"
+    : colors.border;
+
+  const glowColor = hasErrors
+    ? "rgba(239, 68, 68, 0.15)"
+    : hasWarnings
+    ? "rgba(251, 191, 36, 0.12)"
+    : colors.glow;
+
+  let subtitle = "";
+  if (storeNode) {
+    const d = storeNode.data as any;
+    switch (storeNode.type) {
+      case "agent":
+        if (d.modelProvider) subtitle = `${d.modelProvider}${d.modelId ? " · " + d.modelId : ""}`;
+        break;
+      case "sub-agent":
+        if (d.delegationMode) subtitle = d.delegationMode;
+        break;
+      case "tool":
+        if (d.parameters?.length) subtitle = `${d.parameters.length} parameter${d.parameters.length !== 1 ? "s" : ""}`;
+        break;
+      case "mcp-server":
+        if (d.transportType) subtitle = `${d.transportType.toUpperCase()}${d.url ? " · " + d.url.slice(0, 30) : ""}`;
+        break;
+    }
+  }
+
   const inputs = Object.entries(data.inputs || {});
   const outputs = Object.entries(data.outputs || {});
 
@@ -64,17 +110,17 @@ export function CustomNode(props: {
     <div
       style={{
         background: "rgba(15, 22, 41, 0.95)",
-        border: `1px solid ${colors.border}`,
+        border: `1px solid ${borderColor}`,
         borderRadius: 10,
         padding: 0,
         minWidth: data.width || 200,
-        boxShadow: `0 0 20px ${colors.glow}`,
+        boxShadow: `0 0 20px ${glowColor}`,
         fontFamily: "var(--font-sans), system-ui, sans-serif",
         backdropFilter: "blur(8px)",
       }}
     >
       {/* Header */}
-      <div style={{ padding: "8px 12px 6px", borderBottom: `1px solid ${colors.border}` }}>
+      <div style={{ padding: "8px 12px 6px", borderBottom: `1px solid ${borderColor}`, position: "relative" }}>
         <div
           style={{
             fontSize: 9,
@@ -93,9 +139,23 @@ export function CustomNode(props: {
           {nodeIcons[nodeType]}
           {typeLabel}
         </div>
+        {hasErrors && (
+          <span style={{ position: "absolute", top: 4, right: 8, fontSize: 10, color: "#ef4444" }}>✗</span>
+        )}
+        {!hasErrors && hasWarnings && (
+          <span style={{ position: "absolute", top: 4, right: 8, fontSize: 10, color: "#fbbf24" }}>⚠</span>
+        )}
+        {!hasErrors && !hasWarnings && isConfigured && (
+          <span style={{ position: "absolute", top: 4, right: 8, fontSize: 8, color: "#22c55e" }}>●</span>
+        )}
         <div style={{ fontSize: 13, fontWeight: 500, color: "#e2e8f0" }}>
           {data.label}
         </div>
+        {subtitle && (
+          <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>
+            {subtitle}
+          </div>
+        )}
       </div>
 
       {/* Sockets */}
