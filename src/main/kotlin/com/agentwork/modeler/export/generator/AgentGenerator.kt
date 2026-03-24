@@ -40,6 +40,9 @@ class AgentGenerator {
             appendLine("import ai.koog.prompt.executor.llms.all.${agent.modelProvider.executorFactory}")
             appendLine("import $modelImport")
             if (agent.mcpServers.isNotEmpty()) {
+                appendLine("import kotlinx.coroutines.CoroutineScope")
+                appendLine("import kotlinx.coroutines.Dispatchers")
+                appendLine("import kotlinx.coroutines.SupervisorJob")
                 appendLine("import kotlinx.coroutines.runBlocking")
             }
             appendLine("import org.springframework.context.annotation.Bean")
@@ -48,8 +51,11 @@ class AgentGenerator {
             appendLine("@Configuration")
             appendLine("class AgentConfig {")
             if (agent.mcpServers.isNotEmpty()) {
+                appendLine()
+                appendLine("    private val agentScope = CoroutineScope(Dispatchers.IO + SupervisorJob())")
+                appendLine()
                 appendLine("    @Bean")
-                appendLine("    fun agent(): AIAgent<String, String> = runBlocking {")
+                appendLine("    fun agent(): AIAgent<String, String> = runBlocking(agentScope.coroutineContext) {")
                 appendLine("        AIAgent(")
                 appendLine("            $paramBlock")
                 appendLine("        )")
