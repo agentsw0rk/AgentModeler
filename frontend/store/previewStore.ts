@@ -9,6 +9,7 @@ interface PreviewState {
   error: string | null;
   isOpen: boolean;
   useMock: boolean;
+  activeTab: "preview" | "review";
 
   setStatus: (status: PreviewStatus) => void;
   setSessionId: (id: string) => void;
@@ -19,6 +20,7 @@ interface PreviewState {
   setError: (error: string) => void;
   toggleOpen: () => void;
   toggleMock: () => void;
+  setActiveTab: (tab: "preview" | "review") => void;
   reset: () => void;
 }
 
@@ -40,6 +42,7 @@ export const usePreviewStore = create<PreviewState>((set) => ({
   error: null,
   isOpen: false,
   useMock: false,
+  activeTab: "preview",
 
   setStatus: (status) => set({ status }),
   setSessionId: (id) => set({ sessionId: id }),
@@ -63,6 +66,7 @@ export const usePreviewStore = create<PreviewState>((set) => ({
   setError: (error) => set({ error, status: "error" }),
   toggleOpen: () => set((s) => ({ isOpen: !s.isOpen })),
   toggleMock: () => set((s) => ({ useMock: !s.useMock })),
+  setActiveTab: (tab) => set({ activeTab: tab }),
   reset: () => {
     nextStepId = 1;
     nextMsgId = 1;
@@ -72,6 +76,7 @@ export const usePreviewStore = create<PreviewState>((set) => ({
       messages: [],
       steps: [],
       error: null,
+      activeTab: "preview",
     });
   },
 }));

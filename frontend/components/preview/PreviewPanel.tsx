@@ -9,6 +9,7 @@ import { useValidationStore } from "@/store/validationStore";
 import { validateGraph, hasBlockingErrors } from "@/lib/validation";
 import { ExecutionTimeline } from "./ExecutionTimeline";
 import { ChatArea } from "./ChatArea";
+import { ExportReviewPanel } from "@/components/review/ExportReviewPanel";
 import { ProjectGraph } from "@/types/graph";
 import { PreviewEvent } from "@/types/preview";
 import * as realClient from "@/lib/preview-client";
@@ -27,6 +28,8 @@ export function PreviewPanel() {
   const status = usePreviewStore((s) => s.status);
   const sessionId = usePreviewStore((s) => s.sessionId);
   const useMock = usePreviewStore((s) => s.useMock);
+  const activeTab = usePreviewStore((s) => s.activeTab);
+  const setActiveTab = usePreviewStore((s) => s.setActiveTab);
   const toggleOpen = usePreviewStore((s) => s.toggleOpen);
   const toggleMock = usePreviewStore((s) => s.toggleMock);
   const reset = usePreviewStore((s) => s.reset);
@@ -152,7 +155,20 @@ export function PreviewPanel() {
     <div className="border-t flex flex-col" style={{ height: 300 }}>
       <div className="flex items-center justify-between px-3 py-1.5 border-b bg-muted/30">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">Live Preview</span>
+          <div className="flex items-center gap-1">
+            <button
+              className={`text-xs px-2 py-0.5 rounded ${activeTab === "preview" ? "bg-muted font-medium" : "text-muted-foreground hover:text-foreground"}`}
+              onClick={() => setActiveTab("preview")}
+            >
+              Preview
+            </button>
+            <button
+              className={`text-xs px-2 py-0.5 rounded ${activeTab === "review" ? "bg-muted font-medium" : "text-muted-foreground hover:text-foreground"}`}
+              onClick={() => setActiveTab("review")}
+            >
+              Export Review
+            </button>
+          </div>
           <Badge variant={badge.variant}>{badge.label}</Badge>
         </div>
         <div className="flex items-center gap-1">
@@ -179,12 +195,16 @@ export function PreviewPanel() {
           </Button>
         </div>
       </div>
-      <div className="flex flex-1 overflow-hidden">
-        <div className="w-56 border-r overflow-y-auto">
-          <ExecutionTimeline />
+      {activeTab === "preview" ? (
+        <div className="flex flex-1 overflow-hidden">
+          <div className="w-56 border-r overflow-y-auto">
+            <ExecutionTimeline />
+          </div>
+          <ChatArea onSendMessage={handleSendMessage} />
         </div>
-        <ChatArea onSendMessage={handleSendMessage} />
-      </div>
+      ) : (
+        <ExportReviewPanel />
+      )}
     </div>
   );
 }
