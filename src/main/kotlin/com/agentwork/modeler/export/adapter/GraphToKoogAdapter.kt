@@ -4,6 +4,8 @@ import com.agentwork.modeler.export.model.*
 import com.agentwork.modeler.export.model.KoogBuiltinTool
 import com.agentwork.modeler.export.model.BuiltinToolType
 import com.agentwork.modeler.export.model.KoogSubAgent
+import com.agentwork.modeler.export.model.KoogMcpServer
+import com.agentwork.modeler.export.model.McpEnvVarName
 import org.springframework.stereotype.Component
 
 @Component
@@ -14,6 +16,7 @@ class GraphToKoogAdapter {
         val builtinToolNodes = graph.nodes.filter { it.type == "builtin-tool" }
         val agentNodes = graph.nodes.filter { it.type == "agent" }
         val subAgentNodes = graph.nodes.filter { it.type == "sub-agent" }
+        val mcpServerNodes = graph.nodes.filter { it.type == "mcp-server" }
 
         return agentNodes.map { agentNode ->
             val name = agentNode.data["name"] as? String ?: ""
@@ -49,6 +52,10 @@ class GraphToKoogAdapter {
                 .filter { it.id in connectedToAgent }
                 .map { saNode -> convertSubAgent(saNode, graph, toolNodes, builtinToolNodes) }
 
+            val mcpServers = mcpServerNodes
+                .filter { it.id in connectedToAgent }
+                .map { convertMcpServer(it) }
+
             KoogAgent(
                 name = name,
                 systemPrompt = agentNode.data["systemPrompt"] as? String ?: "",
@@ -57,7 +64,8 @@ class GraphToKoogAdapter {
                 temperature = (agentNode.data["temperature"] as? Number)?.toDouble(),
                 tools = tools,
                 builtinTools = builtinTools,
-                subAgents = subAgents
+                subAgents = subAgents,
+                mcpServers = mcpServers
             )
         }
     }
@@ -117,6 +125,25 @@ class GraphToKoogAdapter {
             description = node.data["description"] as? String ?: "",
             parameters = params,
             handlerStubName = node.data["handlerStubName"] as? String
+        )
+    }
+
+    private fun convertMcpServer(node: GraphNode): KoogMcpServer {
+        val envVars = (node.data["envVars"] as? List<*>)?.mapNotNull { raw ->
+            val map = raw as? Map<*, *> ?: return@mapNotNull null
+            val name = map["name"] as? String ?: return@mapNotNull null
+            McpEnvVarName(name = name)
+        } ?: emptyList()
+
+        val args = (node.data["args"] as? List<*>)?.mapNotNull { it as? String }
+
+        return KoogMcpServer(
+            name = node.data["name"] as? String ?: "",
+            transportType = node.data["transportType"] as? String ?: "sse",
+            url = node.data["url"] as? String,
+            command = node.data["command"] as? String,
+            args = args,
+            envVars = envVars
         )
     }
 

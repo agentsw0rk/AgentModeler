@@ -127,6 +127,57 @@ class GraphToKoogAdapterTest {
     }
 
     @Test
+    fun `converts mcp-server nodes to KoogMcpServer list`() {
+        val graph = ProjectGraph(
+            version = 1, name = "Test",
+            nodes = listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf(
+                    "name" to "MainAgent", "systemPrompt" to "Help", "modelProvider" to "openai"
+                )),
+                GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
+                    "name" to "Google Maps", "transportType" to "sse",
+                    "url" to "http://localhost:8931",
+                    "envVars" to listOf(mapOf("id" to "1", "name" to "GOOGLE_MAPS_API_KEY"))
+                ))
+            ),
+            edges = listOf(GraphEdge("e1", "mcp1", "a1"))
+        )
+
+        val agents = adapter.convert(graph)
+        assertEquals(1, agents[0].mcpServers.size)
+        val mcp = agents[0].mcpServers[0]
+        assertEquals("Google Maps", mcp.name)
+        assertEquals("sse", mcp.transportType)
+        assertEquals("http://localhost:8931", mcp.url)
+        assertEquals(1, mcp.envVars.size)
+        assertEquals("GOOGLE_MAPS_API_KEY", mcp.envVars[0].name)
+    }
+
+    @Test
+    fun `converts stdio mcp-server with command and args`() {
+        val graph = ProjectGraph(
+            version = 1, name = "Test",
+            nodes = listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf(
+                    "name" to "Agent", "systemPrompt" to "Help", "modelProvider" to "openai"
+                )),
+                GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
+                    "name" to "Playwright", "transportType" to "stdio",
+                    "command" to "npx", "args" to listOf("@playwright/mcp", "--headless"),
+                    "envVars" to emptyList<Any>()
+                ))
+            ),
+            edges = listOf(GraphEdge("e1", "mcp1", "a1"))
+        )
+
+        val agents = adapter.convert(graph)
+        val mcp = agents[0].mcpServers[0]
+        assertEquals("stdio", mcp.transportType)
+        assertEquals("npx", mcp.command)
+        assertEquals(listOf("@playwright/mcp", "--headless"), mcp.args)
+    }
+
+    @Test
     fun `sub-agent tools are not included in main agent tools`() {
         val graph = ProjectGraph(
             version = 1, name = "Test",
