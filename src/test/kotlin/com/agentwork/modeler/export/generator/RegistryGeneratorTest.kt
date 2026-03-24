@@ -1,6 +1,7 @@
 package com.agentwork.modeler.export.generator
 
 import com.agentwork.modeler.export.model.*
+import com.agentwork.modeler.export.model.KoogMcpServer
 import com.agentwork.modeler.export.model.KoogSubAgent
 import org.junit.jupiter.api.Test
 import kotlin.test.assertContains
@@ -87,6 +88,7 @@ class RegistryGeneratorTest {
         assertContains(code, "Researches topics")
         assertContains(code, "A topic to research")
         assertContains(code, "import generated.subagents.*")
+        assertContains(code, "@OptIn(kotlin.time.ExperimentalTime::class)")
     }
 
     @Test
@@ -104,5 +106,36 @@ class RegistryGeneratorTest {
         val code = generator.generate(tools, emptyList(), subAgents)
         assertContains(code, "WeatherToolToolSet")
         assertContains(code, "createSA()")
+    }
+
+    @Test
+    fun `generates suspend registry with MCP merge`() {
+        val mcpServers = listOf(
+            KoogMcpServer("Google Maps", "sse", "http://localhost:8931", null, null, emptyList())
+        )
+        val code = generator.generate(emptyList(), emptyList(), emptyList(), mcpServers)
+        assertContains(code, "suspend fun createToolRegistry()")
+        assertContains(code, "import generated.mcp.*")
+        assertContains(code, "createGoogleMapsRegistry()")
+    }
+
+    @Test
+    fun `generates non-suspend registry without MCP`() {
+        val tools = listOf(KoogTool("searchTool", "Searches", emptyList(), null))
+        val code = generator.generate(tools)
+        assertFalse(code.contains("suspend"))
+        assertFalse(code.contains("import generated.mcp"))
+    }
+
+    @Test
+    fun `generates suspend registry with tools and MCP`() {
+        val tools = listOf(KoogTool("weatherTool", "Weather", emptyList(), null))
+        val mcpServers = listOf(
+            KoogMcpServer("Maps", "sse", "http://localhost", null, null, emptyList())
+        )
+        val code = generator.generate(tools, emptyList(), emptyList(), mcpServers)
+        assertContains(code, "suspend fun createToolRegistry()")
+        assertContains(code, "WeatherToolToolSet")
+        assertContains(code, "createMapsRegistry()")
     }
 }
