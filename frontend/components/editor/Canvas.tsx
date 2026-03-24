@@ -169,8 +169,12 @@ export function Canvas() {
   return (
     <div
       ref={containerRef}
-      className="flex-1 h-full bg-muted/30"
-      style={{ minHeight: "600px" }}
+      className="flex-1 h-full"
+      style={{
+        minHeight: "600px",
+        background: "radial-gradient(circle, rgba(59, 130, 246, 0.04) 1px, transparent 1px), var(--background)",
+        backgroundSize: "20px 20px",
+      }}
     />
   );
 }

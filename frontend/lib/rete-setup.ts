@@ -10,6 +10,7 @@ import {
   Presets as ReactPresets,
   ReactArea2D,
 } from "rete-react-plugin";
+import { CustomNode, CustomSocket, CustomConnection } from "@/components/editor/CustomNode";
 import {
   ContextMenuPlugin,
   ContextMenuExtra,
@@ -34,7 +35,13 @@ export async function createEditor(container: HTMLElement) {
   const connection = new ConnectionPlugin<Schemes, AreaExtra>();
   const render = new ReactPlugin<Schemes, AreaExtra>({ createRoot });
 
-  render.addPreset(ReactPresets.classic.setup());
+  render.addPreset(ReactPresets.classic.setup({
+    customize: {
+      node() { return CustomNode as any; },
+      socket() { return CustomSocket as any; },
+      connection() { return CustomConnection as any; },
+    },
+  }));
   render.addPreset(ReactPresets.contextMenu.setup());
   connection.addPreset(ConnectionPresets.classic.setup());
 
