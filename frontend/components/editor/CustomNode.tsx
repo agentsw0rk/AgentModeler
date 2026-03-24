@@ -11,6 +11,15 @@ import {
   McpServerReteNode,
 } from "@/lib/rete-nodes";
 import type { Schemes } from "@/lib/rete-setup";
+import { BotIcon, WrenchIcon, UsersIcon, ServerIcon } from "lucide-react";
+
+const nodeIcons: Record<string, React.ReactNode> = {
+  agent: <BotIcon size={10} />,
+  tool: <WrenchIcon size={10} />,
+  "builtin-tool": <WrenchIcon size={10} />,
+  "sub-agent": <UsersIcon size={10} />,
+  "mcp-server": <ServerIcon size={10} />,
+};
 
 const nodeColors: Record<string, { border: string; glow: string; badge: string; badgeText: string }> = {
   agent:        { border: "rgba(59, 130, 246, 0.4)",  glow: "rgba(59, 130, 246, 0.12)", badge: "rgba(59, 130, 246, 0.15)",  badgeText: "#60a5fa" },
@@ -73,12 +82,15 @@ export function CustomNode(props: {
             letterSpacing: "0.08em",
             color: colors.badgeText,
             background: colors.badge,
-            display: "inline-block",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
             padding: "1px 6px",
             borderRadius: 4,
             marginBottom: 4,
           }}
         >
+          {nodeIcons[nodeType]}
           {typeLabel}
         </div>
         <div style={{ fontSize: 13, fontWeight: 500, color: "#e2e8f0" }}>
