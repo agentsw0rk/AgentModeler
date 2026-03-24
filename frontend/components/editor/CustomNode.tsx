@@ -157,13 +157,19 @@ export function CustomSocket(props: { data: ClassicPreset.Socket }) {
   );
 }
 
-export function CustomConnection(props: {
-  data: Schemes["Connection"] & { isLoop?: boolean };
-  styles?: () => any;
-}) {
-  return <Presets.classic.Connection {...props} styles={() => ({
-    stroke: "rgba(59, 130, 246, 0.5)",
-    strokeWidth: 2,
-    fill: "none",
-  })} />;
+export function CustomConnection() {
+  const { path } = Presets.classic.useConnection();
+
+  if (!path) return null;
+
+  return (
+    <svg data-testid="connection" style={{ overflow: "visible", position: "absolute", pointerEvents: "none", width: "100%", height: "100%" }}>
+      <path
+        d={path}
+        stroke="rgba(59, 130, 246, 0.5)"
+        strokeWidth={2}
+        fill="none"
+      />
+    </svg>
+  );
 }
