@@ -9,6 +9,8 @@ import { BuiltinToolProperties } from "./BuiltinToolProperties";
 import { BuiltinToolConfig } from "@/types/graph";
 import { SubAgentProperties } from "./SubAgentProperties";
 import { SubAgentConfig } from "@/types/subagent";
+import { McpServerProperties } from "./McpServerProperties";
+import { McpServerConfig } from "@/types/mcp";
 
 export function PropertiesPanel() {
   const selectedNodeId = useEditorStore((s) => s.selectedNodeId);
@@ -27,7 +29,8 @@ export function PropertiesPanel() {
     <ScrollArea className="w-80 border-l bg-background">
       <div className="p-4">
         <h3 className="font-semibold mb-4 capitalize">
-          {selectedNode.type === "builtin-tool" ? "Built-in Tool" :
+          {selectedNode.type === "mcp-server" ? "MCP Server" :
+           selectedNode.type === "builtin-tool" ? "Built-in Tool" :
            selectedNode.type === "sub-agent" ? "Sub-Agent" :
            selectedNode.type} Properties
         </h3>
@@ -42,6 +45,9 @@ export function PropertiesPanel() {
         )}
         {selectedNode.type === "sub-agent" && (
           <SubAgentProperties nodeId={selectedNode.id} data={selectedNode.data as SubAgentConfig} />
+        )}
+        {selectedNode.type === "mcp-server" && (
+          <McpServerProperties nodeId={selectedNode.id} data={selectedNode.data as McpServerConfig} />
         )}
       </div>
     </ScrollArea>
