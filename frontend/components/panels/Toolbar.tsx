@@ -68,15 +68,17 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
         <NavigationMenuList>
           <NavigationMenuItem>
             <NavigationMenuLink
-              className="cursor-pointer"
+              className="cursor-pointer gap-2"
               onClick={() => addNode("agent", { x: 100, y: 100 })}
             >
               <BotIcon className="size-4" /> Agent
             </NavigationMenuLink>
           </NavigationMenuItem>
 
+          <span className="text-border select-none">|</span>
+
           <NavigationMenuItem>
-            <NavigationMenuTrigger><WrenchIcon className="size-4" /> Tool</NavigationMenuTrigger>
+            <NavigationMenuTrigger className="gap-2"><WrenchIcon className="size-4" /> Tool</NavigationMenuTrigger>
             <NavigationMenuContent>
               <div className="w-48">
                 <NavigationMenuLink
@@ -99,18 +101,22 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
             </NavigationMenuContent>
           </NavigationMenuItem>
 
+          <span className="text-border select-none">|</span>
+
           <NavigationMenuItem>
             <NavigationMenuLink
-              className="cursor-pointer"
+              className="cursor-pointer gap-2"
               onClick={() => addNode("sub-agent", { x: 200, y: 200 })}
             >
               <UsersIcon className="size-4" /> Sub-Agent
             </NavigationMenuLink>
           </NavigationMenuItem>
 
+          <span className="text-border select-none">|</span>
+
           <NavigationMenuItem>
             <NavigationMenuLink
-              className="cursor-pointer"
+              className="cursor-pointer gap-2"
               onClick={() => addNode("mcp-server", { x: 100, y: 300 })}
             >
               <ServerIcon className="size-4" /> MCP Server
