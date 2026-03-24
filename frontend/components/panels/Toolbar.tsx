@@ -20,7 +20,7 @@ const builtinToolOptions: { type: BuiltinToolType; label: string }[] = [
   { type: "user_prompt", label: "User Prompt" },
 ];
 
-export function Toolbar() {
+export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
   const addNode = useEditorStore((s) => s.addNode);
   const nodes = useEditorStore((s) => s.nodes);
   const edges = useEditorStore((s) => s.edges);
@@ -47,6 +47,10 @@ export function Toolbar() {
 
   return (
     <div className="flex items-center gap-2 p-2 border-b bg-background">
+      <Button variant="outline" size="sm" onClick={onNewProject}>
+        New Project
+      </Button>
+      <div className="w-px h-6 bg-border" />
       <Button variant="outline" size="sm" onClick={() => addNode("agent", { x: 100, y: 100 })}>
         + Agent
       </Button>
