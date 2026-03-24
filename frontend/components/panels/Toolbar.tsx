@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/store/editorStore";
 import { useValidationStore } from "@/store/validationStore";
+import { usePreviewStore } from "@/store/previewStore";
 import { validateGraph } from "@/lib/validation";
 import { ExportDialog } from "@/components/dialogs/ExportDialog";
 import { SaveLoadDialog } from "@/components/dialogs/SaveLoadDialog";
@@ -26,6 +27,9 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
   const edges = useEditorStore((s) => s.edges);
   const projectName = useEditorStore((s) => s.projectName);
   const setErrors = useValidationStore((s) => s.setErrors);
+  const previewIsOpen = usePreviewStore((s) => s.isOpen);
+  const togglePreview = usePreviewStore((s) => s.toggleOpen);
+  const resetPreview = usePreviewStore((s) => s.reset);
   const [toolMenuOpen, setToolMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -91,6 +95,18 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
       <div className="flex-1" />
       <Button variant="outline" size="sm" onClick={handleValidate}>
         Validate
+      </Button>
+      <Button
+        variant={previewIsOpen ? "default" : "outline"}
+        size="sm"
+        onClick={() => {
+          if (!previewIsOpen) {
+            resetPreview();
+          }
+          togglePreview();
+        }}
+      >
+        {previewIsOpen ? "■ Preview" : "▶ Preview"}
       </Button>
       <SaveLoadDialog />
       <ExportDialog />

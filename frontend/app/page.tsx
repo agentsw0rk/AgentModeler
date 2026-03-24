@@ -5,6 +5,7 @@ import { Toolbar } from "@/components/panels/Toolbar";
 import { Canvas } from "@/components/editor/Canvas";
 import { PropertiesPanel } from "@/components/panels/PropertiesPanel";
 import { ValidationPanel } from "@/components/validation/ValidationPanel";
+import { PreviewPanel } from "@/components/preview/PreviewPanel";
 import { NewProjectDialog } from "@/components/dialogs/NewProjectDialog";
 import { useEditorStore, DEFAULT_PROJECT_NAME } from "@/store/editorStore";
 
@@ -43,6 +44,7 @@ export default function EditorPage() {
         <Canvas />
         <PropertiesPanel />
       </div>
+      <PreviewPanel />
       <ValidationPanel />
       <NewProjectDialog
         open={dialogOpen}
