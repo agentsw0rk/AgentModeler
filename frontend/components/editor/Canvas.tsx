@@ -24,12 +24,24 @@ export function Canvas() {
       editorRef = editor;
       areaRef = area;
 
-      // Rete → Zustand: node selection
+      // Rete → Zustand: node selection + drag-end detection
+      let dragging = false;
+
+      const handlePointerUp = () => {
+        if (dragging) {
+          dragging = false;
+          useEditorStore.getState().commitPosition();
+          document.removeEventListener("pointerup", handlePointerUp);
+        }
+      };
+
       area.addPipe((context) => {
         if (context.type === "nodepicked") {
           const reteNode = editor.getNode(context.data.id);
           if (reteNode && "storeNodeId" in reteNode) {
             useEditorStore.getState().setSelectedNodeIds([(reteNode as any).storeNodeId]);
+            dragging = true;
+            document.addEventListener("pointerup", handlePointerUp);
           }
         }
         return context;
@@ -151,6 +163,51 @@ export function Canvas() {
             if (reteNode.label !== newLabel) {
               reteNode.label = newLabel;
               areaRef!.update("node", reteNode.id);
+            }
+          }
+        }
+
+        // Edge sync: remove stale Rete connections
+        const reteConnections = editor.getConnections();
+        const storeEdgeKeys = new Set(state.edges.map((e) => `${e.source}→${e.target}`));
+
+        for (const conn of reteConnections) {
+          const sourceNode = editor.getNode(conn.source);
+          const targetNode = editor.getNode(conn.target);
+          if (!sourceNode || !targetNode) continue;
+          const sourceStoreId = "storeNodeId" in sourceNode ? (sourceNode as any).storeNodeId : null;
+          const targetStoreId = "storeNodeId" in targetNode ? (targetNode as any).storeNodeId : null;
+          if (sourceStoreId && targetStoreId && !storeEdgeKeys.has(`${sourceStoreId}→${targetStoreId}`)) {
+            syncing = true;
+            await editor.removeConnection(conn.id);
+            syncing = false;
+          }
+        }
+
+        // Edge sync: add missing connections
+        const currentReteConnections = editor.getConnections();
+        const reteEdgeKeys = new Set(currentReteConnections.map((c) => {
+          const sn = editor.getNode(c.source);
+          const tn = editor.getNode(c.target);
+          const sid = sn && "storeNodeId" in sn ? (sn as any).storeNodeId : null;
+          const tid = tn && "storeNodeId" in tn ? (tn as any).storeNodeId : null;
+          return `${sid}→${tid}`;
+        }));
+
+        for (const edge of state.edges) {
+          if (!reteEdgeKeys.has(`${edge.source}→${edge.target}`)) {
+            const sourceRete = findReteNode(edge.source);
+            const targetRete = findReteNode(edge.target);
+            if (sourceRete && targetRete) {
+              const outputKey = Object.keys(sourceRete.outputs || {})[0];
+              const inputKey = Object.keys(targetRete.inputs || {})[0];
+              if (outputKey && inputKey) {
+                syncing = true;
+                const { ClassicPreset } = await import("rete");
+                const conn = new ClassicPreset.Connection(sourceRete, outputKey, targetRete, inputKey);
+                await editor.addConnection(conn as any);
+                syncing = false;
+              }
             }
           }
         }
