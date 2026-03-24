@@ -66,7 +66,7 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
       <div className="w-px h-6 bg-border" />
 
       <NavigationMenu>
-        <NavigationMenuList>
+        <NavigationMenuList className="whitespace-nowrap">
           <NavigationMenuItem>
             <NavigationMenuLink
               className="cursor-pointer gap-2"
@@ -109,7 +109,7 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
               className="cursor-pointer gap-2"
               onClick={() => addNode("sub-agent", { x: 200, y: 200 })}
             >
-              <UsersIcon className="size-4" /> Sub-Agent
+              <UsersIcon className="size-4 shrink-0" /> Sub-Agent
             </NavigationMenuLink>
           </NavigationMenuItem>
 
@@ -120,7 +120,7 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
               className="cursor-pointer gap-2"
               onClick={() => addNode("mcp-server", { x: 100, y: 300 })}
             >
-              <ServerIcon className="size-4" /> MCP Server
+              <ServerIcon className="size-4 shrink-0" /> MCP Server
             </NavigationMenuLink>
           </NavigationMenuItem>
         </NavigationMenuList>
