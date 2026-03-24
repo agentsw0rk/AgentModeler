@@ -243,4 +243,98 @@ class GraphValidatorTest {
         val errors = validator.validate(graph)
         assertFalse(errors.any { it.contains("single-agent") || it.contains("Only single") })
     }
+
+    @Test
+    fun `valid mcp-server connected to agent passes validation`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
+                    "name" to "Google Maps", "transportType" to "sse",
+                    "url" to "http://localhost:8931"
+                ))
+            ),
+            listOf(GraphEdge("e1", "mcp1", "a1")))
+        assertTrue(validator.validate(graph).isEmpty())
+    }
+
+    @Test
+    fun `reports mcp-server without name`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
+                    "name" to "", "transportType" to "sse",
+                    "url" to "http://localhost:8931"
+                ))
+            ),
+            listOf(GraphEdge("e1", "mcp1", "a1")))
+        assertTrue(validator.validate(graph).any { it.contains("name") && it.contains("mcp1") })
+    }
+
+    @Test
+    fun `reports mcp-server with invalid transport type`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
+                    "name" to "Server", "transportType" to "invalid",
+                    "url" to "http://localhost:8931"
+                ))
+            ),
+            listOf(GraphEdge("e1", "mcp1", "a1")))
+        assertTrue(validator.validate(graph).any { it.contains("transport") })
+    }
+
+    @Test
+    fun `reports sse mcp-server without url`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
+                    "name" to "Server", "transportType" to "sse", "url" to ""
+                ))
+            ),
+            listOf(GraphEdge("e1", "mcp1", "a1")))
+        assertTrue(validator.validate(graph).any { it.contains("URL") })
+    }
+
+    @Test
+    fun `reports stdio mcp-server without command`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
+                    "name" to "Server", "transportType" to "stdio", "command" to ""
+                ))
+            ),
+            listOf(GraphEdge("e1", "mcp1", "a1")))
+        assertTrue(validator.validate(graph).any { it.contains("command") })
+    }
+
+    @Test
+    fun `reports mcp-server not connected to agent`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
+                    "name" to "Server", "transportType" to "sse", "url" to "http://localhost"
+                ))
+            ),
+            emptyList())
+        assertTrue(validator.validate(graph).any { it.contains("connected") })
+    }
+
+    @Test
+    fun `mcp-server does not count toward single-agent limit`() {
+        val graph = ProjectGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
+                    "name" to "Server", "transportType" to "sse", "url" to "http://localhost"
+                ))
+            ),
+            listOf(GraphEdge("e1", "mcp1", "a1")))
+        assertFalse(validator.validate(graph).any { it.contains("single-agent") || it.contains("Only single") })
+    }
 }

@@ -57,6 +57,35 @@ class GraphValidator {
                         errors.add("[${node.id}] Tool can only be connected to one Agent or Sub-Agent")
                     }
                 }
+                "mcp-server" -> {
+                    val name = node.data["name"] as? String ?: ""
+                    val transportType = node.data["transportType"] as? String ?: ""
+                    if (name.isBlank()) errors.add("[${node.id}] MCP Server requires a name")
+
+                    val validTransports = setOf("sse", "stdio")
+                    if (transportType !in validTransports) {
+                        errors.add("[${node.id}] MCP Server has invalid transport type")
+                    } else if (transportType == "sse") {
+                        val url = node.data["url"] as? String ?: ""
+                        if (url.isBlank()) errors.add("[${node.id}] MCP Server (SSE) requires a URL")
+                    } else if (transportType == "stdio") {
+                        val command = node.data["command"] as? String ?: ""
+                        if (command.isBlank()) errors.add("[${node.id}] MCP Server (STDIO) requires a command")
+                    }
+
+                    val isConnected = graph.edges.any { it.source == node.id }
+                    if (!isConnected) errors.add("[${node.id}] MCP Server must be connected to an Agent")
+
+                    // Warning: MCP connected to sub-agent (export only supports main agent)
+                    val targets = graph.edges.filter { it.source == node.id }.map { edge ->
+                        graph.nodes.find { it.id == edge.target }
+                    }
+                    for (target in targets) {
+                        if (target?.type == "sub-agent") {
+                            errors.add("[${node.id}] MCP Server connected to Sub-Agent will only be exported for the main Agent")
+                        }
+                    }
+                }
                 "sub-agent" -> {
                     val name = node.data["name"] as? String ?: ""
                     val description = node.data["description"] as? String ?: ""
