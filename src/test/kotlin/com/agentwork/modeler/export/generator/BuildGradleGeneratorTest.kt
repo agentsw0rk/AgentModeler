@@ -1,6 +1,7 @@
 package com.agentwork.modeler.export.generator
 
 import com.agentwork.modeler.export.model.*
+import com.agentwork.modeler.export.model.KoogMcpServer
 import org.junit.jupiter.api.Test
 import kotlin.test.assertContains
 import kotlin.test.assertFalse
@@ -51,5 +52,20 @@ class BuildGradleGeneratorTest {
             listOf(KoogBuiltinTool(BuiltinToolType.SHELL)))
         val code = generator.generate(agent)
         assertFalse(code.contains("sqlite-jdbc"))
+    }
+
+    @Test
+    fun `adds MCP dependency when MCP servers present`() {
+        val agent = KoogAgent("Agent", "Help", ModelProvider.OPENAI, null, null, emptyList(),
+            mcpServers = listOf(KoogMcpServer("Maps", "sse", "http://localhost", null, null, emptyList())))
+        val code = generator.generate(agent)
+        assertContains(code, "agents-ext-mcp")
+    }
+
+    @Test
+    fun `no MCP dependency without MCP servers`() {
+        val agent = KoogAgent("Agent", "Help", ModelProvider.OPENAI, null, null, emptyList())
+        val code = generator.generate(agent)
+        assertFalse(code.contains("agents-ext-mcp"))
     }
 }
