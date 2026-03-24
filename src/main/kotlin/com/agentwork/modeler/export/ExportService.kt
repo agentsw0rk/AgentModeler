@@ -25,6 +25,7 @@ class ExportService(
     private val controllerGenerator: ControllerGenerator,
     private val builtinToolGenerator: BuiltinToolGenerator,
     private val subAgentGenerator: SubAgentGenerator,
+    private val mcpServerGenerator: McpServerGenerator,
     private val zipBuilder: ZipBuilder
 ) {
     fun export(graph: ProjectGraph): ByteArray {
@@ -94,8 +95,14 @@ class ExportService(
             }
         }
 
-        if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty() || agent.subAgents.isNotEmpty()) {
-            files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(agent.tools, agent.builtinTools, agent.subAgents)
+        // MCP servers
+        for (mcpServer in agent.mcpServers) {
+            val fileName = "${mcpServer.name.replace(" ", "")}Mcp"
+            files["$pkg/mcp/$fileName.kt"] = mcpServerGenerator.generate(mcpServer)
+        }
+
+        if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty() || agent.subAgents.isNotEmpty() || agent.mcpServers.isNotEmpty()) {
+            files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(agent.tools, agent.builtinTools, agent.subAgents, agent.mcpServers)
         }
 
         return zipBuilder.buildZip(files)

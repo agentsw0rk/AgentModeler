@@ -2,6 +2,7 @@ package com.agentwork.modeler.export
 
 import com.agentwork.modeler.export.adapter.GraphToKoogAdapter
 import com.agentwork.modeler.export.generator.*
+import com.agentwork.modeler.export.generator.McpServerGenerator
 import com.agentwork.modeler.export.generator.SubAgentGenerator
 import com.agentwork.modeler.export.model.*
 import com.agentwork.modeler.export.validation.GraphValidator
@@ -30,6 +31,7 @@ class ExportServiceTest {
         controllerGenerator = ControllerGenerator(),
         builtinToolGenerator = BuiltinToolGenerator(),
         subAgentGenerator = SubAgentGenerator(),
+        mcpServerGenerator = McpServerGenerator(),
         zipBuilder = ZipBuilder()
     )
 
@@ -170,6 +172,41 @@ class ExportServiceTest {
         val registryContent = readZipFileContent(zip, "src/main/kotlin/generated/ToolRegistry.kt")
         assertContains(registryContent, "createResearchAgent()")
         assertContains(registryContent, "createAgentTool")
+    }
+
+    @Test
+    fun `exports graph with MCP server`() {
+        val graph = ProjectGraph(1, "TestProject",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MainAgent", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
+                    "name" to "Google Maps", "transportType" to "sse",
+                    "url" to "http://localhost:8931",
+                    "envVars" to listOf(mapOf("id" to "1", "name" to "GOOGLE_MAPS_API_KEY"))
+                ))
+            ),
+            listOf(GraphEdge("e1", "mcp1", "a1"))
+        )
+        val zip = service.export(graph)
+        val entries = readZipEntries(zip)
+
+        assertTrue(entries.contains("src/main/kotlin/generated/mcp/GoogleMapsMcp.kt"))
+        assertTrue(entries.contains("src/main/kotlin/generated/ToolRegistry.kt"))
+        assertTrue(entries.contains("src/main/kotlin/generated/AgentConfig.kt"))
+
+        val mcpContent = readZipFileContent(zip, "src/main/kotlin/generated/mcp/GoogleMapsMcp.kt")
+        assertContains(mcpContent, "defaultSseTransport")
+        assertContains(mcpContent, "http://localhost:8931")
+
+        val registryContent = readZipFileContent(zip, "src/main/kotlin/generated/ToolRegistry.kt")
+        assertContains(registryContent, "suspend")
+        assertContains(registryContent, "createGoogleMapsRegistry()")
+
+        val agentContent = readZipFileContent(zip, "src/main/kotlin/generated/AgentConfig.kt")
+        assertContains(agentContent, "runBlocking")
+
+        val buildContent = readZipFileContent(zip, "build.gradle.kts")
+        assertContains(buildContent, "agents-ext-mcp")
     }
 
     private fun readZipEntries(data: ByteArray): List<String> {
