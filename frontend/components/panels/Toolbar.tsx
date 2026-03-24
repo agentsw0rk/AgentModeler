@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/store/editorStore";
 import { useValidationStore } from "@/store/validationStore";
 import { usePreviewStore } from "@/store/previewStore";
+import { useHistoryStore } from "@/store/historyStore";
 import { validateGraph } from "@/lib/validation";
 import { ExportDialog } from "@/components/dialogs/ExportDialog";
 import { SaveLoadDialog } from "@/components/dialogs/SaveLoadDialog";
@@ -30,6 +31,10 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
   const previewIsOpen = usePreviewStore((s) => s.isOpen);
   const togglePreview = usePreviewStore((s) => s.toggleOpen);
   const resetPreview = usePreviewStore((s) => s.reset);
+  const past = useHistoryStore((s) => s.past);
+  const future = useHistoryStore((s) => s.future);
+  const undo = useHistoryStore((s) => s.undo);
+  const redo = useHistoryStore((s) => s.redo);
   const [toolMenuOpen, setToolMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +58,13 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
     <div className="flex items-center gap-2 p-2 border-b bg-background">
       <Button variant="outline" size="sm" onClick={onNewProject}>
         New Project
+      </Button>
+      <div className="w-px h-6 bg-border" />
+      <Button variant="outline" size="sm" onClick={undo} disabled={past.length === 0}>
+        Undo
+      </Button>
+      <Button variant="outline" size="sm" onClick={redo} disabled={future.length === 0}>
+        Redo
       </Button>
       <div className="w-px h-6 bg-border" />
       <Button variant="outline" size="sm" onClick={() => addNode("agent", { x: 100, y: 100 })}>

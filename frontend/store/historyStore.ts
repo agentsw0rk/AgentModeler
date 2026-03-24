@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { GraphNode, GraphEdge } from "@/types/graph";
-import { useEditorStore } from "./editorStore";
 
 const MAX_HISTORY = 100;
 
@@ -34,6 +33,8 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     if (past.length === 0) return;
 
     const previous = past[past.length - 1];
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { useEditorStore } = require("./editorStore");
     const { nodes, edges, projectName } = useEditorStore.getState();
     const current: Snapshot = {
       nodes: structuredClone(nodes),
@@ -54,6 +55,8 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     if (future.length === 0) return;
 
     const next = future[future.length - 1];
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { useEditorStore } = require("./editorStore");
     const { nodes, edges, projectName } = useEditorStore.getState();
     const current: Snapshot = {
       nodes: structuredClone(nodes),
