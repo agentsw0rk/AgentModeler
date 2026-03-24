@@ -15,6 +15,7 @@ import { usePreviewStore } from "@/store/previewStore";
 import { useHistoryStore } from "@/store/historyStore";
 import { validateGraph } from "@/lib/validation";
 import { ExportDialog } from "@/components/dialogs/ExportDialog";
+import { KeyboardShortcutsDialog } from "@/components/dialogs/KeyboardShortcutsDialog";
 import { SaveLoadDialog } from "@/components/dialogs/SaveLoadDialog";
 import { ProjectGraph } from "@/types/graph";
 import type { BuiltinToolType } from "@/types/graph";
@@ -143,6 +144,7 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
       </Button>
       <SaveLoadDialog />
       <ExportDialog />
+      <KeyboardShortcutsDialog />
     </div>
   );
 }
