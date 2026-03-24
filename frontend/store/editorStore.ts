@@ -4,6 +4,8 @@ import { AgentConfig, ToolConfig } from "@/types/koog";
 import { SubAgentConfig } from "@/types/subagent";
 import { McpServerConfig } from "@/types/mcp";
 
+export const DEFAULT_PROJECT_NAME = "Untitled Project";
+
 interface EditorState {
   nodes: GraphNode[];
   edges: GraphEdge[];
@@ -65,7 +67,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   nodes: [],
   edges: [],
   selectedNodeId: null,
-  projectName: "Untitled Project",
+  projectName: DEFAULT_PROJECT_NAME,
 
   addNode: (type, position, toolType?) =>
     set((state) => {
@@ -133,7 +135,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       nodes: [],
       edges: [],
       selectedNodeId: null,
-      projectName: "Untitled Project",
+      projectName: DEFAULT_PROJECT_NAME,
     });
   },
 }));
