@@ -1,7 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 import { useEditorStore } from "@/store/editorStore";
 import { useValidationStore } from "@/store/validationStore";
 import { usePreviewStore } from "@/store/previewStore";
@@ -35,18 +42,6 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
   const future = useHistoryStore((s) => s.future);
   const undo = useHistoryStore((s) => s.undo);
   const redo = useHistoryStore((s) => s.redo);
-  const [toolMenuOpen, setToolMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setToolMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
 
   const handleValidate = () => {
     const graph: ProjectGraph = { version: 1, name: projectName, nodes, edges };
@@ -67,43 +62,62 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
         Redo
       </Button>
       <div className="w-px h-6 bg-border" />
-      <Button variant="outline" size="sm" onClick={() => addNode("agent", { x: 100, y: 100 })}>
-        + Agent
-      </Button>
-      <div className="relative" ref={menuRef}>
-        <Button variant="outline" size="sm" onClick={() => setToolMenuOpen(!toolMenuOpen)}>
-          + Tool ▾
-        </Button>
-        {toolMenuOpen && (
-          <div className="absolute top-full left-0 mt-1 w-44 bg-popover border rounded-md shadow-md z-50 py-1">
-            <button
-              className="w-full text-left px-3 py-1.5 text-sm hover:bg-accent"
-              onClick={() => { addNode("tool", { x: 300, y: 100 }); setToolMenuOpen(false); }}
+
+      <NavigationMenu>
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              className="cursor-pointer"
+              onClick={() => addNode("agent", { x: 100, y: 100 })}
             >
-              Custom Tool
-            </button>
-            <div className="border-t my-1" />
-            {builtinToolOptions.map((opt) => (
-              <button
-                key={opt.type}
-                className="w-full text-left px-3 py-1.5 text-sm hover:bg-accent"
-                onClick={() => {
-                  addNode("builtin-tool", { x: 300, y: 100 }, opt.type);
-                  setToolMenuOpen(false);
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      <Button variant="outline" size="sm" onClick={() => addNode("sub-agent", { x: 200, y: 200 })}>
-        + Sub-Agent
-      </Button>
-      <Button variant="outline" size="sm" onClick={() => addNode("mcp-server", { x: 100, y: 300 })}>
-        + MCP Server
-      </Button>
+              + Agent
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>+ Tool</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <div className="w-48">
+                <NavigationMenuLink
+                  className="cursor-pointer"
+                  onClick={() => addNode("tool", { x: 300, y: 100 })}
+                >
+                  Custom Tool
+                </NavigationMenuLink>
+                <div className="border-t my-1" />
+                {builtinToolOptions.map((opt) => (
+                  <NavigationMenuLink
+                    key={opt.type}
+                    className="cursor-pointer"
+                    onClick={() => addNode("builtin-tool", { x: 300, y: 100 }, opt.type)}
+                  >
+                    {opt.label}
+                  </NavigationMenuLink>
+                ))}
+              </div>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              className="cursor-pointer"
+              onClick={() => addNode("sub-agent", { x: 200, y: 200 })}
+            >
+              + Sub-Agent
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              className="cursor-pointer"
+              onClick={() => addNode("mcp-server", { x: 100, y: 300 })}
+            >
+              + MCP Server
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
+
       <div className="flex-1" />
       <Button variant="outline" size="sm" onClick={handleValidate}>
         Validate
