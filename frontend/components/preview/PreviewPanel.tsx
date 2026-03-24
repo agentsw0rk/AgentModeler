@@ -1,0 +1,190 @@
+"use client";
+
+import { useCallback, useRef } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { usePreviewStore, generateStepId, generateMsgId } from "@/store/previewStore";
+import { useEditorStore } from "@/store/editorStore";
+import { useValidationStore } from "@/store/validationStore";
+import { validateGraph, hasBlockingErrors } from "@/lib/validation";
+import { ExecutionTimeline } from "./ExecutionTimeline";
+import { ChatArea } from "./ChatArea";
+import { ProjectGraph } from "@/types/graph";
+import { PreviewEvent } from "@/types/preview";
+import * as realClient from "@/lib/preview-client";
+import * as mockClient from "@/lib/preview-mock";
+
+const statusBadge: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
+  idle: { label: "Idle", variant: "secondary" },
+  connecting: { label: "Connecting...", variant: "default" },
+  running: { label: "Running", variant: "default" },
+  success: { label: "Done", variant: "secondary" },
+  error: { label: "Error", variant: "destructive" },
+};
+
+export function PreviewPanel() {
+  const isOpen = usePreviewStore((s) => s.isOpen);
+  const status = usePreviewStore((s) => s.status);
+  const sessionId = usePreviewStore((s) => s.sessionId);
+  const useMock = usePreviewStore((s) => s.useMock);
+  const toggleOpen = usePreviewStore((s) => s.toggleOpen);
+  const toggleMock = usePreviewStore((s) => s.toggleMock);
+  const reset = usePreviewStore((s) => s.reset);
+  const setStatus = usePreviewStore((s) => s.setStatus);
+  const setSessionId = usePreviewStore((s) => s.setSessionId);
+  const setError = usePreviewStore((s) => s.setError);
+  const addMessage = usePreviewStore((s) => s.addMessage);
+  const addStep = usePreviewStore((s) => s.addStep);
+  const updateStep = usePreviewStore((s) => s.updateStep);
+
+  const nodes = useEditorStore((s) => s.nodes);
+  const edges = useEditorStore((s) => s.edges);
+  const projectName = useEditorStore((s) => s.projectName);
+  const setErrors = useValidationStore((s) => s.setErrors);
+
+  const abortRef = useRef<AbortController | null>(null);
+  const currentStepRef = useRef<string | null>(null);
+
+  const client = useMock ? mockClient : realClient;
+
+  const handleEvent = useCallback((event: PreviewEvent) => {
+    switch (event.type) {
+      case "session-created":
+        setSessionId(event.data.sessionId);
+        break;
+      case "agent-initialized": {
+        const stepId = generateStepId();
+        addStep({ id: stepId, type: "init", label: "Agent initialized", status: "done", durationMs: event.data.durationMs });
+        break;
+      }
+      case "llm-call-started": {
+        const stepId = generateStepId();
+        currentStepRef.current = stepId;
+        addStep({ id: stepId, type: "llm", label: `LLM call (${event.data.model})`, status: "running" });
+        break;
+      }
+      case "llm-call-completed":
+        if (currentStepRef.current) {
+          updateStep(currentStepRef.current, {
+            status: "done",
+            durationMs: event.data.durationMs,
+            detail: `${event.data.tokens} tokens`,
+          });
+          currentStepRef.current = null;
+        }
+        break;
+      case "tool-call-started": {
+        const stepId = generateStepId();
+        currentStepRef.current = stepId;
+        addStep({ id: stepId, type: "tool", label: `Tool: ${event.data.tool}`, status: "running" });
+        break;
+      }
+      case "tool-call-completed":
+        if (currentStepRef.current) {
+          updateStep(currentStepRef.current, {
+            status: "done",
+            durationMs: event.data.durationMs,
+            detail: event.data.result || undefined,
+          });
+          currentStepRef.current = null;
+        }
+        break;
+      case "agent-message":
+        addMessage({ id: generateMsgId(), role: "agent", content: event.data.content });
+        break;
+      case "error":
+        setError(event.data.message);
+        if (currentStepRef.current) {
+          updateStep(currentStepRef.current, { status: "error" });
+          currentStepRef.current = null;
+        }
+        break;
+      case "stream-complete":
+        setStatus("success");
+        break;
+    }
+  }, [setSessionId, addStep, updateStep, addMessage, setError, setStatus]);
+
+  const handleSendMessage = useCallback(async (message: string) => {
+    const graph: ProjectGraph = { version: 1, name: projectName, nodes, edges };
+
+    addMessage({ id: generateMsgId(), role: "user", content: message });
+
+    if (!sessionId) {
+      const errors = validateGraph(graph);
+      setErrors(errors);
+      if (hasBlockingErrors(errors)) {
+        setError("Fix validation errors before running preview.");
+        return;
+      }
+
+      setStatus("connecting");
+      try {
+        const abort = await client.startPreview(graph, message, handleEvent);
+        abortRef.current = abort;
+        setStatus("running");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      }
+    } else {
+      setStatus("running");
+      try {
+        await client.sendMessage(sessionId, message);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      }
+    }
+  }, [sessionId, nodes, edges, projectName, client, handleEvent, setStatus, setError, addMessage, setErrors]);
+
+  const handleStop = useCallback(async () => {
+    abortRef.current?.abort();
+    if (sessionId) {
+      try { await client.stopPreview(sessionId); } catch { /* ignore */ }
+    }
+    reset();
+  }, [sessionId, client, reset]);
+
+  if (!isOpen) return null;
+
+  const badge = statusBadge[status] || statusBadge.idle;
+
+  return (
+    <div className="border-t flex flex-col" style={{ height: 300 }}>
+      <div className="flex items-center justify-between px-3 py-1.5 border-b bg-muted/30">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold">Live Preview</span>
+          <Badge variant={badge.variant}>{badge.label}</Badge>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-6 text-xs"
+            onClick={toggleMock}
+          >
+            {useMock ? "Mock ✓" : "Mock"}
+          </Button>
+          {(status === "running" || status === "connecting") && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-6 text-xs text-destructive"
+              onClick={handleStop}
+            >
+              Stop
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={toggleOpen}>
+            ▼
+          </Button>
+        </div>
+      </div>
+      <div className="flex flex-1 overflow-hidden">
+        <div className="w-56 border-r overflow-y-auto">
+          <ExecutionTimeline />
+        </div>
+        <ChatArea onSendMessage={handleSendMessage} />
+      </div>
+    </div>
+  );
+}
