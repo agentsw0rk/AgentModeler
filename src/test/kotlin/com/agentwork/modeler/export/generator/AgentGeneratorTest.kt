@@ -3,6 +3,7 @@ package com.agentwork.modeler.export.generator
 import com.agentwork.modeler.export.model.*
 import com.agentwork.modeler.export.model.KoogBuiltinTool
 import com.agentwork.modeler.export.model.BuiltinToolType
+import com.agentwork.modeler.export.model.KoogMcpServer
 import org.junit.jupiter.api.Test
 import kotlin.test.assertContains
 import kotlin.test.assertFalse
@@ -63,6 +64,23 @@ class AgentGeneratorTest {
         val agent = KoogAgent("Agent1", "You are helpful.", ModelProvider.OPENAI, null, null, emptyList())
         val code = generator.generate(agent)
         assertFalse(code.contains("Think step by step"))
+    }
+
+    @Test
+    fun `wraps agent in runBlocking when MCP servers present`() {
+        val agent = KoogAgent("Agent", "Help", ModelProvider.OPENAI, null, null, emptyList(),
+            mcpServers = listOf(KoogMcpServer("Maps", "sse", "http://localhost", null, null, emptyList())))
+        val code = generator.generate(agent)
+        assertContains(code, "runBlocking")
+        assertContains(code, "import kotlinx.coroutines.runBlocking")
+        assertContains(code, "createToolRegistry()")
+    }
+
+    @Test
+    fun `no runBlocking without MCP servers`() {
+        val agent = KoogAgent("Agent", "Help", ModelProvider.OPENAI, null, null, emptyList())
+        val code = generator.generate(agent)
+        assertFalse(code.contains("runBlocking"))
     }
 
     @Test

@@ -24,7 +24,7 @@ class AgentGenerator {
             "llmModel = $modelRef"
         )
         agent.temperature?.let { params.add("temperature = $it") }
-        if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty()) {
+        if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty() || agent.subAgents.isNotEmpty() || agent.mcpServers.isNotEmpty()) {
             params.add("toolRegistry = createToolRegistry()")
         }
 
@@ -34,20 +34,32 @@ class AgentGenerator {
             appendLine("package generated")
             appendLine()
             appendLine("import ai.koog.agents.core.agent.AIAgent")
-            if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty()) {
+            if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty() || agent.subAgents.isNotEmpty() || agent.mcpServers.isNotEmpty()) {
                 appendLine("import ai.koog.agents.core.tools.ToolRegistry")
             }
             appendLine("import ai.koog.prompt.executor.llms.all.${agent.modelProvider.executorFactory}")
             appendLine("import $modelImport")
+            if (agent.mcpServers.isNotEmpty()) {
+                appendLine("import kotlinx.coroutines.runBlocking")
+            }
             appendLine("import org.springframework.context.annotation.Bean")
             appendLine("import org.springframework.context.annotation.Configuration")
             appendLine()
             appendLine("@Configuration")
             appendLine("class AgentConfig {")
-            appendLine("    @Bean")
-            appendLine("    fun agent(): AIAgent<String, String> = AIAgent(")
-            appendLine("            $paramBlock")
-            appendLine("    )")
+            if (agent.mcpServers.isNotEmpty()) {
+                appendLine("    @Bean")
+                appendLine("    fun agent(): AIAgent<String, String> = runBlocking {")
+                appendLine("        AIAgent(")
+                appendLine("            $paramBlock")
+                appendLine("        )")
+                appendLine("    }")
+            } else {
+                appendLine("    @Bean")
+                appendLine("    fun agent(): AIAgent<String, String> = AIAgent(")
+                appendLine("            $paramBlock")
+                appendLine("    )")
+            }
             appendLine("}")
         }
     }
