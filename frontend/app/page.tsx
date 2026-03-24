@@ -9,6 +9,8 @@ import { PreviewPanel } from "@/components/preview/PreviewPanel";
 import { NewProjectDialog } from "@/components/dialogs/NewProjectDialog";
 import { useEditorStore, DEFAULT_PROJECT_NAME } from "@/store/editorStore";
 import { copySelectedNodes, pasteNodes } from "@/store/clipboardStore";
+import { useValidationStore } from "@/store/validationStore";
+import { validateGraph } from "@/lib/validation";
 
 export default function EditorPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -52,6 +54,19 @@ export default function EditorPage() {
 
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    const unsubscribe = useEditorStore.subscribe((state) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        const graph = { version: 1 as const, name: state.projectName, nodes: state.nodes, edges: state.edges };
+        const errors = validateGraph(graph);
+        useValidationStore.getState().setErrors(errors);
+      }, 500);
+    });
+    return () => { unsubscribe(); clearTimeout(timeout); };
   }, []);
 
   useEffect(() => {
