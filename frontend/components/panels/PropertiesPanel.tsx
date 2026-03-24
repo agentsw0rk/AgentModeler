@@ -13,9 +13,18 @@ import { McpServerProperties } from "./McpServerProperties";
 import { McpServerConfig } from "@/types/mcp";
 
 export function PropertiesPanel() {
-  const selectedNodeId = useEditorStore((s) => s.selectedNodeId);
+  const selectedNodeIds = useEditorStore((s) => s.selectedNodeIds);
   const nodes = useEditorStore((s) => s.nodes);
-  const selectedNode = nodes.find((n) => n.id === selectedNodeId);
+
+  if (selectedNodeIds.length === 0) {
+    return (<div className="w-80 border-l bg-background p-4 text-muted-foreground text-sm">Select a node to edit its properties.</div>);
+  }
+
+  if (selectedNodeIds.length > 1) {
+    return (<div className="w-80 border-l bg-background p-4 text-muted-foreground text-sm">{selectedNodeIds.length} nodes selected</div>);
+  }
+
+  const selectedNode = nodes.find((n) => n.id === selectedNodeIds[0]);
 
   if (!selectedNode) {
     return (

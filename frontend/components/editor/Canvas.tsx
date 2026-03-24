@@ -29,7 +29,7 @@ export function Canvas() {
         if (context.type === "nodepicked") {
           const reteNode = editor.getNode(context.data.id);
           if (reteNode && "storeNodeId" in reteNode) {
-            useEditorStore.getState().setSelectedNodeId((reteNode as any).storeNodeId);
+            useEditorStore.getState().setSelectedNodeIds([(reteNode as any).storeNodeId]);
           }
         }
         return context;
