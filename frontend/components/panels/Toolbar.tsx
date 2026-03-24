@@ -56,10 +56,10 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
         New Project
       </Button>
       <div className="w-px h-6 bg-border" />
-      <Button variant="outline" size="sm" onClick={undo} disabled={past.length === 0}>
+      <Button variant="outline" size="sm" onClick={undo} disabled={past.length === 0 || undefined}>
         Undo
       </Button>
-      <Button variant="outline" size="sm" onClick={redo} disabled={future.length === 0}>
+      <Button variant="outline" size="sm" onClick={redo} disabled={future.length === 0 || undefined}>
         Redo
       </Button>
       <div className="w-px h-6 bg-border" />
