@@ -29,6 +29,17 @@ class ExportService(
     private val zipBuilder: ZipBuilder
 ) {
     fun export(graph: ProjectGraph): ByteArray {
+        val files = generateFiles(graph)
+        return zipBuilder.buildZip(files)
+    }
+
+    fun exportWithFiles(graph: ProjectGraph): Pair<ByteArray, Map<String, String>> {
+        val files = generateFiles(graph)
+        val zip = zipBuilder.buildZip(files)
+        return Pair(zip, files)
+    }
+
+    internal fun generateFiles(graph: ProjectGraph): Map<String, String> {
         val validationErrors = validator.validate(graph)
         if (validationErrors.isNotEmpty()) {
             throw ExportValidationException(validationErrors)
@@ -105,6 +116,6 @@ class ExportService(
             files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(agent.tools, agent.builtinTools, agent.subAgents, agent.mcpServers)
         }
 
-        return zipBuilder.buildZip(files)
+        return files
     }
 }
