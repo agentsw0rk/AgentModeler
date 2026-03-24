@@ -52,7 +52,17 @@ export class SubAgentReteNode extends ClassicPreset.Node {
   }
 }
 
-export type AppNode = AgentReteNode | ToolReteNode | BuiltinToolReteNode | SubAgentReteNode;
+export class McpServerReteNode extends ClassicPreset.Node {
+  width = 240;
+  height = 120;
+
+  constructor(public storeNodeId: string, label: string) {
+    super(label || "MCP Server");
+    this.addOutput("agent", new ClassicPreset.Output(toolSocket, "Agent"));
+  }
+}
+
+export type AppNode = AgentReteNode | ToolReteNode | BuiltinToolReteNode | SubAgentReteNode | McpServerReteNode;
 export type AppConnection = ClassicPreset.Connection<
   ClassicPreset.Node,
   ClassicPreset.Node
