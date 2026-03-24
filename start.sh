@@ -14,12 +14,17 @@ FRONTEND_PID=$!
 
 cd ..
 
-trap "echo 'Stopping...'; kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit" INT TERM
+echo "Starting MCP Test Server..."
+./mcp-test/mcp-start.sh &
+MCP_PID=$!
+
+trap "echo 'Stopping...'; kill $BACKEND_PID $FRONTEND_PID $MCP_PID 2>/dev/null; exit" INT TERM
 
 echo ""
 echo "Backend:  http://localhost:8080"
 echo "Frontend: http://localhost:3000"
+echo "MCP Test: running"
 echo ""
-echo "Press Ctrl+C to stop both."
+echo "Press Ctrl+C to stop all."
 
 wait

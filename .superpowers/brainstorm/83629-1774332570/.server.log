@@ -1,0 +1,5 @@
+{"type":"server-started","port":49414,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:49414","screen_dir":"/Users/czarnik/IdeaProjects/modeler/.superpowers/brainstorm/83629-1774332570"}
+{"type":"screen-added","file":"/Users/czarnik/IdeaProjects/modeler/.superpowers/brainstorm/83629-1774332570/mcp-canvas-layout.html"}
+{"type":"screen-added","file":"/Users/czarnik/IdeaProjects/modeler/.superpowers/brainstorm/83629-1774332570/mcp-discovery-flow.html"}
+{"type":"screen-added","file":"/Users/czarnik/IdeaProjects/modeler/.superpowers/brainstorm/83629-1774332570/waiting-2.html"}
+{"type":"server-stopped","reason":"idle timeout"}
