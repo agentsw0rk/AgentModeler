@@ -9,16 +9,19 @@ export const DEFAULT_PROJECT_NAME = "Untitled Project";
 interface EditorState {
   nodes: GraphNode[];
   edges: GraphEdge[];
-  selectedNodeId: string | null;
+  selectedNodeIds: string[];
   projectName: string;
 
   addNode: (type: NodeType, position: { x: number; y: number }, toolType?: BuiltinToolType) => void;
+  addNodes: (nodes: GraphNode[], edges: GraphEdge[]) => void;
   removeNode: (id: string) => void;
   updateNodeData: (id: string, data: Partial<AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig>) => void;
   updateNodePosition: (id: string, position: { x: number; y: number }) => void;
+  commitPosition: () => void;
   addEdge: (source: string, target: string) => void;
   removeEdge: (id: string) => void;
-  setSelectedNodeId: (id: string | null) => void;
+  setSelectedNodeIds: (ids: string[]) => void;
+  toggleNodeSelection: (id: string) => void;
   setProjectName: (name: string) => void;
   reset: () => void;
 }
@@ -63,13 +66,24 @@ const builtinToolDefaults: Record<BuiltinToolType, BuiltinToolConfig> = {
 
 let nextId = 1;
 
+function pushHistory() {
+  const { useHistoryStore } = require("./historyStore");
+  const { nodes, edges, projectName } = useEditorStore.getState();
+  useHistoryStore.getState().pushState({
+    nodes: structuredClone(nodes),
+    edges: structuredClone(edges),
+    projectName,
+  });
+}
+
 export const useEditorStore = create<EditorState>((set) => ({
   nodes: [],
   edges: [],
-  selectedNodeId: null,
+  selectedNodeIds: [],
   projectName: DEFAULT_PROJECT_NAME,
 
-  addNode: (type, position, toolType?) =>
+  addNode(type, position, toolType?) {
+    pushHistory();
     set((state) => {
       let data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig;
       if (type === "agent") {
@@ -83,58 +97,97 @@ export const useEditorStore = create<EditorState>((set) => ({
       } else {
         data = { ...defaultToolData };
       }
+      const newNode: GraphNode = { id: `node-${nextId++}`, type, position, data };
       return {
-        nodes: [
-          ...state.nodes,
-          { id: `node-${nextId++}`, type, position, data },
-        ],
+        nodes: [...state.nodes, newNode],
+        selectedNodeIds: [newNode.id],
       };
-    }),
+    });
+  },
 
-  removeNode: (id) =>
+  addNodes(nodes, edges) {
+    pushHistory();
+    set((state) => ({
+      nodes: [...state.nodes, ...nodes],
+      edges: [...state.edges, ...edges],
+      selectedNodeIds: nodes.map((n) => n.id),
+    }));
+  },
+
+  removeNode(id) {
+    pushHistory();
     set((state) => ({
       nodes: state.nodes.filter((n) => n.id !== id),
       edges: state.edges.filter((e) => e.source !== id && e.target !== id),
-      selectedNodeId: state.selectedNodeId === id ? null : state.selectedNodeId,
-    })),
+      selectedNodeIds: state.selectedNodeIds.filter((nid) => nid !== id),
+    }));
+  },
 
-  updateNodeData: (id, data) =>
+  updateNodeData(id, data) {
+    pushHistory();
     set((state) => ({
       nodes: state.nodes.map((n) =>
         n.id === id ? { ...n, data: { ...n.data, ...data } } : n
       ),
-    })),
+    }));
+  },
 
-  updateNodePosition: (id, position) =>
+  updateNodePosition(id, position) {
     set((state) => ({
       nodes: state.nodes.map((n) =>
         n.id === id ? { ...n, position } : n
       ),
-    })),
+    }));
+  },
 
-  addEdge: (source, target) =>
+  commitPosition() {
+    pushHistory();
+  },
+
+  addEdge(source, target) {
+    pushHistory();
     set((state) => ({
       edges: [
         ...state.edges,
         { id: `edge-${nextId++}`, source, target },
       ],
-    })),
+    }));
+  },
 
-  removeEdge: (id) =>
+  removeEdge(id) {
+    pushHistory();
     set((state) => ({
       edges: state.edges.filter((e) => e.id !== id),
-    })),
+    }));
+  },
 
-  setSelectedNodeId: (id) => set({ selectedNodeId: id }),
+  setSelectedNodeIds(ids) {
+    set({ selectedNodeIds: ids });
+  },
 
-  setProjectName: (name) => set({ projectName: name }),
+  toggleNodeSelection(id) {
+    set((state) => {
+      const idx = state.selectedNodeIds.indexOf(id);
+      if (idx >= 0) {
+        return { selectedNodeIds: state.selectedNodeIds.filter((nid) => nid !== id) };
+      }
+      return { selectedNodeIds: [...state.selectedNodeIds, id] };
+    });
+  },
 
-  reset: () => {
+  setProjectName(name) {
+    pushHistory();
+    set({ projectName: name });
+  },
+
+  reset() {
     nextId = 1;
-    return set({
+    const { useHistoryStore } = require("./historyStore");
+    useHistoryStore.getState().clear();
+    set({
       nodes: [],
       edges: [],
-      selectedNodeId: null,
+      selectedNodeIds: [],
       projectName: DEFAULT_PROJECT_NAME,
     });
   },
