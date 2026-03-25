@@ -19,7 +19,10 @@ class AgentGeneratorTest {
         assertContains(code, "@Configuration")
         assertContains(code, "@Bean")
         assertContains(code, "fun agent(): AIAgent<String, String>")
-        assertContains(code, "simpleOpenAIExecutor")
+        assertContains(code, "simpleOpenAIExecutor(apiKey)")
+        assertContains(code, "@Value")
+        assertContains(code, "openai.api-key")
+        assertContains(code, "@Primary")
         assertContains(code, "You are a helpful assistant.")
         assertContains(code, "GPT4o")
         assertContains(code, "temperature = 0.7")
@@ -32,7 +35,7 @@ class AgentGeneratorTest {
         val code = generator.generate(agent)
         assertContains(code, "toolRegistry = createToolRegistry()")
         assertContains(code, "AnthropicModels")
-        assertContains(code, "ANTHROPIC_API_KEY")
+        assertContains(code, "anthropic.api-key")
     }
 
     @Test
@@ -92,5 +95,64 @@ class AgentGeneratorTest {
         val promptLine = code.lines().first { it.contains("systemPrompt") }
         assertContains(promptLine, "\\n")
         assertFalse(promptLine.endsWith("assistant."))
+    }
+
+    @Test
+    fun `generates OTel install block when otelConfig enabled with HTTP exporter`() {
+        val agent = KoogAgent("Agent", "Help", ModelProvider.OPENAI, null, null, emptyList(),
+            otelConfig = OtelConfig(enabled = true, exporterType = "http"))
+        val code = generator.generate(agent)
+        assertContains(code, "install(OpenTelemetry)")
+        assertContains(code, "import ai.koog.agents.features.otel.OpenTelemetry")
+        assertContains(code, "OtlpHttpSpanExporter")
+        assertContains(code, "import io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporter")
+        assertContains(code, "setServiceInfo(otelServiceName, otelServiceVersion)")
+        assertContains(code, "@Value(\"\\\${otel.endpoint}\")")
+    }
+
+    @Test
+    fun `generates OTel install block with gRPC exporter`() {
+        val agent = KoogAgent("Agent", "Help", ModelProvider.OPENAI, null, null, emptyList(),
+            otelConfig = OtelConfig(enabled = true, exporterType = "grpc"))
+        val code = generator.generate(agent)
+        assertContains(code, "install(OpenTelemetry)")
+        assertContains(code, "OtlpGrpcSpanExporter")
+        assertContains(code, "import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter")
+    }
+
+    @Test
+    fun `generates OTel install block with Logging exporter`() {
+        val agent = KoogAgent("Agent", "Help", ModelProvider.OPENAI, null, null, emptyList(),
+            otelConfig = OtelConfig(enabled = true, exporterType = "logging"))
+        val code = generator.generate(agent)
+        assertContains(code, "install(OpenTelemetry)")
+        assertContains(code, "LoggingSpanExporter")
+        assertContains(code, "import io.opentelemetry.exporter.logging.LoggingSpanExporter")
+        assertFalse(code.contains("otelEndpoint"))
+    }
+
+    @Test
+    fun `generates OTel with authorization header when set`() {
+        val agent = KoogAgent("Agent", "Help", ModelProvider.OPENAI, null, null, emptyList(),
+            otelConfig = OtelConfig(enabled = true, exporterType = "http", authorizationHeader = "Bearer token123"))
+        val code = generator.generate(agent)
+        assertContains(code, ".addHeader(\"Authorization\", otelAuthHeader)")
+        assertContains(code, "@Value(\"\\\${otel.authorization-header}\")")
+    }
+
+    @Test
+    fun `omits OTel install block when otelConfig disabled`() {
+        val agent = KoogAgent("Agent", "Help", ModelProvider.OPENAI, null, null, emptyList(),
+            otelConfig = OtelConfig(enabled = false))
+        val code = generator.generate(agent)
+        assertFalse(code.contains("OpenTelemetry"))
+        assertFalse(code.contains("otel"))
+    }
+
+    @Test
+    fun `omits OTel install block when otelConfig null`() {
+        val agent = KoogAgent("Agent", "Help", ModelProvider.OPENAI, null, null, emptyList())
+        val code = generator.generate(agent)
+        assertFalse(code.contains("OpenTelemetry"))
     }
 }
