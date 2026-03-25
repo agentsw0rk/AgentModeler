@@ -160,4 +160,31 @@ class VirtualFileSystemServiceTest {
         val ts = service.getGeneratedAt("my-project")
         assertNotNull(ts)
     }
+
+    @Test
+    fun `writeFiles throws when max projects limit is reached`() {
+        for (i in 1..10) {
+            service.writeFiles("project-$i", mapOf("A.kt" to "a"))
+        }
+        assertThrows<RuntimeException> {
+            service.writeFiles("project-11", mapOf("A.kt" to "a"))
+        }
+    }
+
+    @Test
+    fun `cleanupExpired removes projects past TTL`() {
+        service.writeFiles("my-project", mapOf("A.kt" to "a"))
+        assertTrue(service.exists("my-project"))
+
+        // Manually expire the project by setting lastAccess far in the past
+        val field = VirtualFileSystemService::class.java.getDeclaredField("projects")
+        field.isAccessible = true
+        @Suppress("UNCHECKED_CAST")
+        val projects = field.get(service) as java.util.concurrent.ConcurrentHashMap<String, ManagedProject>
+        projects["my-project"]!!.lastAccess = java.time.Instant.now().minusSeconds(31 * 60)
+
+        service.cleanupExpired()
+
+        assertFalse(service.exists("my-project"))
+    }
 }

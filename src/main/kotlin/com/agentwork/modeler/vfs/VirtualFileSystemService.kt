@@ -58,6 +58,7 @@ class VirtualFileSystemService {
         }!!
 
         files.forEach { (path, content) ->
+            validatePath(path)
             val filePath = managed.root.resolve(path)
             Files.createDirectories(filePath.parent)
             Files.writeString(filePath, content)
