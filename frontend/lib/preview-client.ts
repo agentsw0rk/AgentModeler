@@ -1,11 +1,11 @@
-import { ProjectGraph } from "@/types/graph";
+import { WorkspaceGraph } from "@/types/graph";
 import { PreviewEvent } from "@/types/preview";
 import { parseSSEStream } from "./sse-utils";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export async function startPreview(
-  graph: ProjectGraph,
+  graph: WorkspaceGraph,
   message: string,
   onEvent: (event: PreviewEvent) => void
 ): Promise<AbortController> {

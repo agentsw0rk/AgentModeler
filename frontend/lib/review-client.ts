@@ -1,4 +1,4 @@
-import { ProjectGraph } from "@/types/graph";
+import { WorkspaceGraph } from "@/types/graph";
 import { parseSSEStream } from "./sse-utils";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -9,7 +9,7 @@ export interface ReviewSSEEvent {
 }
 
 export async function startExportReview(
-  graph: ProjectGraph,
+  graph: WorkspaceGraph,
   onEvent: (event: ReviewSSEEvent) => void
 ): Promise<AbortController> {
   const controller = new AbortController();

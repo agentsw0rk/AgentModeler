@@ -1,10 +1,10 @@
-import { ProjectGraph } from "@/types/graph";
+import { WorkspaceGraph } from "@/types/graph";
 
-export function serializeProject(graph: ProjectGraph): string {
+export function serializeWorkspace(graph: WorkspaceGraph): string {
   return JSON.stringify(graph, null, 2);
 }
 
-export function deserializeProject(json: string): ProjectGraph {
+export function deserializeWorkspace(json: string): WorkspaceGraph {
   let parsed: unknown;
   try {
     parsed = JSON.parse(json);
@@ -13,7 +13,7 @@ export function deserializeProject(json: string): ProjectGraph {
   }
 
   if (typeof parsed !== "object" || parsed === null) {
-    throw new Error("Invalid project format");
+    throw new Error("Invalid workspace format");
   }
 
   const obj = parsed as Record<string, unknown>;
@@ -26,16 +26,16 @@ export function deserializeProject(json: string): ProjectGraph {
     throw new Error("Missing nodes or edges");
   }
 
-  return obj as unknown as ProjectGraph;
+  return obj as unknown as WorkspaceGraph;
 }
 
-export function downloadProject(graph: ProjectGraph): void {
-  const json = serializeProject(graph);
+export function downloadWorkspace(graph: WorkspaceGraph): void {
+  const json = serializeWorkspace(graph);
   const blob = new Blob([json], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${graph.name || "project"}.json`;
+  a.download = `${graph.name || "workspace"}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }

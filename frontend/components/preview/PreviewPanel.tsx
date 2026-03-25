@@ -10,7 +10,7 @@ import { validateGraph, hasBlockingErrors } from "@/lib/validation";
 import { ExecutionTimeline } from "./ExecutionTimeline";
 import { ChatArea } from "./ChatArea";
 import { ExportReviewPanel } from "@/components/review/ExportReviewPanel";
-import { ProjectGraph } from "@/types/graph";
+import { WorkspaceGraph } from "@/types/graph";
 import { PreviewEvent } from "@/types/preview";
 import * as realClient from "@/lib/preview-client";
 import * as mockClient from "@/lib/preview-mock";
@@ -42,7 +42,7 @@ export function PreviewPanel() {
 
   const nodes = useEditorStore((s) => s.nodes);
   const edges = useEditorStore((s) => s.edges);
-  const projectName = useEditorStore((s) => s.projectName);
+  const workspaceName = useEditorStore((s) => s.workspaceName);
   const setErrors = useValidationStore((s) => s.setErrors);
 
   const abortRef = useRef<AbortController | null>(null);
@@ -109,7 +109,7 @@ export function PreviewPanel() {
   }, [setSessionId, addStep, updateStep, addMessage, setError, setStatus]);
 
   const handleSendMessage = useCallback(async (message: string) => {
-    const graph: ProjectGraph = { version: 1, name: projectName, nodes, edges };
+    const graph: WorkspaceGraph = { version: 1, name: workspaceName, nodes, edges };
 
     addMessage({ id: generateMsgId(), role: "user", content: message });
 
@@ -137,7 +137,7 @@ export function PreviewPanel() {
         setError(e instanceof Error ? e.message : String(e));
       }
     }
-  }, [sessionId, nodes, edges, projectName, client, handleEvent, setStatus, setError, addMessage, setErrors]);
+  }, [sessionId, nodes, edges, workspaceName, client, handleEvent, setStatus, setError, addMessage, setErrors]);
 
   const handleStop = useCallback(async () => {
     abortRef.current?.abort();

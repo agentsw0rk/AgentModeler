@@ -16,7 +16,7 @@ export function CodeViewerModal() {
   const closeTab = useCodeExplorerStore((s) => s.closeTab);
   const closeAllTabs = useCodeExplorerStore((s) => s.closeAllTabs);
   const status = useCodeExplorerStore((s) => s.status);
-  const projectName = useEditorStore((s) => s.projectName);
+  const workspaceName = useEditorStore((s) => s.workspaceName);
 
   const [highlightedHtml, setHighlightedHtml] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -30,7 +30,7 @@ export function CodeViewerModal() {
 
     let cancelled = false;
     setLoading(true);
-    getFileContent(projectName, activeTabPath)
+    getFileContent(workspaceName, activeTabPath)
       .then((content) => {
         if (!cancelled) {
           setFileContent(activeTabPath, content);
@@ -44,7 +44,7 @@ export function CodeViewerModal() {
     return () => {
       cancelled = true;
     };
-  }, [activeTabPath, projectName, fileCache, setFileContent]);
+  }, [activeTabPath, workspaceName, fileCache, setFileContent]);
 
   // Highlight code
   useEffect(() => {

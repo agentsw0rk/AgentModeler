@@ -1,4 +1,4 @@
-export function slugifyProjectName(name: string): string {
+export function slugifyWorkspaceName(name: string): string {
   return name
     .trim()
     .toLowerCase()

@@ -1,4 +1,4 @@
-import { ProjectGraph, BuiltinToolConfig, BUILTIN_TOOL_TYPES } from "@/types/graph";
+import { WorkspaceGraph, BuiltinToolConfig, BUILTIN_TOOL_TYPES } from "@/types/graph";
 import { AgentConfig, ToolConfig } from "@/types/koog";
 import { SubAgentConfig } from "@/types/subagent";
 import { McpServerConfig } from "@/types/mcp";
@@ -9,7 +9,7 @@ export interface ValidationError {
   message: string;
 }
 
-export function validateGraph(graph: ProjectGraph): ValidationError[] {
+export function validateGraph(graph: WorkspaceGraph): ValidationError[] {
   const errors: ValidationError[] = [];
 
   for (const node of graph.nodes) {

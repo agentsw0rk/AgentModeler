@@ -1,8 +1,8 @@
-import { ProjectGraph } from "@/types/graph";
+import { WorkspaceGraph } from "@/types/graph";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
-export async function exportToKotlin(graph: ProjectGraph): Promise<Blob> {
+export async function exportToKotlin(graph: WorkspaceGraph): Promise<Blob> {
   const response = await fetch(`${API_BASE}/api/export`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

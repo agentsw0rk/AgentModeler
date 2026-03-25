@@ -6,8 +6,8 @@ import { Canvas } from "@/components/editor/Canvas";
 import { PropertiesPanel } from "@/components/panels/PropertiesPanel";
 import { ValidationPanel } from "@/components/validation/ValidationPanel";
 import { PreviewPanel } from "@/components/preview/PreviewPanel";
-import { NewProjectDialog } from "@/components/dialogs/NewProjectDialog";
-import { useEditorStore, DEFAULT_PROJECT_NAME } from "@/store/editorStore";
+import { NewWorkspaceDialog } from "@/components/dialogs/NewWorkspaceDialog";
+import { useEditorStore, DEFAULT_WORKSPACE_NAME } from "@/store/editorStore";
 import { copySelectedNodes, pasteNodes } from "@/store/clipboardStore";
 import { useValidationStore } from "@/store/validationStore";
 import { validateGraph } from "@/lib/validation";
@@ -21,9 +21,9 @@ export default function EditorPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isInitial, setIsInitial] = useState(false);
   const nodes = useEditorStore((s) => s.nodes);
-  const projectName = useEditorStore((s) => s.projectName);
+  const workspaceName = useEditorStore((s) => s.workspaceName);
   const reset = useEditorStore((s) => s.reset);
-  const setProjectName = useEditorStore((s) => s.setProjectName);
+  const setWorkspaceName = useEditorStore((s) => s.setWorkspaceName);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -66,7 +66,7 @@ export default function EditorPage() {
     const unsubscribe = useEditorStore.subscribe((state) => {
       clearTimeout(timeout);
       timeout = setTimeout(() => {
-        const graph = { version: 1 as const, name: state.projectName, nodes: state.nodes, edges: state.edges };
+        const graph = { version: 1 as const, name: state.workspaceName, nodes: state.nodes, edges: state.edges };
         const errors = validateGraph(graph);
         useValidationStore.getState().setErrors(errors);
       }, 500);
@@ -75,18 +75,18 @@ export default function EditorPage() {
   }, []);
 
   useEffect(() => {
-    if (nodes.length === 0 && projectName === DEFAULT_PROJECT_NAME) {
+    if (nodes.length === 0 && workspaceName === DEFAULT_WORKSPACE_NAME) {
       setIsInitial(true);
       setDialogOpen(true);
     }
   }, []);
 
-  const handleCreateProject = (name: string) => {
+  const handleCreateWorkspace = (name: string) => {
     reset();
-    setProjectName(name);
+    setWorkspaceName(name);
   };
 
-  const handleNewProjectRequest = () => {
+  const handleNewWorkspaceRequest = () => {
     if (nodes.length > 0) {
       if (!window.confirm("Unsaved changes will be lost. Continue?")) return;
     }
@@ -99,7 +99,7 @@ export default function EditorPage() {
       <ActivityBar />
       <CodeExplorerPanel />
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Toolbar onNewProject={handleNewProjectRequest} />
+        <Toolbar onNewWorkspace={handleNewWorkspaceRequest} />
         <div className="flex flex-1 overflow-hidden">
           <Canvas />
           <PropertiesPanel />
@@ -107,11 +107,11 @@ export default function EditorPage() {
         <PreviewPanel />
         <ValidationPanel />
       </div>
-      <NewProjectDialog
+      <NewWorkspaceDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         isInitial={isInitial}
-        onCreateProject={handleCreateProject}
+        onCreateWorkspace={handleCreateWorkspace}
       />
       <CodeViewerModal />
     </div>

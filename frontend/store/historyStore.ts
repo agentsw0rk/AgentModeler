@@ -6,7 +6,7 @@ const MAX_HISTORY = 100;
 export interface Snapshot {
   nodes: GraphNode[];
   edges: GraphEdge[];
-  projectName: string;
+  workspaceName: string;
 }
 
 interface HistoryState {
@@ -35,18 +35,18 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     const previous = past[past.length - 1];
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { useEditorStore } = require("./editorStore");
-    const { nodes, edges, projectName } = useEditorStore.getState();
+    const { nodes, edges, workspaceName } = useEditorStore.getState();
     const current: Snapshot = {
       nodes: structuredClone(nodes),
       edges: structuredClone(edges),
-      projectName,
+      workspaceName,
     };
 
     set({ past: past.slice(0, -1), future: [...get().future, current] });
     useEditorStore.setState({
       nodes: previous.nodes,
       edges: previous.edges,
-      projectName: previous.projectName,
+      workspaceName: previous.workspaceName,
     });
   },
 
@@ -57,18 +57,18 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     const next = future[future.length - 1];
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { useEditorStore } = require("./editorStore");
-    const { nodes, edges, projectName } = useEditorStore.getState();
+    const { nodes, edges, workspaceName } = useEditorStore.getState();
     const current: Snapshot = {
       nodes: structuredClone(nodes),
       edges: structuredClone(edges),
-      projectName,
+      workspaceName,
     };
 
     set({ future: future.slice(0, -1), past: [...get().past, current] });
     useEditorStore.setState({
       nodes: next.nodes,
       edges: next.edges,
-      projectName: next.projectName,
+      workspaceName: next.workspaceName,
     });
   },
 

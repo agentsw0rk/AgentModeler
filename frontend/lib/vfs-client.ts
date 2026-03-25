@@ -1,11 +1,11 @@
-import { ProjectGraph } from "@/types/graph";
+import { WorkspaceGraph } from "@/types/graph";
 import { GenerationResult, FileTreeNode, FileContent } from "@/types/vfs";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export async function generateCode(
   projectName: string,
-  graph: ProjectGraph,
+  graph: WorkspaceGraph,
   signal?: AbortSignal
 ): Promise<GenerationResult> {
   const response = await fetch(

@@ -4,16 +4,16 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { slugifyProjectName } from "@/lib/slugify";
+import { slugifyWorkspaceName } from "@/lib/slugify";
 
-interface NewProjectDialogProps {
+interface NewWorkspaceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isInitial?: boolean;
-  onCreateProject: (name: string) => void;
+  onCreateWorkspace: (name: string) => void;
 }
 
-export function NewProjectDialog({ open, onOpenChange, isInitial = false, onCreateProject }: NewProjectDialogProps) {
+export function NewWorkspaceDialog({ open, onOpenChange, isInitial = false, onCreateWorkspace }: NewWorkspaceDialogProps) {
   const [name, setName] = useState("");
 
   useEffect(() => {
@@ -21,12 +21,12 @@ export function NewProjectDialog({ open, onOpenChange, isInitial = false, onCrea
   }, [open]);
 
   const trimmed = name.trim();
-  const slug = slugifyProjectName(trimmed);
+  const slug = slugifyWorkspaceName(trimmed);
   const isValid = slug.length > 0;
 
   const handleCreate = () => {
     if (!isValid) return;
-    onCreateProject(slug);
+    onCreateWorkspace(slug);
     onOpenChange(false);
   };
 
@@ -34,7 +34,7 @@ export function NewProjectDialog({ open, onOpenChange, isInitial = false, onCrea
     <Dialog open={open} onOpenChange={(value) => onOpenChange(value)}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New Project</DialogTitle>
+          <DialogTitle>New Workspace</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div>
@@ -49,7 +49,7 @@ export function NewProjectDialog({ open, onOpenChange, isInitial = false, onCrea
           </div>
           {trimmed && slug && trimmed !== slug && (
             <p className="text-xs text-muted-foreground">
-              Project name: <span className="font-mono">{slug}</span>
+              Workspace name: <span className="font-mono">{slug}</span>
             </p>
           )}
         </div>
