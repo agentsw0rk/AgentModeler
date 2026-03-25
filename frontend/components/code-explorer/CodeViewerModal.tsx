@@ -14,6 +14,7 @@ export function CodeViewerModal() {
   const setFileContent = useCodeExplorerStore((s) => s.setFileContent);
   const setActiveTab = useCodeExplorerStore((s) => s.setActiveTab);
   const closeTab = useCodeExplorerStore((s) => s.closeTab);
+  const closeAllTabs = useCodeExplorerStore((s) => s.closeAllTabs);
   const status = useCodeExplorerStore((s) => s.status);
   const projectName = useEditorStore((s) => s.projectName);
 
@@ -84,10 +85,10 @@ export function CodeViewerModal() {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape" && openTabs.length > 0) {
-        if (activeTabPath) closeTab(activeTabPath);
+        closeAllTabs();
       }
     },
-    [activeTabPath, openTabs.length, closeTab]
+    [openTabs.length, closeAllTabs]
   );
 
   useEffect(() => {
@@ -105,7 +106,7 @@ export function CodeViewerModal() {
       <div
         className="absolute inset-0 bg-black/60"
         onClick={() => {
-          if (activeTabPath) closeTab(activeTabPath);
+          closeAllTabs();
         }}
       />
 

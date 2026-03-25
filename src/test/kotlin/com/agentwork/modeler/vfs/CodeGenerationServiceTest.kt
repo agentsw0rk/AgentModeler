@@ -1,10 +1,10 @@
 package com.agentwork.modeler.vfs
 
 import com.agentwork.modeler.export.ExportService
+import com.agentwork.modeler.export.ExportValidationException
 import com.agentwork.modeler.export.model.GraphNode
 import com.agentwork.modeler.export.model.Position
 import com.agentwork.modeler.export.model.ProjectGraph
-import com.agentwork.modeler.export.validation.GraphValidator
 import com.agentwork.modeler.vfs.model.GenerationStatus
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -19,8 +19,7 @@ class CodeGenerationServiceTest {
 
     private val exportService = mock(ExportService::class.java)
     private val vfsService = VirtualFileSystemService()
-    private val validator = GraphValidator()
-    private val service = CodeGenerationService(exportService, vfsService, validator)
+    private val service = CodeGenerationService(exportService, vfsService)
 
     private val validGraph = ProjectGraph(
         version = 1,
@@ -64,6 +63,9 @@ class CodeGenerationServiceTest {
 
     @Test
     fun `invalid graph returns errors and does not write to VFS`() {
+        `when`(exportService.generateFiles(invalidGraph))
+            .thenThrow(ExportValidationException(listOf("Graph must contain at least one agent node")))
+
         val result = service.generateForProject("test-project", invalidGraph)
 
         assertEquals(GenerationStatus.INVALID, result.status)

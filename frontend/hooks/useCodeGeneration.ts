@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useEditorStore } from "@/store/editorStore";
 import { useCodeExplorerStore } from "@/store/codeExplorerStore";
 import { generateCode, getFileTree } from "@/lib/vfs-client";
@@ -34,7 +34,7 @@ export function useCodeGeneration() {
       if (abortRef.current) abortRef.current.abort();
 
       timeoutRef.current = setTimeout(() => {
-        triggerGeneration(state.projectName, state.nodes, state.edges);
+        triggerGeneration(abortRef, state.projectName, state.nodes, state.edges);
       }, DEBOUNCE_MS);
     });
 
@@ -51,7 +51,7 @@ export function useCodeGeneration() {
       if (state.isOpen && !prev.isOpen) {
         const editorState = useEditorStore.getState();
         if (state.status === "stale" || state.status === "idle") {
-          triggerGeneration(editorState.projectName, editorState.nodes, editorState.edges);
+          triggerGeneration(abortRef, editorState.projectName, editorState.nodes, editorState.edges);
         }
       }
     });
@@ -60,10 +60,15 @@ export function useCodeGeneration() {
 }
 
 async function triggerGeneration(
+  abortRef: React.MutableRefObject<AbortController | null>,
   projectName: string,
   nodes: any[],
   edges: any[]
 ) {
+  const controller = new AbortController();
+  abortRef.current = controller;
+  const { signal } = controller;
+
   const store = useCodeExplorerStore.getState();
   store.setStatus("generating");
 
@@ -75,15 +80,14 @@ async function triggerGeneration(
   };
 
   try {
-    const result = await generateCode(projectName, graph);
+    const result = await generateCode(projectName, graph, signal);
 
     if (result.status === GenerationStatus.INVALID) {
       useCodeExplorerStore.getState().setStatus("invalid");
       return;
     }
 
-    const abort = new AbortController();
-    const treeResponse = await getFileTree(projectName, abort.signal);
+    const treeResponse = await getFileTree(projectName, signal);
     const explorerStore = useCodeExplorerStore.getState();
     explorerStore.setTree(treeResponse.root, treeResponse.generatedAt);
     explorerStore.clearFileCache();

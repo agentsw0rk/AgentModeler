@@ -5,7 +5,8 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export async function generateCode(
   projectName: string,
-  graph: ProjectGraph
+  graph: ProjectGraph,
+  signal?: AbortSignal
 ): Promise<GenerationResult> {
   const response = await fetch(
     `${API_BASE}/api/vfs/${encodeURIComponent(projectName)}/generate`,
@@ -13,6 +14,7 @@ export async function generateCode(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(graph),
+      signal,
     }
   );
   if (!response.ok) {

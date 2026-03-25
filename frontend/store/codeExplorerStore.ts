@@ -22,6 +22,7 @@ interface CodeExplorerState {
   markStale: () => void;
   setStatus: (status: ExplorerStatus) => void;
   toggleFolder: (path: string) => void;
+  closeAllTabs: () => void;
   clearFileCache: () => void;
   reset: () => void;
 }
@@ -87,6 +88,8 @@ export const useCodeExplorerStore = create<CodeExplorerState>((set, get) => ({
       else next.add(path);
       return { expandedFolders: next };
     }),
+
+  closeAllTabs: () => set({ openTabs: [], activeTabPath: null, fileCache: new Map() }),
 
   clearFileCache: () => set({ fileCache: new Map() }),
 
