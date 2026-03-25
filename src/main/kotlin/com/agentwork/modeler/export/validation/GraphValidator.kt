@@ -16,7 +16,7 @@ class GraphValidator {
             errors.add("Workspace cannot have both a regular agent and a planner-agent")
         }
         if (agentCount > 1) {
-            errors.add("Workspace can have at most one agent")
+            errors.add("Only single-agent workspaces are supported for export")
         }
         if (plannerCount > 1) {
             errors.add("Workspace can have at most one planner-agent")
