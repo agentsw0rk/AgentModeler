@@ -1,4 +1,4 @@
-# Koog Agent Editor
+# Agent-studio
 
 Visueller Editor zum Modellieren, Konfigurieren und Exportieren von **Koog-basierten AI-Agenten** als **Kotlin-Code**.
 
