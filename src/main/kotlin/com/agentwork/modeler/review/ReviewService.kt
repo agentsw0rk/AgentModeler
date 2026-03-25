@@ -1,6 +1,6 @@
 package com.agentwork.modeler.review
 
-import com.agentwork.modeler.export.model.ProjectGraph
+import com.agentwork.modeler.export.model.WorkspaceGraph
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
@@ -14,7 +14,7 @@ class ReviewService(
         "settings.gradle.kts", "Application.kt", "ChatController.kt"
     )
 
-    suspend fun review(files: Map<String, String>, graph: ProjectGraph): ReviewResult {
+    suspend fun review(files: Map<String, String>, graph: WorkspaceGraph): ReviewResult {
         val totalChars = files.values.sumOf { it.length }
         val reviewFiles: Map<String, String>
         val skipped: Int
@@ -49,7 +49,7 @@ class ReviewService(
         }
     }
 
-    private fun buildGraphSummary(graph: ProjectGraph): String {
+    private fun buildGraphSummary(graph: WorkspaceGraph): String {
         val agents = graph.nodes.count { it.type == "agent" }
         val tools = graph.nodes.count { it.type == "tool" }
         val builtins = graph.nodes.count { it.type == "builtin-tool" }

@@ -1,0 +1,59 @@
+<h2>Preview Panel Layout</h2>
+<p class="subtitle">Wo soll das Live Preview Panel im Editor erscheinen?</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 16px;">
+      <!-- Mockup A: Bottom Drawer -->
+      <div style="border: 1px solid var(--border); border-radius: 8px; overflow: hidden; height: 280px; display: flex; flex-direction: column;">
+        <div style="background: var(--surface-alt); padding: 4px 8px; font-size: 11px; border-bottom: 1px solid var(--border);">Toolbar</div>
+        <div style="flex: 1; display: flex;">
+          <div style="flex: 1; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--text-secondary);">Canvas</div>
+          <div style="width: 80px; background: var(--surface-alt); border-left: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-secondary);">Props</div>
+        </div>
+        <div style="height: 120px; border-top: 2px solid var(--accent); background: var(--surface-alt); padding: 8px; font-size: 10px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-weight: 600; color: var(--accent);">Live Preview</span>
+            <span style="color: var(--text-secondary);">▼ ▲</span>
+          </div>
+          <div style="background: var(--surface); border-radius: 4px; padding: 6px; margin-bottom: 4px;">
+            <div style="font-size: 9px; color: var(--text-secondary);">User: Hallo</div>
+          </div>
+          <div style="background: var(--surface); border-radius: 4px; padding: 6px;">
+            <div style="font-size: 9px; color: var(--accent);">Agent: Hallo! Wie kann ich helfen?</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A: Bottom Drawer</h3>
+      <p>Chat-Panel am unteren Rand, resizebar nach oben. Ähnlich wie Terminal in VS Code. Canvas wird verkleinert.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 16px;">
+      <!-- Mockup B: Right Panel Split -->
+      <div style="border: 1px solid var(--border); border-radius: 8px; overflow: hidden; height: 280px; display: flex; flex-direction: column;">
+        <div style="background: var(--surface-alt); padding: 4px 8px; font-size: 11px; border-bottom: 1px solid var(--border);">Toolbar</div>
+        <div style="flex: 1; display: flex;">
+          <div style="flex: 1; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--text-secondary);">Canvas</div>
+          <div style="width: 130px; border-left: 2px solid var(--accent); background: var(--surface-alt); padding: 8px; font-size: 10px; display: flex; flex-direction: column;">
+            <div style="font-weight: 600; color: var(--accent); margin-bottom: 6px;">Live Preview</div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+              <div style="background: var(--surface); border-radius: 4px; padding: 4px; font-size: 9px; color: var(--text-secondary);">User: Hallo</div>
+              <div style="background: var(--surface); border-radius: 4px; padding: 4px; font-size: 9px; color: var(--accent);">Agent: Hallo! Wie kann ich helfen?</div>
+            </div>
+            <div style="margin-top: 6px;">
+              <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 4px; font-size: 9px; color: var(--text-secondary);">Nachricht eingeben...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B: Right Panel</h3>
+      <p>Chat-Panel rechts, ersetzt/überlagert das Properties-Panel. Mehr vertikaler Platz für Chat-Verlauf.</p>
+    </div>
+  </div>
+</div>

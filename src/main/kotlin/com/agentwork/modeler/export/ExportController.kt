@@ -1,6 +1,6 @@
 package com.agentwork.modeler.export
 
-import com.agentwork.modeler.export.model.ProjectGraph
+import com.agentwork.modeler.export.model.WorkspaceGraph
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 class ExportController(private val exportService: ExportService) {
 
     @PostMapping("/api/export")
-    fun export(@RequestBody graph: ProjectGraph): ResponseEntity<ByteArray> {
+    fun export(@RequestBody graph: WorkspaceGraph): ResponseEntity<ByteArray> {
         val zip = exportService.export(graph)
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${graph.name}.zip\"")

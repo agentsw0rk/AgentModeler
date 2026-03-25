@@ -1,11 +1,11 @@
 package com.agentwork.modeler.export.validation
 
-import com.agentwork.modeler.export.model.ProjectGraph
+import com.agentwork.modeler.export.model.WorkspaceGraph
 import org.springframework.stereotype.Component
 
 @Component
 class GraphValidator {
-    fun validate(graph: ProjectGraph): List<String> {
+    fun validate(graph: WorkspaceGraph): List<String> {
         val errors = mutableListOf<String>()
         val agentNodes = graph.nodes.filter { it.type == "agent" }
         if (agentNodes.isEmpty()) {

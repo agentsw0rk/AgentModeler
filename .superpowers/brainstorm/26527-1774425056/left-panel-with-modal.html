@@ -1,0 +1,132 @@
+<h2>Activity Bar + Panel mit Modal Code-Viewer</h2>
+<p class="subtitle">Klick auf eine Datei im Baum &ouml;ffnet ein Modal mit Syntax-Highlighted Code</p>
+
+<div class="mockup" style="margin-top:16px">
+  <div class="mockup-header">Zustand: Code Explorer offen, Datei ausgew&auml;hlt &rarr; Modal</div>
+  <div class="mockup-body" style="position:relative;height:400px;font-size:12px;display:flex;gap:0;overflow:hidden">
+    <!-- Activity Bar -->
+    <div style="width:40px;background:#1a1a2e;display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:12px;border-right:1px solid #333;z-index:1">
+      <div style="width:28px;height:28px;background:#4a9eff;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;border-left:2px solid #4a9eff">&lt;/&gt;</div>
+      <div style="width:28px;height:28px;background:#282840;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px">&#9881;</div>
+    </div>
+    <!-- Explorer Panel -->
+    <div style="width:220px;background:#16162a;border-right:1px solid #333;display:flex;flex-direction:column;z-index:1">
+      <div style="height:32px;background:#1a1a2e;border-bottom:1px solid #333;display:flex;align-items:center;padding:0 10px">
+        <span style="color:#ccc;font-size:11px;flex:1;font-weight:600">CODE EXPLORER</span>
+        <span style="color:#4a9eff;font-size:9px;background:rgba(74,158,255,0.15);padding:1px 6px;border-radius:8px">valid</span>
+      </div>
+      <div style="padding:8px 6px;color:#ccc;font-size:11px;line-height:1.9;overflow-y:auto;flex:1">
+        <div style="padding:1px 6px;cursor:pointer">&#9660; <span style="color:#e5c07b">&#128193;</span> src/main/kotlin</div>
+        <div style="padding:1px 6px;padding-left:20px;cursor:pointer">&#9660; <span style="color:#e5c07b">&#128193;</span> generated</div>
+        <div style="padding:2px 6px;padding-left:36px;background:rgba(74,158,255,0.15);border-radius:3px;color:#4a9eff;cursor:pointer">&#128196; AgentConfig.kt</div>
+        <div style="padding:1px 6px;padding-left:36px;cursor:pointer;color:#aaa">&#128196; Application.kt</div>
+        <div style="padding:1px 6px;padding-left:36px;cursor:pointer;color:#aaa">&#128196; ChatController.kt</div>
+        <div style="padding:1px 6px;padding-left:36px;cursor:pointer;color:#aaa">&#128196; ToolRegistry.kt</div>
+        <div style="padding:1px 6px;padding-left:20px;cursor:pointer">&#9654; <span style="color:#e5c07b">&#128193;</span> tools</div>
+        <div style="padding:1px 6px;padding-left:20px;cursor:pointer">&#9654; <span style="color:#e5c07b">&#128193;</span> mcp</div>
+        <div style="padding:1px 6px;cursor:pointer">&#9660; <span style="color:#e5c07b">&#128193;</span> src/main/resources</div>
+        <div style="padding:1px 6px;padding-left:20px;cursor:pointer;color:#aaa">&#128196; application.properties</div>
+        <div style="padding:1px 6px;cursor:pointer;color:#aaa">&#128196; build.gradle.kts</div>
+        <div style="padding:1px 6px;cursor:pointer;color:#aaa">&#128196; settings.gradle.kts</div>
+        <div style="padding:1px 6px;cursor:pointer;color:#aaa">&#128196; Dockerfile</div>
+        <div style="padding:1px 6px;cursor:pointer;color:#aaa">&#128196; gradle.properties</div>
+      </div>
+    </div>
+    <!-- Canvas (dimmed) -->
+    <div style="flex:1;background:#0d0d1a;display:flex;flex-direction:column;z-index:0">
+      <div style="height:36px;background:#1a1a2e;border-bottom:1px solid #333;display:flex;align-items:center;padding:0 8px;gap:8px">
+        <div style="color:#888;font-size:11px">New Project</div>
+        <div style="color:#555">|</div>
+        <div style="color:#888;font-size:11px">Undo</div>
+        <div style="color:#888;font-size:11px">Redo</div>
+        <div style="flex:1"></div>
+        <div style="color:#888;font-size:11px">Validate</div>
+        <div style="color:#888;font-size:11px">Export</div>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;color:#555;opacity:0.4">
+        Graph Editor Canvas
+      </div>
+    </div>
+    <!-- Properties (dimmed) -->
+    <div style="width:140px;background:#16162a;border-left:1px solid #333;display:flex;align-items:center;justify-content:center;color:#555;font-size:11px;opacity:0.4;z-index:0">
+      Properties
+    </div>
+
+    <!-- MODAL OVERLAY -->
+    <div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);z-index:10;display:flex;align-items:center;justify-content:center">
+      <div style="width:680px;max-height:360px;background:#1e1e32;border:1px solid #444;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.5);display:flex;flex-direction:column;overflow:hidden">
+        <!-- Modal Header -->
+        <div style="height:36px;background:#1a1a2e;border-bottom:1px solid #444;display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0">
+          <span style="color:#4a9eff;font-size:12px">&#128196;</span>
+          <span style="color:#ccc;font-size:12px;font-weight:600;flex:1">AgentConfig.kt</span>
+          <span style="color:#666;font-size:10px;margin-right:8px">src/main/kotlin/generated/</span>
+          <span style="color:#888;font-size:14px;cursor:pointer;padding:0 4px">&#10005;</span>
+        </div>
+        <!-- Modal Body: Code -->
+        <div style="flex:1;overflow-y:auto;padding:12px 16px;font-family:'JetBrains Mono',Menlo,Monaco,monospace;font-size:11px;line-height:1.7">
+          <div style="display:flex;gap:16px">
+            <!-- Line numbers -->
+            <div style="color:#555;text-align:right;user-select:none;min-width:24px">
+              1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20
+            </div>
+            <!-- Code -->
+            <div style="color:#abb2bf">
+              <div><span style="color:#c678dd">package</span> generated</div>
+              <div style="color:#555"></div>
+              <div><span style="color:#c678dd">import</span> ai.koog.agents.core.agent.<span style="color:#e5c07b">AIAgent</span></div>
+              <div><span style="color:#c678dd">import</span> ai.koog.agents.core.tools.<span style="color:#e5c07b">ToolRegistry</span></div>
+              <div><span style="color:#c678dd">import</span> ai.koog.prompt.executor.llms.all.<span style="color:#e5c07b">simpleOpenAIExecutor</span></div>
+              <div><span style="color:#c678dd">import</span> jakarta.annotation.<span style="color:#e5c07b">PostConstruct</span></div>
+              <div><span style="color:#c678dd">import</span> org.springframework.beans.factory.annotation.<span style="color:#e5c07b">Value</span></div>
+              <div><span style="color:#c678dd">import</span> org.springframework.context.annotation.*</div>
+              <div style="color:#555"></div>
+              <div><span style="color:#e5c07b">@Configuration</span></div>
+              <div><span style="color:#c678dd">class</span> <span style="color:#e5c07b">AgentConfig</span>(</div>
+              <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#e5c07b">@Value</span>(<span style="color:#98c379">"\${openai.api-key}"</span>) <span style="color:#c678dd">private val</span> apiKey: <span style="color:#e5c07b">String</span></div>
+              <div>) {</div>
+              <div style="color:#555"></div>
+              <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#e5c07b">@PostConstruct</span></div>
+              <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#c678dd">fun</span> <span style="color:#61afef">validateApiKey</span>() {</div>
+              <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#61afef">require</span>(apiKey.<span style="color:#61afef">isNotBlank</span>()) { <span style="color:#98c379">"OPENAI_API_KEY must be set"</span> }</div>
+              <div>&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+              <div style="color:#555"></div>
+              <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#e5c07b">@Bean</span> <span style="color:#e5c07b">@Primary</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Modal Footer -->
+        <div style="height:28px;background:#1a1a2e;border-top:1px solid #444;display:flex;align-items:center;padding:0 12px;gap:12px;flex-shrink:0">
+          <span style="color:#666;font-size:10px">Kotlin</span>
+          <span style="color:#555">|</span>
+          <span style="color:#666;font-size:10px">20 lines</span>
+          <span style="color:#555">|</span>
+          <span style="color:#666;font-size:10px">UTF-8</span>
+          <span style="flex:1"></span>
+          <span style="color:#4a9eff;font-size:10px;background:rgba(74,158,255,0.1);padding:1px 6px;border-radius:3px">last valid state</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:24px">
+  <h3>Interaktionsmodell</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;font-size:13px;color:#aaa">
+    <div style="background:#1a1a2e;padding:12px;border-radius:6px;border:1px solid #333">
+      <div style="color:#4a9eff;font-size:11px;text-transform:uppercase;margin-bottom:6px">Activity Bar</div>
+      <div>&lt;/&gt; Icon togglet den Explorer auf/zu</div>
+    </div>
+    <div style="background:#1a1a2e;padding:12px;border-radius:6px;border:1px solid #333">
+      <div style="color:#4a9eff;font-size:11px;text-transform:uppercase;margin-bottom:6px">Dateibaum</div>
+      <div>Klick auf Ordner klappt auf/zu, Klick auf Datei &ouml;ffnet Modal</div>
+    </div>
+    <div style="background:#1a1a2e;padding:12px;border-radius:6px;border:1px solid #333">
+      <div style="color:#4a9eff;font-size:11px;text-transform:uppercase;margin-bottom:6px">Code Modal</div>
+      <div>Zentriert, Syntax Highlighting, Zeilennummern, schlie&szlig;bar mit &times; oder Escape</div>
+    </div>
+    <div style="background:#1a1a2e;padding:12px;border-radius:6px;border:1px solid #333">
+      <div style="color:#4a9eff;font-size:11px;text-transform:uppercase;margin-bottom:6px">Status Badge</div>
+      <div>&ldquo;valid&rdquo; Badge im Panel-Header zeigt an ob der aktuelle Stand g&uuml;ltig ist</div>
+    </div>
+  </div>
+</div>

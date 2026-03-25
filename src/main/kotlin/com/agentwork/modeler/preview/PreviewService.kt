@@ -1,7 +1,7 @@
 package com.agentwork.modeler.preview
 
 import com.agentwork.modeler.export.adapter.GraphToKoogAdapter
-import com.agentwork.modeler.export.model.ProjectGraph
+import com.agentwork.modeler.export.model.WorkspaceGraph
 import com.agentwork.modeler.export.validation.GraphValidator
 import kotlinx.coroutines.*
 import org.springframework.stereotype.Service
@@ -15,7 +15,7 @@ class PreviewService(
     private val sessionManager: PreviewSessionManager
 ) {
 
-    fun startSession(graph: ProjectGraph, initialMessage: String): SseEmitter {
+    fun startSession(graph: WorkspaceGraph, initialMessage: String): SseEmitter {
         val errors = validator.validate(graph)
         if (errors.isNotEmpty()) {
             throw PreviewValidationException(errors)

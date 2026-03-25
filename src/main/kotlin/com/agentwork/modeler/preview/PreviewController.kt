@@ -1,6 +1,6 @@
 package com.agentwork.modeler.preview
 
-import com.agentwork.modeler.export.model.ProjectGraph
+import com.agentwork.modeler.export.model.WorkspaceGraph
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 
 data class StartPreviewRequest(
-    val graph: ProjectGraph,
+    val graph: WorkspaceGraph,
     val message: String
 )
 

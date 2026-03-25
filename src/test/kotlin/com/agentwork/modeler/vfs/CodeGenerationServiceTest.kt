@@ -4,7 +4,7 @@ import com.agentwork.modeler.export.ExportService
 import com.agentwork.modeler.export.ExportValidationException
 import com.agentwork.modeler.export.model.GraphNode
 import com.agentwork.modeler.export.model.Position
-import com.agentwork.modeler.export.model.ProjectGraph
+import com.agentwork.modeler.export.model.WorkspaceGraph
 import com.agentwork.modeler.vfs.model.GenerationStatus
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -21,7 +21,7 @@ class CodeGenerationServiceTest {
     private val vfsService = VirtualFileSystemService()
     private val service = CodeGenerationService(exportService, vfsService)
 
-    private val validGraph = ProjectGraph(
+    private val validGraph = WorkspaceGraph(
         version = 1,
         name = "test-project",
         nodes = listOf(
@@ -35,7 +35,7 @@ class CodeGenerationServiceTest {
         edges = emptyList()
     )
 
-    private val invalidGraph = ProjectGraph(
+    private val invalidGraph = WorkspaceGraph(
         version = 1,
         name = "test-project",
         nodes = emptyList(),

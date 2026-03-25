@@ -2,7 +2,7 @@ package com.agentwork.modeler.export
 
 import com.agentwork.modeler.export.adapter.GraphToKoogAdapter
 import com.agentwork.modeler.export.generator.*
-import com.agentwork.modeler.export.model.ProjectGraph
+import com.agentwork.modeler.export.model.WorkspaceGraph
 import com.agentwork.modeler.export.validation.GraphValidator
 import com.agentwork.modeler.export.zip.ZipBuilder
 import org.springframework.stereotype.Service
@@ -28,18 +28,18 @@ class ExportService(
     private val mcpServerGenerator: McpServerGenerator,
     private val zipBuilder: ZipBuilder
 ) {
-    fun export(graph: ProjectGraph): ByteArray {
+    fun export(graph: WorkspaceGraph): ByteArray {
         val files = generateFiles(graph)
         return zipBuilder.buildZip(files)
     }
 
-    fun exportWithFiles(graph: ProjectGraph): Pair<ByteArray, Map<String, String>> {
+    fun exportWithFiles(graph: WorkspaceGraph): Pair<ByteArray, Map<String, String>> {
         val files = generateFiles(graph)
         val zip = zipBuilder.buildZip(files)
         return Pair(zip, files)
     }
 
-    fun generateFiles(graph: ProjectGraph): Map<String, String> {
+    fun generateFiles(graph: WorkspaceGraph): Map<String, String> {
         val validationErrors = validator.validate(graph)
         if (validationErrors.isNotEmpty()) {
             throw ExportValidationException(validationErrors)

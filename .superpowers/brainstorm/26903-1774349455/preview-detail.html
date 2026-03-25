@@ -1,0 +1,113 @@
+<h2>Preview Panel — Detail-Ansicht</h2>
+<p class="subtitle">Wie soll das Bottom Drawer aufgebaut sein?</p>
+
+<div class="mockup">
+  <div class="mockup-header">Live Preview — Bottom Drawer</div>
+  <div class="mockup-body" style="padding: 0; height: 350px; display: flex; flex-direction: column;">
+    <!-- Header Bar -->
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--surface-alt);">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-weight: 600; font-size: 13px;">Live Preview</span>
+        <span style="font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #22c55e20; color: #22c55e;">● Running</span>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <span style="font-size: 11px; cursor: pointer; padding: 2px 8px; border-radius: 4px; background: var(--surface); border: 1px solid var(--border);">⬜ Mock</span>
+        <span style="font-size: 11px; cursor: pointer; padding: 2px 8px; border-radius: 4px; background: #ef444420; color: #ef4444; border: 1px solid #ef444440;">■ Stop</span>
+        <span style="font-size: 14px; cursor: pointer; color: var(--text-secondary);">▼</span>
+      </div>
+    </div>
+
+    <!-- Two-column: Timeline + Chat -->
+    <div style="flex: 1; display: flex; overflow: hidden;">
+      <!-- Left: Execution Timeline -->
+      <div style="width: 220px; border-right: 1px solid var(--border); padding: 8px; overflow-y: auto; font-size: 11px;">
+        <div style="font-weight: 600; margin-bottom: 8px; color: var(--text-secondary); font-size: 10px; text-transform: uppercase;">Execution Steps</div>
+
+        <div style="display: flex; gap: 6px; align-items: flex-start; margin-bottom: 8px;">
+          <span style="color: #22c55e;">✓</span>
+          <div>
+            <div style="font-weight: 500;">Agent initialized</div>
+            <div style="color: var(--text-secondary); font-size: 10px;">12ms</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 6px; align-items: flex-start; margin-bottom: 8px;">
+          <span style="color: #22c55e;">✓</span>
+          <div>
+            <div style="font-weight: 500;">LLM call (GPT-4o)</div>
+            <div style="color: var(--text-secondary); font-size: 10px;">1.2s — 48 tokens</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 6px; align-items: flex-start; margin-bottom: 8px;">
+          <span style="color: #3b82f6;">⟳</span>
+          <div>
+            <div style="font-weight: 500;">Tool: fetchWeather</div>
+            <div style="color: var(--text-secondary); font-size: 10px;">running...</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 6px; align-items: flex-start; margin-bottom: 8px; opacity: 0.4;">
+          <span>○</span>
+          <div>
+            <div style="font-weight: 500;">LLM call (response)</div>
+            <div style="color: var(--text-secondary); font-size: 10px;">pending</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Chat Area -->
+      <div style="flex: 1; display: flex; flex-direction: column;">
+        <div style="flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+          <!-- User message -->
+          <div style="align-self: flex-end; background: var(--accent); color: white; padding: 8px 12px; border-radius: 12px 12px 4px 12px; max-width: 70%; font-size: 12px;">
+            Wie wird das Wetter morgen in Berlin?
+          </div>
+          <!-- Agent message (streaming) -->
+          <div style="align-self: flex-start; background: var(--surface-alt); border: 1px solid var(--border); padding: 8px 12px; border-radius: 12px 12px 12px 4px; max-width: 70%; font-size: 12px;">
+            Ich schaue gerade das Wetter für Berlin nach<span style="animation: blink 1s infinite;">▊</span>
+          </div>
+        </div>
+        <!-- Input -->
+        <div style="padding: 8px 12px; border-top: 1px solid var(--border); display: flex; gap: 8px;">
+          <div style="flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">
+            Nachricht eingeben...
+          </div>
+          <div style="background: var(--accent); color: white; border-radius: 8px; padding: 8px 12px; font-size: 12px; cursor: pointer;">
+            Senden
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+</style>
+
+<h3 style="margin-top: 24px;">Elemente</h3>
+<div class="options" data-multiselect>
+  <div class="option" data-choice="timeline" onclick="toggleSelect(this)">
+    <div class="letter">1</div>
+    <div class="content">
+      <h3>Execution Timeline (links)</h3>
+      <p>Schrittweise Anzeige: Agent init → LLM call → Tool call → Response. Mit Dauer und Status.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="chat" onclick="toggleSelect(this)">
+    <div class="letter">2</div>
+    <div class="content">
+      <h3>Chat Area (rechts)</h3>
+      <p>Nachrichten-Verlauf mit Eingabefeld. Streaming-Anzeige für Agent-Antworten.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="controls" onclick="toggleSelect(this)">
+    <div class="letter">3</div>
+    <div class="content">
+      <h3>Header Controls</h3>
+      <p>Status-Badge (Idle/Running/Error), Mock-Toggle, Stop-Button, Minimize.</p>
+    </div>
+  </div>
+</div>
+<p class="subtitle" style="margin-top: 12px;">Passt das so? Oder willst du etwas anders aufteilen?</p>

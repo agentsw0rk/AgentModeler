@@ -10,7 +10,7 @@ class GraphValidatorTest {
 
     @Test
     fun `valid graph passes validation`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("t1", "tool", Position(200.0, 0.0), mapOf("name" to "Tool1", "description" to "Desc", "parameters" to listOf(mapOf("id" to "p1", "name" to "q", "type" to "String", "description" to "d", "required" to true))))
@@ -22,7 +22,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports agent without name`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "", "systemPrompt" to "Help", "modelProvider" to "openai"))),
             emptyList())
         val errors = validator.validate(graph)
@@ -31,7 +31,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports agent without system prompt`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "", "modelProvider" to "openai"))),
             emptyList())
         assertTrue(validator.validate(graph).any { it.contains("prompt") })
@@ -39,7 +39,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports tool without name`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(GraphNode("t1", "tool", Position(0.0, 0.0), mapOf("name" to "", "description" to "Desc", "parameters" to emptyList<Any>()))),
             emptyList())
         assertTrue(validator.validate(graph).any { it.contains("name") && it.contains("t1") })
@@ -47,7 +47,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports tool without connected agent`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(GraphNode("t1", "tool", Position(0.0, 0.0), mapOf("name" to "Tool1", "description" to "Desc", "parameters" to emptyList<Any>()))),
             emptyList())
         assertTrue(validator.validate(graph).any { it.contains("connected") })
@@ -55,7 +55,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports parameter without name`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(GraphNode("t1", "tool", Position(0.0, 0.0), mapOf("name" to "Tool1", "description" to "Desc",
                 "parameters" to listOf(mapOf("id" to "p1", "name" to "", "type" to "String", "description" to "", "required" to true))))),
             listOf(GraphEdge("e1", "t1", "a1")))
@@ -64,7 +64,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports error for multiple agent nodes`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("a2", "agent", Position(300.0, 0.0), mapOf("name" to "Agent2", "systemPrompt" to "Help2", "modelProvider" to "anthropic"))
@@ -76,7 +76,7 @@ class GraphValidatorTest {
 
     @Test
     fun `valid builtin-tool passes validation`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("bt1", "builtin-tool", Position(200.0, 0.0), mapOf("toolType" to "shell"))
@@ -87,7 +87,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports builtin-tool without toolType`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("bt1", "builtin-tool", Position(200.0, 0.0), mapOf<String, Any?>())
@@ -98,7 +98,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports builtin-tool with invalid toolType`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("bt1", "builtin-tool", Position(200.0, 0.0), mapOf("toolType" to "invalid"))
@@ -109,7 +109,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports builtin-tool not connected to agent`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("bt1", "builtin-tool", Position(200.0, 0.0), mapOf("toolType" to "shell"))
@@ -120,7 +120,7 @@ class GraphValidatorTest {
 
     @Test
     fun `valid sub-agent connected to agent passes validation`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
@@ -135,7 +135,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports sub-agent without name`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
@@ -150,7 +150,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports sub-agent without description`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
@@ -165,7 +165,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports sub-agent without system prompt`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
@@ -180,7 +180,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports sub-agent without input description`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
@@ -195,7 +195,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports sub-agent not connected to agent`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
@@ -210,7 +210,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports sub-agent connected to another sub-agent`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
@@ -230,7 +230,7 @@ class GraphValidatorTest {
 
     @Test
     fun `sub-agent does not count toward single-agent limit`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
@@ -246,7 +246,7 @@ class GraphValidatorTest {
 
     @Test
     fun `valid mcp-server connected to agent passes validation`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
@@ -260,7 +260,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports mcp-server without name`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
@@ -274,7 +274,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports mcp-server with invalid transport type`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
@@ -288,7 +288,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports sse mcp-server without url`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
@@ -301,7 +301,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports stdio mcp-server without command`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
@@ -314,7 +314,7 @@ class GraphValidatorTest {
 
     @Test
     fun `reports mcp-server not connected to agent`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
@@ -327,7 +327,7 @@ class GraphValidatorTest {
 
     @Test
     fun `mcp-server does not count toward single-agent limit`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(

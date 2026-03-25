@@ -2,7 +2,7 @@ package com.agentwork.modeler.review
 
 import com.agentwork.modeler.export.ExportService
 import com.agentwork.modeler.export.ExportValidationException
-import com.agentwork.modeler.export.model.ProjectGraph
+import com.agentwork.modeler.export.model.WorkspaceGraph
 import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.*
 import org.springframework.http.HttpHeaders
@@ -20,7 +20,7 @@ class ExportReviewController(
 ) {
     private val objectMapper = ObjectMapper()
     @PostMapping(produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
-    fun exportAndReview(@RequestBody graph: ProjectGraph): SseEmitter {
+    fun exportAndReview(@RequestBody graph: WorkspaceGraph): SseEmitter {
         val emitter = SseEmitter(0L)
         val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 

@@ -1,6 +1,6 @@
 package com.agentwork.modeler.vfs
 
-import com.agentwork.modeler.export.model.ProjectGraph
+import com.agentwork.modeler.export.model.WorkspaceGraph
 import com.agentwork.modeler.vfs.model.GenerationResult
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -15,7 +15,7 @@ class VirtualFileSystemController(
     @PostMapping("/{projectName}/generate")
     fun generate(
         @PathVariable projectName: String,
-        @RequestBody graph: ProjectGraph
+        @RequestBody graph: WorkspaceGraph
     ): GenerationResult {
         return codeGenerationService.generateForProject(projectName, graph)
     }

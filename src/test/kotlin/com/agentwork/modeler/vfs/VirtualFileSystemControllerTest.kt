@@ -2,7 +2,7 @@ package com.agentwork.modeler.vfs
 
 import com.agentwork.modeler.export.model.GraphNode
 import com.agentwork.modeler.export.model.Position
-import com.agentwork.modeler.export.model.ProjectGraph
+import com.agentwork.modeler.export.model.WorkspaceGraph
 import com.agentwork.modeler.vfs.model.FileContent
 import com.agentwork.modeler.vfs.model.FileTreeNode
 import com.agentwork.modeler.vfs.model.FileType
@@ -35,7 +35,7 @@ class VirtualFileSystemControllerTest {
     @MockitoBean
     private lateinit var vfsService: VirtualFileSystemService
 
-    private val validGraph = ProjectGraph(
+    private val validGraph = WorkspaceGraph(
         version = 1,
         name = "test-project",
         nodes = listOf(
