@@ -9,7 +9,8 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { useEditorStore } from "@/store/editorStore";
+import { useState, useEffect } from "react";
+import { useEditorStore, buildWorkspaceGraph } from "@/store/editorStore";
 import { useValidationStore } from "@/store/validationStore";
 import { usePreviewStore } from "@/store/previewStore";
 import { useHistoryStore } from "@/store/historyStore";
@@ -17,7 +18,6 @@ import { validateGraph } from "@/lib/validation";
 import { ExportDialog } from "@/components/dialogs/ExportDialog";
 import { KeyboardShortcutsDialog } from "@/components/dialogs/KeyboardShortcutsDialog";
 import { SaveLoadDialog } from "@/components/dialogs/SaveLoadDialog";
-import { ProjectGraph } from "@/types/graph";
 import type { BuiltinToolType } from "@/types/graph";
 import { BotIcon, WrenchIcon, UsersIcon, ServerIcon } from "lucide-react";
 
@@ -31,11 +31,8 @@ const builtinToolOptions: { type: BuiltinToolType; label: string }[] = [
   { type: "user_prompt", label: "User Prompt" },
 ];
 
-export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
+export function Toolbar({ onNewWorkspace }: { onNewWorkspace: () => void }) {
   const addNode = useEditorStore((s) => s.addNode);
-  const nodes = useEditorStore((s) => s.nodes);
-  const edges = useEditorStore((s) => s.edges);
-  const projectName = useEditorStore((s) => s.projectName);
   const setErrors = useValidationStore((s) => s.setErrors);
   const previewIsOpen = usePreviewStore((s) => s.isOpen);
   const togglePreview = usePreviewStore((s) => s.toggleOpen);
@@ -45,22 +42,25 @@ export function Toolbar({ onNewProject }: { onNewProject: () => void }) {
   const undo = useHistoryStore((s) => s.undo);
   const redo = useHistoryStore((s) => s.redo);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const handleValidate = () => {
-    const graph: ProjectGraph = { version: 1, name: projectName, nodes, edges };
+    const graph = buildWorkspaceGraph();
     const errors = validateGraph(graph);
     setErrors(errors);
   };
 
   return (
     <div className="flex items-center gap-2 p-2 border-b bg-background">
-      <Button variant="outline" size="sm" onClick={onNewProject}>
-        New Project
+      <Button variant="outline" size="sm" onClick={onNewWorkspace}>
+        New Workspace
       </Button>
       <div className="w-px h-6 bg-border" />
-      <Button variant="outline" size="sm" onClick={undo} disabled={past.length === 0 || undefined}>
+      <Button variant="outline" size="sm" onClick={undo} disabled={mounted && past.length === 0}>
         Undo
       </Button>
-      <Button variant="outline" size="sm" onClick={redo} disabled={future.length === 0 || undefined}>
+      <Button variant="outline" size="sm" onClick={redo} disabled={mounted && future.length === 0}>
         Redo
       </Button>
       <div className="w-px h-6 bg-border" />

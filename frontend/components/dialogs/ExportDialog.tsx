@@ -3,26 +3,26 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useEditorStore } from "@/store/editorStore";
+import { useEditorStore, buildWorkspaceGraph } from "@/store/editorStore";
 import { useValidationStore } from "@/store/validationStore";
 import { validateGraph, hasBlockingErrors } from "@/lib/validation";
 import { exportToKotlin } from "@/lib/export-client";
-import { ProjectGraph } from "@/types/graph";
 import { usePreviewStore } from "@/store/previewStore";
 import { useReviewStore } from "@/store/reviewStore";
 import { startExportReview, ReviewSSEEvent } from "@/lib/review-client";
 import { ReviewResult } from "@/types/review";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
 export function ExportDialog() {
+  const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<"idle" | "exporting" | "done" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
-  const nodes = useEditorStore((s) => s.nodes);
-  const edges = useEditorStore((s) => s.edges);
-  const projectName = useEditorStore((s) => s.projectName);
+  const workspaceName = useEditorStore((s) => s.workspaceName);
   const setErrors = useValidationStore((s) => s.setErrors);
 
   const handleExportAndReview = async () => {
-    const graph: ProjectGraph = { version: 1, name: projectName, nodes, edges };
+    const graph = buildWorkspaceGraph();
     const errors = validateGraph(graph);
     setErrors(errors);
     if (hasBlockingErrors(errors)) {
@@ -31,7 +31,8 @@ export function ExportDialog() {
       return;
     }
 
-    // Open bottom drawer on review tab
+    // Close dialog and open bottom drawer on review tab
+    setOpen(false);
     const previewStore = usePreviewStore.getState();
     if (!previewStore.isOpen) previewStore.toggleOpen();
     previewStore.setActiveTab("review");
@@ -48,9 +49,17 @@ export function ExportDialog() {
             useReviewStore.getState().setReviewing(d.downloadUrl, d.reviewJsonUrl);
             break;
           }
-          case "review-result":
+          case "review-result": {
             useReviewStore.getState().setResult(event.data as unknown as ReviewResult);
+            const url = useReviewStore.getState().downloadUrl;
+            if (url) {
+              const a = document.createElement("a");
+              a.href = `${API_BASE}${url}`;
+              a.download = `${workspaceName || "koog-agent"}.zip`;
+              a.click();
+            }
             break;
+          }
           case "review-failed":
             useReviewStore.getState().setFailed((event.data as { message: string }).message || "Review failed");
             break;
@@ -62,7 +71,7 @@ export function ExportDialog() {
   };
 
   const handleExport = async () => {
-    const graph: ProjectGraph = { version: 1, name: projectName, nodes, edges };
+    const graph = buildWorkspaceGraph();
     const errors = validateGraph(graph);
     setErrors(errors);
 
@@ -78,7 +87,7 @@ export function ExportDialog() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${projectName || "koog-agent"}.zip`;
+      a.download = `${workspaceName || "koog-agent"}.zip`;
       a.click();
       URL.revokeObjectURL(url);
       setStatus("done");
@@ -89,7 +98,7 @@ export function ExportDialog() {
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button size="sm" />}>
         Export
       </DialogTrigger>

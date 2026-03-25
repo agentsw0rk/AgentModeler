@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { useEditorStore } from "@/store/editorStore";
+import { useEditorStore, buildWorkspaceGraph } from "@/store/editorStore";
 import { useCodeExplorerStore } from "@/store/codeExplorerStore";
 import { generateCode, getFileTree } from "@/lib/vfs-client";
 import { GenerationStatus } from "@/types/vfs";
@@ -15,7 +15,8 @@ export function useCodeGeneration() {
       const changed =
         state.nodes !== prev.nodes ||
         state.edges !== prev.edges ||
-        state.projectName !== prev.projectName;
+        state.workspaceName !== prev.workspaceName ||
+        state.otelConfig !== prev.otelConfig;
 
       if (!changed) return;
 
@@ -34,7 +35,7 @@ export function useCodeGeneration() {
       if (abortRef.current) abortRef.current.abort();
 
       timeoutRef.current = setTimeout(() => {
-        triggerGeneration(abortRef, state.projectName, state.nodes, state.edges);
+        triggerGeneration(abortRef);
       }, DEBOUNCE_MS);
     });
 
@@ -49,9 +50,8 @@ export function useCodeGeneration() {
   useEffect(() => {
     const unsubscribe = useCodeExplorerStore.subscribe((state, prev) => {
       if (state.isOpen && !prev.isOpen) {
-        const editorState = useEditorStore.getState();
         if (state.status === "stale" || state.status === "idle") {
-          triggerGeneration(abortRef, editorState.projectName, editorState.nodes, editorState.edges);
+          triggerGeneration(abortRef);
         }
       }
     });
@@ -61,9 +61,6 @@ export function useCodeGeneration() {
 
 async function triggerGeneration(
   abortRef: React.MutableRefObject<AbortController | null>,
-  projectName: string,
-  nodes: any[],
-  edges: any[]
 ) {
   const controller = new AbortController();
   abortRef.current = controller;
@@ -72,22 +69,18 @@ async function triggerGeneration(
   const store = useCodeExplorerStore.getState();
   store.setStatus("generating");
 
-  const graph = {
-    version: 1 as const,
-    name: projectName,
-    nodes,
-    edges,
-  };
+  const graph = buildWorkspaceGraph();
+  const workspaceName = useEditorStore.getState().workspaceName;
 
   try {
-    const result = await generateCode(projectName, graph, signal);
+    const result = await generateCode(workspaceName, graph, signal);
 
     if (result.status === GenerationStatus.INVALID) {
       useCodeExplorerStore.getState().setStatus("invalid");
       return;
     }
 
-    const treeResponse = await getFileTree(projectName, signal);
+    const treeResponse = await getFileTree(workspaceName, signal);
     const explorerStore = useCodeExplorerStore.getState();
     explorerStore.setTree(treeResponse.root, treeResponse.generatedAt);
     explorerStore.clearFileCache();
