@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 @Component
 class GraphToKoogAdapter {
 
-    fun convert(graph: ProjectGraph): List<KoogAgent> {
+    fun convert(graph: WorkspaceGraph): List<KoogAgent> {
         val toolNodes = graph.nodes.filter { it.type == "tool" }
         val builtinToolNodes = graph.nodes.filter { it.type == "builtin-tool" }
         val agentNodes = graph.nodes.filter { it.type == "agent" }
@@ -65,14 +65,15 @@ class GraphToKoogAdapter {
                 tools = tools,
                 builtinTools = builtinTools,
                 subAgents = subAgents,
-                mcpServers = mcpServers
+                mcpServers = mcpServers,
+                otelConfig = graph.otelConfig
             )
         }
     }
 
     private fun convertSubAgent(
         saNode: GraphNode,
-        graph: ProjectGraph,
+        graph: WorkspaceGraph,
         toolNodes: List<GraphNode>,
         builtinToolNodes: List<GraphNode>
     ): KoogSubAgent {

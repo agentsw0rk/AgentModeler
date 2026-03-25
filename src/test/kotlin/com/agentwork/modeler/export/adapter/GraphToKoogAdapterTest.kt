@@ -12,7 +12,7 @@ class GraphToKoogAdapterTest {
 
     @Test
     fun `converts a valid graph with one agent and one tool`() {
-        val graph = ProjectGraph(
+        val graph = WorkspaceGraph(
             version = 1,
             name = "TestProject",
             nodes = listOf(
@@ -46,7 +46,7 @@ class GraphToKoogAdapterTest {
 
     @Test
     fun `throws on agent without name`() {
-        val graph = ProjectGraph(
+        val graph = WorkspaceGraph(
             version = 1, name = "Test",
             nodes = listOf(GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "", "systemPrompt" to "Prompt", "modelProvider" to "openai"))),
             edges = emptyList()
@@ -56,7 +56,7 @@ class GraphToKoogAdapterTest {
 
     @Test
     fun `agent with no connected tools gets empty tool list`() {
-        val graph = ProjectGraph(
+        val graph = WorkspaceGraph(
             version = 1, name = "Test",
             nodes = listOf(GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Prompt", "modelProvider" to "openai"))),
             edges = emptyList()
@@ -67,7 +67,7 @@ class GraphToKoogAdapterTest {
 
     @Test
     fun `converts builtin-tool nodes to KoogBuiltinTool list`() {
-        val graph = ProjectGraph(
+        val graph = WorkspaceGraph(
             version = 1, name = "Test",
             nodes = listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
@@ -85,7 +85,7 @@ class GraphToKoogAdapterTest {
 
     @Test
     fun `converts sub-agent nodes with their own tools`() {
-        val graph = ProjectGraph(
+        val graph = WorkspaceGraph(
             version = 1, name = "Test",
             nodes = listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf(
@@ -128,7 +128,7 @@ class GraphToKoogAdapterTest {
 
     @Test
     fun `converts mcp-server nodes to KoogMcpServer list`() {
-        val graph = ProjectGraph(
+        val graph = WorkspaceGraph(
             version = 1, name = "Test",
             nodes = listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf(
@@ -155,7 +155,7 @@ class GraphToKoogAdapterTest {
 
     @Test
     fun `converts stdio mcp-server with command and args`() {
-        val graph = ProjectGraph(
+        val graph = WorkspaceGraph(
             version = 1, name = "Test",
             nodes = listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf(
@@ -178,8 +178,32 @@ class GraphToKoogAdapterTest {
     }
 
     @Test
+    fun `passes otelConfig from graph to KoogAgent`() {
+        val otelConfig = OtelConfig(enabled = true, exporterType = "http", endpoint = "http://localhost:4318/v1/traces", serviceName = "test-svc")
+        val graph = WorkspaceGraph(
+            version = 1, name = "Test",
+            nodes = listOf(GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai"))),
+            edges = emptyList(),
+            otelConfig = otelConfig
+        )
+        val agents = adapter.convert(graph)
+        assertEquals(otelConfig, agents[0].otelConfig)
+    }
+
+    @Test
+    fun `otelConfig defaults to null when not provided`() {
+        val graph = WorkspaceGraph(
+            version = 1, name = "Test",
+            nodes = listOf(GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai"))),
+            edges = emptyList()
+        )
+        val agents = adapter.convert(graph)
+        assertEquals(null, agents[0].otelConfig)
+    }
+
+    @Test
     fun `sub-agent tools are not included in main agent tools`() {
-        val graph = ProjectGraph(
+        val graph = WorkspaceGraph(
             version = 1, name = "Test",
             nodes = listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf(
