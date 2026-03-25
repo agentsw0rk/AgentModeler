@@ -18,6 +18,7 @@ import { validateGraph } from "@/lib/validation";
 import { ExportDialog } from "@/components/dialogs/ExportDialog";
 import { KeyboardShortcutsDialog } from "@/components/dialogs/KeyboardShortcutsDialog";
 import { SaveLoadDialog } from "@/components/dialogs/SaveLoadDialog";
+import { WorkspaceSettingsDialog } from "@/components/dialogs/WorkspaceSettingsDialog";
 import type { BuiltinToolType } from "@/types/graph";
 import { BotIcon, WrenchIcon, UsersIcon, ServerIcon } from "lucide-react";
 
@@ -143,6 +144,7 @@ export function Toolbar({ onNewWorkspace }: { onNewWorkspace: () => void }) {
         {previewIsOpen ? "■ Preview" : "▶ Preview"}
       </Button>
       <SaveLoadDialog />
+      <WorkspaceSettingsDialog />
       <ExportDialog />
       <KeyboardShortcutsDialog />
     </div>
