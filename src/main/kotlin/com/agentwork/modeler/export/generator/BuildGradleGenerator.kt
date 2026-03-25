@@ -2,17 +2,19 @@ package com.agentwork.modeler.export.generator
 
 import com.agentwork.modeler.export.model.BuiltinToolType
 import com.agentwork.modeler.export.model.KoogAgent
+import com.agentwork.modeler.export.model.OtelConfig
 import org.springframework.stereotype.Component
 
 @Component
 class BuildGradleGenerator {
 
     companion object {
-        const val KOTLIN_VERSION = "2.2.21"
+        const val KOTLIN_VERSION = "2.3.0"
         const val SPRING_BOOT_VERSION = "4.0.4"
         const val DEPENDENCY_MANAGEMENT_VERSION = "1.1.7"
         const val KOOG_VERSION = "0.7.2"
         const val SQLITE_VERSION = "3.47.2.0"
+        const val OTEL_BOM_VERSION = "1.48.0"
     }
 
     fun generate(agent: KoogAgent): String {
@@ -43,6 +45,15 @@ class BuildGradleGenerator {
             appendLine("""    implementation("ai.koog:koog-agents:$KOOG_VERSION")""")
             if (agent.builtinTools.any { it.type == BuiltinToolType.MEMORY }) {
                 appendLine("""    implementation("org.xerial:sqlite-jdbc:$SQLITE_VERSION")""")
+            }
+            if (agent.otelConfig?.enabled == true) {
+                appendLine("""    implementation(platform("io.opentelemetry:opentelemetry-bom:$OTEL_BOM_VERSION"))""")
+                appendLine("""    implementation("ai.koog:koog-opentelemetry:$KOOG_VERSION")""")
+                appendLine("""    implementation("io.opentelemetry:opentelemetry-sdk")""")
+                when (agent.otelConfig?.exporterType) {
+                    "logging" -> appendLine("""    implementation("io.opentelemetry:opentelemetry-exporter-logging")""")
+                    else -> appendLine("""    implementation("io.opentelemetry:opentelemetry-exporter-otlp")""")
+                }
             }
 
             appendLine("""}""")

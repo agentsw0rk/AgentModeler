@@ -68,4 +68,40 @@ class BuildGradleGeneratorTest {
         val code = generator.generate(agent)
         assertFalse(code.contains("agents-ext-mcp"))
     }
+
+    @Test
+    fun `includes OTel dependencies when otelConfig enabled with HTTP exporter`() {
+        val agent = KoogAgent("Agent", "Help", ModelProvider.OPENAI, null, null, emptyList(),
+            otelConfig = OtelConfig(enabled = true, exporterType = "http"))
+        val code = generator.generate(agent)
+        assertContains(code, "opentelemetry-bom")
+        assertContains(code, "koog-opentelemetry")
+        assertContains(code, "opentelemetry-sdk")
+        assertContains(code, "opentelemetry-exporter-otlp")
+    }
+
+    @Test
+    fun `includes logging exporter when otelConfig logging`() {
+        val agent = KoogAgent("Agent", "Help", ModelProvider.OPENAI, null, null, emptyList(),
+            otelConfig = OtelConfig(enabled = true, exporterType = "logging"))
+        val code = generator.generate(agent)
+        assertContains(code, "opentelemetry-exporter-logging")
+        assertFalse(code.contains("opentelemetry-exporter-otlp"))
+    }
+
+    @Test
+    fun `omits OTel dependencies when otelConfig disabled`() {
+        val agent = KoogAgent("Agent", "Help", ModelProvider.OPENAI, null, null, emptyList(),
+            otelConfig = OtelConfig(enabled = false))
+        val code = generator.generate(agent)
+        assertFalse(code.contains("opentelemetry"))
+        assertFalse(code.contains("koog-opentelemetry"))
+    }
+
+    @Test
+    fun `omits OTel dependencies when otelConfig null`() {
+        val agent = KoogAgent("Agent", "Help", ModelProvider.OPENAI, null, null, emptyList())
+        val code = generator.generate(agent)
+        assertFalse(code.contains("opentelemetry"))
+    }
 }
