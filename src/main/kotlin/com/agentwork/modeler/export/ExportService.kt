@@ -39,7 +39,7 @@ class ExportService(
         return Pair(zip, files)
     }
 
-    internal fun generateFiles(graph: ProjectGraph): Map<String, String> {
+    fun generateFiles(graph: ProjectGraph): Map<String, String> {
         val validationErrors = validator.validate(graph)
         if (validationErrors.isNotEmpty()) {
             throw ExportValidationException(validationErrors)
@@ -55,7 +55,7 @@ class ExportService(
         files["settings.gradle.kts"] = settingsGradleGenerator.generate(graph.name)
         files["gradle.properties"] = gradlePropertiesGenerator.generate()
         files["Dockerfile"] = dockerfileGenerator.generate()
-        files["src/main/resources/application.properties"] = applicationPropertiesGenerator.generate()
+        files["src/main/resources/application.properties"] = applicationPropertiesGenerator.generate(agent)
 
         // Kotlin sources
         files["$pkg/Application.kt"] = applicationGenerator.generate()

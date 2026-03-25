@@ -8,6 +8,9 @@ class GraphValidator {
     fun validate(graph: ProjectGraph): List<String> {
         val errors = mutableListOf<String>()
         val agentNodes = graph.nodes.filter { it.type == "agent" }
+        if (agentNodes.isEmpty()) {
+            errors.add("Graph must contain at least one agent")
+        }
         if (agentNodes.size > 1) {
             errors.add("Only single-agent graphs are supported for export")
         }
