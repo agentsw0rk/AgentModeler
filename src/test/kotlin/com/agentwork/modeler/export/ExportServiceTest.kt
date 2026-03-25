@@ -37,7 +37,7 @@ class ExportServiceTest {
 
     @Test
     fun `exports a valid graph as ZIP with full project structure`() {
-        val graph = ProjectGraph(1, "TestProject",
+        val graph = WorkspaceGraph(1, "TestProject",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MyAgent", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("t1", "tool", Position(200.0, 0.0), mapOf("name" to "searchTool", "description" to "Searches",
@@ -71,7 +71,7 @@ class ExportServiceTest {
 
     @Test
     fun `exports agent without tools omits ToolRegistry`() {
-        val graph = ProjectGraph(1, "TestProject",
+        val graph = WorkspaceGraph(1, "TestProject",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "SimpleAgent", "systemPrompt" to "Help", "modelProvider" to "openai"))
             ),
@@ -85,7 +85,7 @@ class ExportServiceTest {
 
     @Test
     fun `throws ExportValidationException for invalid graph`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "", "systemPrompt" to "", "modelProvider" to "openai"))),
             emptyList())
         val ex = assertThrows<ExportValidationException> { service.export(graph) }
@@ -94,7 +94,7 @@ class ExportServiceTest {
 
     @Test
     fun `exports graph with builtin shell tool`() {
-        val graph = ProjectGraph(1, "TestProject",
+        val graph = WorkspaceGraph(1, "TestProject",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MyAgent", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("bt1", "builtin-tool", Position(200.0, 0.0), mapOf("toolType" to "shell", "workingDir" to "/app"))
@@ -112,7 +112,7 @@ class ExportServiceTest {
 
     @Test
     fun `exports graph with filesystem builtin creates no file but has registry`() {
-        val graph = ProjectGraph(1, "TestProject",
+        val graph = WorkspaceGraph(1, "TestProject",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MyAgent", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("bt1", "builtin-tool", Position(200.0, 0.0), mapOf("toolType" to "filesystem"))
@@ -130,7 +130,7 @@ class ExportServiceTest {
 
     @Test
     fun `throws ExportValidationException for multi-agent graph`() {
-        val graph = ProjectGraph(1, "Test",
+        val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("a2", "agent", Position(300.0, 0.0), mapOf("name" to "Agent2", "systemPrompt" to "Help2", "modelProvider" to "openai"))
@@ -142,7 +142,7 @@ class ExportServiceTest {
 
     @Test
     fun `exports graph with sub-agent and sub-agent tools`() {
-        val graph = ProjectGraph(1, "TestProject",
+        val graph = WorkspaceGraph(1, "TestProject",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MainAgent", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("sa1", "sub-agent", Position(200.0, 0.0), mapOf(
@@ -176,7 +176,7 @@ class ExportServiceTest {
 
     @Test
     fun `exports graph with MCP server`() {
-        val graph = ProjectGraph(1, "TestProject",
+        val graph = WorkspaceGraph(1, "TestProject",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MainAgent", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("mcp1", "mcp-server", Position(200.0, 0.0), mapOf(
@@ -207,6 +207,40 @@ class ExportServiceTest {
 
         val buildContent = readZipFileContent(zip, "build.gradle.kts")
         assertContains(buildContent, "agents-ext-mcp")
+    }
+
+    @Test
+    fun `export with OTel enabled includes OTel configuration in generated files`() {
+        val graph = WorkspaceGraph(1, "OtelProject",
+            listOf(GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MyAgent", "systemPrompt" to "Help", "modelProvider" to "openai"))),
+            emptyList(),
+            otelConfig = OtelConfig(enabled = true, exporterType = "http", endpoint = "http://localhost:4318/v1/traces", serviceName = "my-svc")
+        )
+        val (_, files) = service.exportWithFiles(graph)
+
+        // build.gradle.kts has OTel deps
+        assertContains(files["build.gradle.kts"]!!, "koog-opentelemetry")
+        assertContains(files["build.gradle.kts"]!!, "opentelemetry-bom")
+
+        // AgentConfig.kt has install block
+        assertContains(files["src/main/kotlin/generated/AgentConfig.kt"]!!, "install(OpenTelemetry)")
+        assertContains(files["src/main/kotlin/generated/AgentConfig.kt"]!!, "OtlpHttpSpanExporter")
+
+        // application.properties has OTel props
+        assertContains(files["src/main/resources/application.properties"]!!, "otel.endpoint=http://localhost:4318/v1/traces")
+        assertContains(files["src/main/resources/application.properties"]!!, "otel.service-name=my-svc")
+    }
+
+    @Test
+    fun `export without OTel has no OTel artifacts`() {
+        val graph = WorkspaceGraph(1, "NoOtelProject",
+            listOf(GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MyAgent", "systemPrompt" to "Help", "modelProvider" to "openai"))),
+            emptyList()
+        )
+        val (_, files) = service.exportWithFiles(graph)
+        assertTrue(!files["build.gradle.kts"]!!.contains("opentelemetry"))
+        assertTrue(!files["src/main/kotlin/generated/AgentConfig.kt"]!!.contains("OpenTelemetry"))
+        assertTrue(!files["src/main/resources/application.properties"]!!.contains("otel."))
     }
 
     private fun readZipEntries(data: ByteArray): List<String> {
