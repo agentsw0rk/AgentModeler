@@ -39,9 +39,22 @@ export interface GraphEdge {
   target: string;
 }
 
-export interface ProjectGraph {
+export type OtelExporterType = "http" | "grpc" | "logging";
+
+export interface OtelConfig {
+  enabled: boolean;
+  exporterType: OtelExporterType;
+  endpoint?: string;
+  serviceName?: string;
+  serviceVersion?: string;
+  authorizationHeader?: string;
+  verbose: boolean;
+}
+
+export interface WorkspaceGraph {
   version: 1;
   name: string;
   nodes: GraphNode[];
   edges: GraphEdge[];
+  otelConfig?: OtelConfig;
 }

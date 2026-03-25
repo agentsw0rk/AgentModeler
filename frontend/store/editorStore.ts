@@ -1,16 +1,16 @@
 import { create } from "zustand";
-import { GraphNode, GraphEdge, NodeType, BuiltinToolType, BuiltinToolConfig } from "@/types/graph";
+import { GraphNode, GraphEdge, NodeType, BuiltinToolType, BuiltinToolConfig, WorkspaceGraph, OtelConfig } from "@/types/graph";
 import { AgentConfig, ToolConfig } from "@/types/koog";
 import { SubAgentConfig } from "@/types/subagent";
 import { McpServerConfig } from "@/types/mcp";
 
-export const DEFAULT_PROJECT_NAME = "Untitled Project";
+export const DEFAULT_WORKSPACE_NAME = "Untitled Workspace";
 
 interface EditorState {
   nodes: GraphNode[];
   edges: GraphEdge[];
   selectedNodeIds: string[];
-  projectName: string;
+  workspaceName: string;
 
   addNode: (type: NodeType, position: { x: number; y: number }, toolType?: BuiltinToolType) => void;
   addNodes: (nodes: GraphNode[], edges: GraphEdge[]) => void;
@@ -22,7 +22,9 @@ interface EditorState {
   removeEdge: (id: string) => void;
   setSelectedNodeIds: (ids: string[]) => void;
   toggleNodeSelection: (id: string) => void;
-  setProjectName: (name: string) => void;
+  setWorkspaceName: (name: string) => void;
+  otelConfig: OtelConfig;
+  updateOtelConfig: (partial: Partial<OtelConfig>) => void;
   reset: () => void;
 }
 
@@ -64,15 +66,21 @@ const builtinToolDefaults: Record<BuiltinToolType, BuiltinToolConfig> = {
   user_prompt: { toolType: "user_prompt" },
 };
 
+export const DEFAULT_OTEL_CONFIG: OtelConfig = {
+  enabled: false,
+  exporterType: "http",
+  verbose: false,
+};
+
 let nextId = 1;
 
 function pushHistory() {
   const { useHistoryStore } = require("./historyStore");
-  const { nodes, edges, projectName } = useEditorStore.getState();
+  const { nodes, edges, workspaceName } = useEditorStore.getState();
   useHistoryStore.getState().pushState({
     nodes: structuredClone(nodes),
     edges: structuredClone(edges),
-    projectName,
+    workspaceName,
   });
 }
 
@@ -80,7 +88,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   nodes: [],
   edges: [],
   selectedNodeIds: [],
-  projectName: DEFAULT_PROJECT_NAME,
+  workspaceName: DEFAULT_WORKSPACE_NAME,
+  otelConfig: { ...DEFAULT_OTEL_CONFIG },
 
   addNode(type, position, toolType?) {
     pushHistory();
@@ -175,9 +184,15 @@ export const useEditorStore = create<EditorState>((set) => ({
     });
   },
 
-  setProjectName(name) {
+  setWorkspaceName(name) {
     pushHistory();
-    set({ projectName: name });
+    set({ workspaceName: name });
+  },
+
+  updateOtelConfig(partial) {
+    set((state) => ({
+      otelConfig: { ...state.otelConfig, ...partial },
+    }));
   },
 
   reset() {
@@ -188,7 +203,19 @@ export const useEditorStore = create<EditorState>((set) => ({
       nodes: [],
       edges: [],
       selectedNodeIds: [],
-      projectName: DEFAULT_PROJECT_NAME,
+      workspaceName: DEFAULT_WORKSPACE_NAME,
+      otelConfig: { ...DEFAULT_OTEL_CONFIG },
     });
   },
 }));
+
+export function buildWorkspaceGraph(): WorkspaceGraph {
+  const { nodes, edges, workspaceName, otelConfig } = useEditorStore.getState();
+  return {
+    version: 1,
+    name: workspaceName,
+    nodes,
+    edges,
+    otelConfig: otelConfig.enabled ? otelConfig : undefined,
+  };
+}
