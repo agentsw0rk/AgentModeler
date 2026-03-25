@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { createEditor } from "@/lib/rete-setup";
 import { useEditorStore } from "@/store/editorStore";
-import { AgentReteNode, ToolReteNode, BuiltinToolReteNode, SubAgentReteNode, McpServerReteNode } from "@/lib/rete-nodes";
+import { AgentReteNode, ToolReteNode, BuiltinToolReteNode, SubAgentReteNode, McpServerReteNode, PlannerAgentReteNode } from "@/lib/rete-nodes";
 import { BuiltinToolType, BUILTIN_TOOL_LABELS } from "@/types/graph";
 import type { Schemes } from "@/lib/rete-setup";
 import type { NodeEditor } from "rete";
@@ -75,8 +75,9 @@ export function Canvas() {
           const isMcpSource = sourceNode instanceof McpServerReteNode;
           const isAgentTarget = targetNode instanceof AgentReteNode;
           const isSubAgentTarget = targetNode instanceof SubAgentReteNode;
+          const isPlannerAgentTarget = targetNode instanceof PlannerAgentReteNode;
 
-          if ((isToolSource || isSubAgentSource || isMcpSource) && (isAgentTarget || isSubAgentTarget)) {
+          if ((isToolSource || isSubAgentSource || isMcpSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget)) {
             syncing = true;
             const sourceStoreId = (sourceNode as any).storeNodeId;
             const targetStoreId = (targetNode as any).storeNodeId;
@@ -98,8 +99,9 @@ export function Canvas() {
           const isMcpSource = sourceNode instanceof McpServerReteNode;
           const isAgentTarget = targetNode instanceof AgentReteNode;
           const isSubAgentTarget = targetNode instanceof SubAgentReteNode;
+          const isPlannerAgentTarget = targetNode instanceof PlannerAgentReteNode;
 
-          if ((isToolSource || isSubAgentSource || isMcpSource) && (isAgentTarget || isSubAgentTarget)) {
+          if ((isToolSource || isSubAgentSource || isMcpSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget)) {
             syncing = true;
             const sourceStoreId = (sourceNode as any).storeNodeId;
             const targetStoreId = (targetNode as any).storeNodeId;
@@ -134,6 +136,8 @@ export function Canvas() {
               reteNode = new BuiltinToolReteNode(node.id, label);
             } else if (node.type === "mcp-server") {
               reteNode = new McpServerReteNode(node.id, (node.data as any).name || "MCP Server");
+            } else if (node.type === "planner-agent") {
+              reteNode = new PlannerAgentReteNode(node.id, (node.data as any).name || "Planner Agent");
             } else {
               reteNode = new ToolReteNode(node.id, (node.data as any).name || "Tool");
             }

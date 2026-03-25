@@ -20,7 +20,7 @@ import { KeyboardShortcutsDialog } from "@/components/dialogs/KeyboardShortcutsD
 import { SaveLoadDialog } from "@/components/dialogs/SaveLoadDialog";
 import { WorkspaceSettingsDialog } from "@/components/dialogs/WorkspaceSettingsDialog";
 import type { BuiltinToolType } from "@/types/graph";
-import { BotIcon, WrenchIcon, UsersIcon, ServerIcon } from "lucide-react";
+import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon } from "lucide-react";
 
 const builtinToolOptions: { type: BuiltinToolType; label: string }[] = [
   { type: "think", label: "Think" },
@@ -126,6 +126,16 @@ export function Toolbar({ onNewWorkspace }: { onNewWorkspace: () => void }) {
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => addNode("planner-agent", { x: 100, y: 400 })}
+        title="Add Planner Agent"
+      >
+        <ClipboardListIcon className="h-4 w-4 mr-1 text-pink-400" />
+        Planner
+      </Button>
 
       <div className="flex-1" />
       <Button variant="outline" size="sm" onClick={handleValidate}>

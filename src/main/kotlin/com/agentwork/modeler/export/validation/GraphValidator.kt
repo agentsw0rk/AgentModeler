@@ -7,12 +7,19 @@ import org.springframework.stereotype.Component
 class GraphValidator {
     fun validate(graph: WorkspaceGraph): List<String> {
         val errors = mutableListOf<String>()
-        val agentNodes = graph.nodes.filter { it.type == "agent" }
-        if (agentNodes.isEmpty()) {
-            errors.add("Graph must contain at least one agent")
+        val agentCount = graph.nodes.count { it.type == "agent" }
+        val plannerCount = graph.nodes.count { it.type == "planner-agent" }
+        if (agentCount == 0 && plannerCount == 0) {
+            errors.add("Workspace must have at least one agent or planner-agent")
         }
-        if (agentNodes.size > 1) {
-            errors.add("Only single-agent graphs are supported for export")
+        if (agentCount > 0 && plannerCount > 0) {
+            errors.add("Workspace cannot have both a regular agent and a planner-agent")
+        }
+        if (agentCount > 1) {
+            errors.add("Only single-agent workspaces are supported for export")
+        }
+        if (plannerCount > 1) {
+            errors.add("Workspace can have at most one planner-agent")
         }
 
         for (node in graph.nodes) {
@@ -86,6 +93,27 @@ class GraphValidator {
                     for (target in targets) {
                         if (target?.type == "sub-agent") {
                             errors.add("[${node.id}] MCP Server connected to Sub-Agent will only be exported for the main Agent")
+                        }
+                    }
+                }
+                "planner-agent" -> {
+                    val name = node.data["name"] as? String ?: ""
+                    if (name.isBlank()) {
+                        errors.add("[${node.id}] Planner agent requires a name")
+                    }
+                    val goals = node.data["goals"] as? List<*> ?: emptyList<Any>()
+                    if (goals.isEmpty()) {
+                        errors.add("[${node.id}] Planner agent must have at least one goal")
+                    }
+                    val actions = node.data["actions"] as? List<*> ?: emptyList<Any>()
+                    if (actions.isEmpty()) {
+                        errors.add("[${node.id}] Planner agent must have at least one action")
+                    }
+                    val plannerType = node.data["plannerType"] as? String ?: "llm"
+                    if (plannerType == "llm") {
+                        val provider = node.data["modelProvider"] as? String
+                        if (provider.isNullOrBlank()) {
+                            errors.add("[${node.id}] LLM planner requires a model provider")
                         }
                     }
                 }

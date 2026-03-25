@@ -32,6 +32,7 @@ class ExportServiceTest {
         builtinToolGenerator = BuiltinToolGenerator(),
         subAgentGenerator = SubAgentGenerator(),
         mcpServerGenerator = McpServerGenerator(),
+        plannerAgentGenerator = PlannerAgentGenerator(),
         zipBuilder = ZipBuilder()
     )
 

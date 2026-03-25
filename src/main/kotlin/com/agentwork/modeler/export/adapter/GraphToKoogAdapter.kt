@@ -148,6 +148,118 @@ class GraphToKoogAdapter {
         )
     }
 
+    fun convertPlannerAgents(graph: WorkspaceGraph): List<KoogPlannerAgent> {
+        val toolNodes = graph.nodes.filter { it.type == "tool" }
+        val builtinToolNodes = graph.nodes.filter { it.type == "builtin-tool" }
+        val subAgentNodes = graph.nodes.filter { it.type == "sub-agent" }
+        val mcpServerNodes = graph.nodes.filter { it.type == "mcp-server" }
+
+        return graph.nodes.filter { it.type == "planner-agent" }.map { plannerNode ->
+            val connectedIds = graph.edges
+                .filter { it.target == plannerNode.id }
+                .map { it.source }
+
+            val tools = toolNodes
+                .filter { it.id in connectedIds }
+                .map { convertTool(it) }
+
+            val builtinTools = builtinToolNodes
+                .filter { it.id in connectedIds }
+                .map { convertBuiltinTool(it) }
+
+            val subAgents = subAgentNodes
+                .filter { it.id in connectedIds }
+                .map { saNode -> convertSubAgent(saNode, graph, toolNodes, builtinToolNodes) }
+
+            val mcpServers = mcpServerNodes
+                .filter { it.id in connectedIds }
+                .map { convertMcpServer(it) }
+
+            @Suppress("UNCHECKED_CAST")
+            val goalMaps = plannerNode.data["goals"] as? List<Map<String, Any?>> ?: emptyList()
+            val goals = goalMaps.map { gMap ->
+                @Suppress("UNCHECKED_CAST")
+                val condMaps = gMap["conditions"] as? List<Map<String, Any?>> ?: emptyList()
+                PlannerGoal(
+                    name = gMap["name"] as? String ?: "",
+                    conditions = condMaps.map { parseCondition(it) },
+                    priority = (gMap["priority"] as? Number)?.toInt() ?: 0
+                )
+            }
+
+            @Suppress("UNCHECKED_CAST")
+            val actionMaps = plannerNode.data["actions"] as? List<Map<String, Any?>> ?: emptyList()
+            val actions = actionMaps.map { aMap ->
+                @Suppress("UNCHECKED_CAST")
+                val preMaps = aMap["preconditions"] as? List<Map<String, Any?>> ?: emptyList()
+                @Suppress("UNCHECKED_CAST")
+                val effMaps = aMap["effects"] as? List<Map<String, Any?>> ?: emptyList()
+                PlannerAction(
+                    name = aMap["name"] as? String ?: "",
+                    description = aMap["description"] as? String ?: "",
+                    preconditions = preMaps.map { parseCondition(it) },
+                    effects = effMaps.map { parseEffect(it) },
+                    cost = (aMap["cost"] as? Number)?.toInt() ?: 1
+                )
+            }
+
+            @Suppress("UNCHECKED_CAST")
+            val stateMaps = plannerNode.data["initialState"] as? List<Map<String, Any?>> ?: emptyList()
+            val initialState: Map<String, Any> = stateMaps.mapNotNull { sMap ->
+                val key = sMap["key"] as? String ?: return@mapNotNull null
+                val value = sMap["value"] ?: return@mapNotNull null
+                key to value
+            }.toMap()
+
+            val plannerTypeStr = plannerNode.data["plannerType"] as? String ?: "llm"
+            val plannerType = when (plannerTypeStr.lowercase()) {
+                "goap" -> PlannerType.GOAP
+                else -> PlannerType.LLM
+            }
+
+            val modelProviderStr = plannerNode.data["modelProvider"] as? String
+            val modelProvider = if (modelProviderStr != null) parseProvider(modelProviderStr) else null
+
+            KoogPlannerAgent(
+                name = plannerNode.data["name"] as? String ?: "",
+                description = plannerNode.data["description"] as? String ?: "",
+                plannerType = plannerType,
+                modelProvider = modelProvider,
+                modelId = plannerNode.data["modelId"] as? String,
+                temperature = (plannerNode.data["temperature"] as? Number)?.toDouble(),
+                maxReplanAttempts = (plannerNode.data["maxReplanAttempts"] as? Number)?.toInt() ?: 3,
+                goals = goals,
+                actions = actions,
+                initialState = initialState,
+                tools = tools,
+                builtinTools = builtinTools,
+                subAgents = subAgents,
+                mcpServers = mcpServers
+            )
+        }
+    }
+
+    private fun parseCondition(map: Map<String, Any?>): StateCondition {
+        val operator = when ((map["operator"] as? String)?.lowercase()) {
+            "notequals", "not_equals" -> ConditionOperator.NOT_EQUALS
+            "greaterthan", "greater_than" -> ConditionOperator.GREATER_THAN
+            "lessthan", "less_than" -> ConditionOperator.LESS_THAN
+            else -> ConditionOperator.EQUALS
+        }
+        return StateCondition(
+            key = map["key"] as? String ?: "",
+            operator = operator,
+            value = map["value"] ?: ""
+        )
+    }
+
+    private fun parseEffect(map: Map<String, Any?>): StateEffect {
+        return StateEffect(
+            key = map["key"] as? String ?: "",
+            value = map["value"] ?: ""
+        )
+    }
+
     private fun parseProvider(value: String): ModelProvider = when (value.lowercase()) {
         "openai" -> ModelProvider.OPENAI
         "anthropic" -> ModelProvider.ANTHROPIC

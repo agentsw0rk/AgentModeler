@@ -3,6 +3,7 @@ import { GraphNode, GraphEdge, NodeType, BuiltinToolType, BuiltinToolConfig, Wor
 import { AgentConfig, ToolConfig } from "@/types/koog";
 import { SubAgentConfig } from "@/types/subagent";
 import { McpServerConfig } from "@/types/mcp";
+import { PlannerAgentConfig } from "@/types/planner";
 
 export const DEFAULT_WORKSPACE_NAME = "Untitled Workspace";
 
@@ -56,6 +57,19 @@ const defaultMcpServerData: McpServerConfig = {
   discoveredTools: [],
 };
 
+const defaultPlannerAgentData: PlannerAgentConfig = {
+  name: "",
+  description: "",
+  plannerType: "llm",
+  modelProvider: "anthropic",
+  modelId: undefined,
+  temperature: undefined,
+  maxReplanAttempts: 3,
+  goals: [],
+  actions: [],
+  initialState: [],
+};
+
 const builtinToolDefaults: Record<BuiltinToolType, BuiltinToolConfig> = {
   think:       { toolType: "think" },
   shell:       { toolType: "shell" },
@@ -94,7 +108,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   addNode(type, position, toolType?) {
     pushHistory();
     set((state) => {
-      let data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig;
+      let data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | PlannerAgentConfig;
       if (type === "agent") {
         data = { ...defaultAgentData };
       } else if (type === "sub-agent") {
@@ -103,6 +117,8 @@ export const useEditorStore = create<EditorState>((set) => ({
         data = { ...builtinToolDefaults[toolType] };
       } else if (type === "mcp-server") {
         data = { ...defaultMcpServerData };
+      } else if (type === "planner-agent") {
+        data = { ...defaultPlannerAgentData };
       } else {
         data = { ...defaultToolData };
       }

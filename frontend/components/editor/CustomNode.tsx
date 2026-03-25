@@ -9,9 +9,10 @@ import {
   BuiltinToolReteNode,
   SubAgentReteNode,
   McpServerReteNode,
+  PlannerAgentReteNode,
 } from "@/lib/rete-nodes";
 import type { Schemes } from "@/lib/rete-setup";
-import { BotIcon, WrenchIcon, UsersIcon, ServerIcon } from "lucide-react";
+import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon } from "lucide-react";
 import { useValidationStore } from "@/store/validationStore";
 
 const nodeIcons: Record<string, React.ReactNode> = {
@@ -20,6 +21,7 @@ const nodeIcons: Record<string, React.ReactNode> = {
   "builtin-tool": <WrenchIcon size={10} />,
   "sub-agent": <UsersIcon size={10} />,
   "mcp-server": <ServerIcon size={10} />,
+  "planner-agent": <ClipboardListIcon size={10} />,
 };
 
 const nodeColors: Record<string, { border: string; glow: string; badge: string; badgeText: string }> = {
@@ -28,6 +30,12 @@ const nodeColors: Record<string, { border: string; glow: string; badge: string; 
   "builtin-tool": { border: "rgba(16, 185, 129, 0.3)", glow: "rgba(16, 185, 129, 0.08)", badge: "rgba(16, 185, 129, 0.12)", badgeText: "#6ee7b7" },
   "sub-agent":  { border: "rgba(251, 191, 36, 0.4)",  glow: "rgba(251, 191, 36, 0.10)", badge: "rgba(251, 191, 36, 0.15)", badgeText: "#fbbf24" },
   "mcp-server": { border: "rgba(168, 85, 247, 0.4)",  glow: "rgba(168, 85, 247, 0.10)", badge: "rgba(168, 85, 247, 0.15)", badgeText: "#c084fc" },
+  "planner-agent": {
+    border: "rgba(236, 72, 153, 0.4)",
+    glow: "rgba(236, 72, 153, 0.12)",
+    badge: "rgba(236, 72, 153, 0.15)",
+    badgeText: "#ec4899",
+  },
 };
 
 const nodeTypeLabels: Record<string, string> = {
@@ -36,6 +44,7 @@ const nodeTypeLabels: Record<string, string> = {
   "builtin-tool": "BUILT-IN",
   "sub-agent": "SUB-AGENT",
   "mcp-server": "MCP SERVER",
+  "planner-agent": "PLANNER",
 };
 
 function getNodeType(data: Schemes["Node"]): string {
@@ -44,6 +53,7 @@ function getNodeType(data: Schemes["Node"]): string {
   if (data instanceof BuiltinToolReteNode) return "builtin-tool";
   if (data instanceof SubAgentReteNode) return "sub-agent";
   if (data instanceof McpServerReteNode) return "mcp-server";
+  if (data instanceof PlannerAgentReteNode) return "planner-agent";
   return "tool";
 }
 
@@ -99,6 +109,9 @@ export function CustomNode(props: {
         break;
       case "mcp-server":
         if (d.transportType) subtitle = `${d.transportType.toUpperCase()}${d.url ? " · " + d.url.slice(0, 30) : ""}`;
+        break;
+      case "planner-agent":
+        subtitle = d?.plannerType === "goap" ? "GOAP Planner" : "LLM Planner";
         break;
     }
   }

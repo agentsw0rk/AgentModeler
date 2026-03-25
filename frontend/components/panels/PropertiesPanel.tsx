@@ -11,6 +11,8 @@ import { SubAgentProperties } from "./SubAgentProperties";
 import { SubAgentConfig } from "@/types/subagent";
 import { McpServerProperties } from "./McpServerProperties";
 import { McpServerConfig } from "@/types/mcp";
+import { PlannerProperties } from "./PlannerProperties";
+import { PlannerAgentConfig } from "@/types/planner";
 
 export function PropertiesPanel() {
   const selectedNodeIds = useEditorStore((s) => s.selectedNodeIds);
@@ -57,6 +59,9 @@ export function PropertiesPanel() {
         )}
         {selectedNode.type === "mcp-server" && (
           <McpServerProperties nodeId={selectedNode.id} data={selectedNode.data as McpServerConfig} />
+        )}
+        {selectedNode.type === "planner-agent" && (
+          <PlannerProperties nodeId={selectedNode.id} data={selectedNode.data as PlannerAgentConfig} />
         )}
       </div>
     </ScrollArea>
