@@ -11,8 +11,13 @@ import { useEditorStore, DEFAULT_PROJECT_NAME } from "@/store/editorStore";
 import { copySelectedNodes, pasteNodes } from "@/store/clipboardStore";
 import { useValidationStore } from "@/store/validationStore";
 import { validateGraph } from "@/lib/validation";
+import { ActivityBar } from "@/components/code-explorer/ActivityBar";
+import { CodeExplorerPanel } from "@/components/code-explorer/CodeExplorerPanel";
+import { CodeViewerModal } from "@/components/code-explorer/CodeViewerModal";
+import { useCodeGeneration } from "@/hooks/useCodeGeneration";
 
 export default function EditorPage() {
+  useCodeGeneration();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isInitial, setIsInitial] = useState(false);
   const nodes = useEditorStore((s) => s.nodes);
@@ -90,20 +95,25 @@ export default function EditorPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <Toolbar onNewProject={handleNewProjectRequest} />
-      <div className="flex flex-1 overflow-hidden">
-        <Canvas />
-        <PropertiesPanel />
+    <div className="flex h-screen">
+      <ActivityBar />
+      <CodeExplorerPanel />
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <Toolbar onNewProject={handleNewProjectRequest} />
+        <div className="flex flex-1 overflow-hidden">
+          <Canvas />
+          <PropertiesPanel />
+        </div>
+        <PreviewPanel />
+        <ValidationPanel />
       </div>
-      <PreviewPanel />
-      <ValidationPanel />
       <NewProjectDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         isInitial={isInitial}
         onCreateProject={handleCreateProject}
       />
+      <CodeViewerModal />
     </div>
   );
 }
