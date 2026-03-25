@@ -26,6 +26,7 @@ dependencies {
     implementation("ai.koog:koog-spring-boot-starter:0.7.2")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("tools.jackson.module:jackson-module-kotlin")
+    implementation("com.google.jimfs:jimfs:1.3.0")
     implementation("org.springframework.ai:spring-ai-starter-model-openai")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.mockito:mockito-core:5.+")
