@@ -2,6 +2,7 @@ import { WorkspaceGraph, BuiltinToolConfig, BUILTIN_TOOL_TYPES } from "@/types/g
 import { AgentConfig, ToolConfig } from "@/types/koog";
 import { SubAgentConfig } from "@/types/subagent";
 import { McpServerConfig } from "@/types/mcp";
+import { PlannerAgentConfig } from "@/types/planner";
 
 export interface ValidationError {
   nodeId: string;
@@ -125,12 +126,66 @@ export function validateGraph(graph: WorkspaceGraph): ValidationError[] {
       }
     }
 
+    if (node.type === "planner-agent") {
+      const d = node.data as PlannerAgentConfig;
+      if (!d.name?.trim()) {
+        errors.push({ nodeId: node.id, severity: "error", message: "Planner agent must have a name" });
+      }
+      if (!d.goals || d.goals.length === 0) {
+        errors.push({ nodeId: node.id, severity: "error", message: "Planner agent must have at least one goal" });
+      }
+      if (!d.actions || d.actions.length === 0) {
+        errors.push({ nodeId: node.id, severity: "error", message: "Planner agent must have at least one action" });
+      }
+      if (d.plannerType === "llm" && !d.modelProvider) {
+        errors.push({ nodeId: node.id, severity: "error", message: "LLM planner requires a model provider" });
+      }
+      const goalNames = new Set<string>();
+      for (const goal of d.goals ?? []) {
+        if (goal.name && goalNames.has(goal.name)) {
+          errors.push({ nodeId: node.id, severity: "error", message: `Duplicate goal name: '${goal.name}'` });
+        }
+        goalNames.add(goal.name);
+        if (!goal.conditions || goal.conditions.length === 0) {
+          errors.push({ nodeId: node.id, severity: "warning", message: `Goal '${goal.name || "unnamed"}' has no conditions` });
+        }
+        for (const cond of goal.conditions ?? []) {
+          if (!cond.key?.trim()) {
+            errors.push({ nodeId: node.id, severity: "error", message: "Condition key must not be empty" });
+          }
+        }
+      }
+      const actionNames = new Set<string>();
+      for (const action of d.actions ?? []) {
+        if (action.name && actionNames.has(action.name)) {
+          errors.push({ nodeId: node.id, severity: "error", message: `Duplicate action name: '${action.name}'` });
+        }
+        actionNames.add(action.name);
+        if (!action.preconditions || action.preconditions.length === 0) {
+          errors.push({ nodeId: node.id, severity: "warning", message: `Action '${action.name || "unnamed"}' has no preconditions` });
+        }
+        if (!action.effects || action.effects.length === 0) {
+          errors.push({ nodeId: node.id, severity: "warning", message: `Action '${action.name || "unnamed"}' has no effects` });
+        }
+        for (const cond of action.preconditions ?? []) {
+          if (!cond.key?.trim()) {
+            errors.push({ nodeId: node.id, severity: "error", message: "Condition key must not be empty" });
+          }
+        }
+        for (const eff of action.effects ?? []) {
+          if (!eff.key?.trim()) {
+            errors.push({ nodeId: node.id, severity: "error", message: "Effect key must not be empty" });
+          }
+        }
+      }
+    }
+
     // Check: tool connected to multiple agents/sub-agents
     if (node.type === "tool" || node.type === "builtin-tool" || node.type === "mcp-server") {
       const connectedTargets = graph.edges
         .filter((e) => e.source === node.id)
         .map((e) => graph.nodes.find((n) => n.id === e.target))
-        .filter((n) => n?.type === "agent" || n?.type === "sub-agent");
+        .filter((n) => n?.type === "agent" || n?.type === "sub-agent" || n?.type === "planner-agent");
       if (connectedTargets.length > 1) {
         errors.push({ nodeId: node.id, severity: "error", message: "Tool can only be connected to one Agent or Sub-Agent" });
       }
