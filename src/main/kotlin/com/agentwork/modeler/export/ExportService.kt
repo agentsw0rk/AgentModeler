@@ -2,6 +2,7 @@ package com.agentwork.modeler.export
 
 import com.agentwork.modeler.export.adapter.GraphToKoogAdapter
 import com.agentwork.modeler.export.generator.*
+import com.agentwork.modeler.export.model.KoogPlannerAgent
 import com.agentwork.modeler.export.model.WorkspaceGraph
 import com.agentwork.modeler.export.validation.GraphValidator
 import com.agentwork.modeler.export.zip.ZipBuilder
@@ -26,6 +27,7 @@ class ExportService(
     private val builtinToolGenerator: BuiltinToolGenerator,
     private val subAgentGenerator: SubAgentGenerator,
     private val mcpServerGenerator: McpServerGenerator,
+    private val plannerAgentGenerator: PlannerAgentGenerator,
     private val zipBuilder: ZipBuilder
 ) {
     fun export(graph: WorkspaceGraph): ByteArray {
@@ -46,9 +48,58 @@ class ExportService(
         }
 
         val agents = adapter.convert(graph)
-        val agent = agents.first()
+        val plannerAgents = adapter.convertPlannerAgents(graph)
         val pkg = "src/main/kotlin/generated"
         val files = mutableMapOf<String, String>()
+
+        if (plannerAgents.isNotEmpty()) {
+            val planner = plannerAgents.first()
+            val agentForInfra = agents.firstOrNull()
+
+            // Infrastructure (still generated for planner agents)
+            files["settings.gradle.kts"] = settingsGradleGenerator.generate(graph.name)
+            files["gradle.properties"] = gradlePropertiesGenerator.generate()
+            files["Dockerfile"] = dockerfileGenerator.generate()
+            if (agentForInfra != null) {
+                files["build.gradle.kts"] = buildGradleGenerator.generate(agentForInfra)
+                files["src/main/resources/application.properties"] = applicationPropertiesGenerator.generate(agentForInfra)
+            } else {
+                files["build.gradle.kts"] = generatePlannerBuildGradle()
+                files["src/main/resources/application.properties"] = generatePlannerApplicationProperties(planner)
+            }
+
+            // Kotlin sources
+            files["$pkg/Application.kt"] = applicationGenerator.generate()
+
+            // Planner-specific files
+            val plannerFiles = plannerAgentGenerator.generate(planner)
+            files["$pkg/planner/PlannerGoals.kt"] = plannerFiles["PlannerGoals.kt"] ?: ""
+            files["$pkg/planner/PlannerActions.kt"] = plannerFiles["PlannerActions.kt"] ?: ""
+            files["$pkg/PlannerAgent.kt"] = plannerFiles["PlannerAgent.kt"] ?: ""
+
+            // PlanController instead of ChatController
+            files["$pkg/PlanController.kt"] = generatePlanController()
+
+            // Tools connected to planner
+            for (tool in planner.tools) {
+                val className = tool.name.replaceFirstChar { it.uppercase() } + "ToolSet"
+                files["$pkg/tools/${className}.kt"] = toolGenerator.generate(tool)
+            }
+
+            // MCP servers connected to planner
+            for (mcpServer in planner.mcpServers) {
+                val fileName = "${mcpServer.name.replace(" ", "")}Mcp"
+                files["$pkg/mcp/$fileName.kt"] = mcpServerGenerator.generate(mcpServer)
+            }
+
+            if (planner.tools.isNotEmpty() || planner.builtinTools.isNotEmpty() || planner.mcpServers.isNotEmpty()) {
+                files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(planner.tools, planner.builtinTools, emptyList(), planner.mcpServers)
+            }
+
+            return files
+        }
+
+        val agent = agents.first()
 
         // Infrastructure
         files["build.gradle.kts"] = buildGradleGenerator.generate(agent)
@@ -117,5 +168,65 @@ class ExportService(
         }
 
         return files
+    }
+
+    private fun generatePlannerBuildGradle(): String = buildString {
+        val koogVersion = BuildGradleGenerator.KOOG_VERSION
+        val kotlinVersion = BuildGradleGenerator.KOTLIN_VERSION
+        val springBootVersion = BuildGradleGenerator.SPRING_BOOT_VERSION
+        val depMgmtVersion = BuildGradleGenerator.DEPENDENCY_MANAGEMENT_VERSION
+        appendLine("""plugins {""")
+        appendLine("""    kotlin("jvm") version "$kotlinVersion"""")
+        appendLine("""    kotlin("plugin.spring") version "$kotlinVersion"""")
+        appendLine("""    id("org.springframework.boot") version "$springBootVersion"""")
+        appendLine("""    id("io.spring.dependency-management") version "$depMgmtVersion"""")
+        appendLine("""}""")
+        appendLine()
+        appendLine("""java {""")
+        appendLine("""    toolchain {""")
+        appendLine("""        languageVersion = JavaLanguageVersion.of(21)""")
+        appendLine("""    }""")
+        appendLine("""}""")
+        appendLine()
+        appendLine("""repositories {""")
+        appendLine("""    mavenCentral()""")
+        appendLine("""    maven("https://packages.jetbrains.team/maven/p/grazi/grazie-platform-public")""")
+        appendLine("""}""")
+        appendLine()
+        appendLine("""dependencies {""")
+        appendLine("""    implementation("org.springframework.boot:spring-boot-starter-webflux")""")
+        appendLine("""    implementation("org.jetbrains.kotlin:kotlin-reflect")""")
+        appendLine("""    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")""")
+        appendLine("""    implementation("ai.koog:koog-spring-boot-starter:$koogVersion")""")
+        appendLine("""    implementation("ai.koog:koog-agents:$koogVersion")""")
+        appendLine("""}""")
+    }
+
+    private fun generatePlannerApplicationProperties(planner: KoogPlannerAgent): String = buildString {
+        appendLine("server.port=\${SERVER_PORT:8080}")
+        if (planner.modelProvider != null) {
+            val providerKey = planner.modelProvider.name.lowercase()
+            appendLine("${providerKey}.api-key=\${${planner.modelProvider.name}_API_KEY:}")
+        }
+    }
+
+    private fun generatePlanController(): String = buildString {
+        appendLine("package generated")
+        appendLine()
+        appendLine("import org.springframework.web.bind.annotation.*")
+        appendLine()
+        appendLine("@RestController")
+        appendLine("@RequestMapping(\"/api\")")
+        appendLine("class PlanController {")
+        appendLine()
+        appendLine("    @PostMapping(\"/plan\")")
+        appendLine("    fun executePlan(@RequestBody request: PlanRequest): PlanResponse {")
+        appendLine("        // TODO: Integrate with planner agent bean")
+        appendLine("        return PlanResponse(status = \"planned\", steps = emptyList())")
+        appendLine("    }")
+        appendLine("}")
+        appendLine()
+        appendLine("data class PlanRequest(val goalName: String, val state: Map<String, Any> = emptyMap())")
+        appendLine("data class PlanResponse(val status: String, val steps: List<String>)")
     }
 }
