@@ -10,8 +10,10 @@ import { validateGraph, hasBlockingErrors } from "@/lib/validation";
 import { ExecutionTimeline } from "./ExecutionTimeline";
 import { ChatArea } from "./ChatArea";
 import { ExportReviewPanel } from "@/components/review/ExportReviewPanel";
+import { PlanInspector } from "@/components/planner/PlanInspector";
 import { WorkspaceGraph } from "@/types/graph";
 import { PreviewEvent } from "@/types/preview";
+import { PlannerAgentConfig } from "@/types/planner";
 import * as realClient from "@/lib/preview-client";
 import * as mockClient from "@/lib/preview-mock";
 
@@ -43,7 +45,20 @@ export function PreviewPanel() {
   const nodes = useEditorStore((s) => s.nodes);
   const edges = useEditorStore((s) => s.edges);
   const workspaceName = useEditorStore((s) => s.workspaceName);
+  const selectedNodeIds = useEditorStore((s) => s.selectedNodeIds);
   const setErrors = useValidationStore((s) => s.setErrors);
+
+  const isPlannerSelected = (() => {
+    if (selectedNodeIds.length !== 1) return false;
+    const selectedId = selectedNodeIds[0];
+    const node = nodes.find((n) => n.id === selectedId);
+    return node?.type === "planner-agent";
+  })();
+  const selectedPlannerData = (() => {
+    if (!isPlannerSelected) return null;
+    const selectedId = selectedNodeIds[0];
+    return nodes.find((n) => n.id === selectedId)?.data as PlannerAgentConfig | null;
+  })();
 
   const abortRef = useRef<AbortController | null>(null);
   const currentStepRef = useRef<string | null>(null);
@@ -195,7 +210,11 @@ export function PreviewPanel() {
           </Button>
         </div>
       </div>
-      {activeTab === "preview" ? (
+      {activeTab === "preview" && isPlannerSelected && selectedPlannerData ? (
+        <div className="flex-1 overflow-y-auto">
+          <PlanInspector data={selectedPlannerData} />
+        </div>
+      ) : activeTab === "preview" ? (
         <div className="flex flex-1 overflow-hidden">
           <div className="w-56 border-r overflow-y-auto">
             <ExecutionTimeline />
