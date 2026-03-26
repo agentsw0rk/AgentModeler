@@ -8,6 +8,7 @@ import { PlannerAgentConfig } from "@/types/planner";
 import { ModelProvider } from "@/types/koog";
 import { useState } from "react";
 import { PlannerConfigPanel } from "@/components/planner/PlannerConfigPanel";
+import { A2AConfigSection } from "@/components/a2a/A2AConfigSection";
 
 export function PlannerProperties({ nodeId, data }: { nodeId: string; data: PlannerAgentConfig }) {
   const updateNodeData = useEditorStore((s) => s.updateNodeData);
@@ -54,6 +55,7 @@ export function PlannerProperties({ nodeId, data }: { nodeId: string; data: Plan
             </div>
           </>
         )}
+        <A2AConfigSection nodeId={nodeId} a2aConfig={data.a2aConfig} />
         <Button variant="outline" className="w-full" onClick={() => setConfigOpen(true)}>
           Configure Goals, Actions & State
         </Button>

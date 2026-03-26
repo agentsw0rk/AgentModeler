@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEditorStore } from "@/store/editorStore";
 import { AgentConfig, ModelProvider } from "@/types/koog";
+import { A2AConfigSection } from "@/components/a2a/A2AConfigSection";
 
 export function AgentProperties({ nodeId, data }: { nodeId: string; data: AgentConfig }) {
   const updateNodeData = useEditorStore((s) => s.updateNodeData);
@@ -40,6 +41,7 @@ export function AgentProperties({ nodeId, data }: { nodeId: string; data: AgentC
         <Label htmlFor="agent-temperature">Temperature (optional)</Label>
         <Input id="agent-temperature" type="number" step="0.1" min="0" max="2" value={data.temperature ?? ""} onChange={(e) => update({ temperature: e.target.value ? parseFloat(e.target.value) : undefined })} />
       </div>
+      <A2AConfigSection nodeId={nodeId} a2aConfig={data.a2aConfig} />
     </div>
   );
 }
