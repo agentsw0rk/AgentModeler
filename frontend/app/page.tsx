@@ -7,7 +7,9 @@ import { PropertiesPanel } from "@/components/panels/PropertiesPanel";
 import { ValidationPanel } from "@/components/validation/ValidationPanel";
 import { PreviewPanel } from "@/components/preview/PreviewPanel";
 import { NewWorkspaceDialog } from "@/components/dialogs/NewWorkspaceDialog";
-import { useEditorStore, DEFAULT_WORKSPACE_NAME } from "@/store/editorStore";
+import { useEditorStore, DEFAULT_WORKSPACE_NAME, buildWorkspaceGraph } from "@/store/editorStore";
+import { connectEditorSse, EditorSseEvent } from "@/lib/editor-sse-client";
+import { syncGraph } from "@/lib/editor-sync-client";
 import { copySelectedNodes, pasteNodes } from "@/store/clipboardStore";
 import { useValidationStore } from "@/store/validationStore";
 import { validateGraph } from "@/lib/validation";
@@ -20,6 +22,7 @@ export default function EditorPage() {
   useCodeGeneration();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isInitial, setIsInitial] = useState(false);
+  const [mcpConnected, setMcpConnected] = useState(false);
   const nodes = useEditorStore((s) => s.nodes);
   const workspaceName = useEditorStore((s) => s.workspaceName);
   const reset = useEditorStore((s) => s.reset);
@@ -81,6 +84,50 @@ export default function EditorPage() {
     }
   }, []);
 
+  useEffect(() => {
+    const handleEvent = (event: EditorSseEvent) => {
+      const s = useEditorStore.getState();
+      switch (event.type) {
+        case "node-created":
+          if (event.node) s.applyRemoteNodeCreated(event.node);
+          break;
+        case "node-updated":
+          if (event.nodeId && event.data) s.applyRemoteNodeUpdated(event.nodeId, event.data);
+          break;
+        case "node-deleted":
+          if (event.nodeId) s.applyRemoteNodeDeleted(event.nodeId);
+          break;
+        case "edge-created":
+          if (event.edge) s.applyRemoteEdgeCreated(event.edge);
+          break;
+        case "edge-deleted":
+          if (event.edgeId) s.applyRemoteEdgeDeleted(event.edgeId);
+          break;
+        case "graph-reset":
+          if (event.graph) s.applyRemoteGraphReset(event.graph);
+          break;
+        case "workspace-renamed":
+          if (event.name) s.applyRemoteWorkspaceRenamed(event.name);
+          break;
+      }
+    };
+
+    const graph = buildWorkspaceGraph();
+    syncGraph(graph)
+      .then(() => setMcpConnected(true))
+      .catch(() => setMcpConnected(false));
+
+    const disconnect = connectEditorSse((event) => {
+      setMcpConnected(true);
+      handleEvent(event);
+    });
+
+    return () => {
+      disconnect();
+      setMcpConnected(false);
+    };
+  }, []);
+
   const handleCreateWorkspace = (name: string) => {
     reset();
     setWorkspaceName(name);
@@ -99,7 +146,7 @@ export default function EditorPage() {
       <ActivityBar />
       <CodeExplorerPanel />
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Toolbar onNewWorkspace={handleNewWorkspaceRequest} />
+        <Toolbar onNewWorkspace={handleNewWorkspaceRequest} mcpConnected={mcpConnected} />
         <div className="flex flex-1 overflow-hidden">
           <Canvas />
           <PropertiesPanel />
