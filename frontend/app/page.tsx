@@ -151,8 +151,12 @@ export default function EditorPage() {
           <Canvas />
           <PropertiesPanel />
         </div>
-        <PreviewPanel />
-        <ValidationPanel />
+        <div className="flex border-t overflow-hidden" style={{ minHeight: 0 }}>
+          <div className="flex-1 min-w-0">
+            <PreviewPanel />
+          </div>
+          <ValidationPanel />
+        </div>
       </div>
       <NewWorkspaceDialog
         open={dialogOpen}

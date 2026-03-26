@@ -188,7 +188,7 @@ export function PreviewPanel() {
   const badge = statusBadge[status] || statusBadge.idle;
 
   return (
-    <div className="border-t flex flex-col" style={{ height: panelHeight }}>
+    <div className="flex flex-col" style={{ height: panelHeight }}>
       <div
         className="h-1.5 cursor-row-resize bg-transparent hover:bg-blue-500/30 active:bg-blue-500/50 transition-colors shrink-0"
         onMouseDown={handleDragStart}
