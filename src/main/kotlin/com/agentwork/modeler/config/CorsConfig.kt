@@ -14,6 +14,11 @@ class CorsConfig {
                 .allowedOrigins("http://localhost:3000")
                 .allowedMethods("GET", "POST", "OPTIONS")
                 .allowedHeaders("*")
+            registry.addMapping("/mcp/**")
+                .allowedOrigins("*")
+                .allowedMethods("GET", "POST", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .exposedHeaders("Mcp-Session-Id")
         }
     }
 }
