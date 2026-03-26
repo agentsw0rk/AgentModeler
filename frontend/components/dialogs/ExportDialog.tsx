@@ -14,8 +14,11 @@ import { ReviewResult } from "@/types/review";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
-export function ExportDialog() {
-  const [open, setOpen] = useState(false);
+export function ExportDialog({ open: controlledOpen, onOpenChange: controlledOnOpenChange }: { open?: boolean; onOpenChange?: (open: boolean) => void } = {}) {
+  const isControlled = controlledOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? controlledOnOpenChange! : setInternalOpen;
   const [status, setStatus] = useState<"idle" | "exporting" | "done" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const workspaceName = useEditorStore((s) => s.workspaceName);
@@ -99,9 +102,11 @@ export function ExportDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm" />}>
-        Export
-      </DialogTrigger>
+      {!isControlled && (
+        <DialogTrigger render={<Button size="sm" />}>
+          Export
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Export Koog Agent</DialogTitle>

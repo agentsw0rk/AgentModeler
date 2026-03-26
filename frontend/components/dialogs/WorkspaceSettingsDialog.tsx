@@ -16,8 +16,11 @@ const ENDPOINT_PLACEHOLDERS: Record<OtelExporterType, string> = {
   logging: "",
 };
 
-export function WorkspaceSettingsDialog() {
-  const [open, setOpen] = useState(false);
+export function WorkspaceSettingsDialog({ open: controlledOpen, onOpenChange: controlledOnOpenChange }: { open?: boolean; onOpenChange?: (open: boolean) => void } = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? controlledOnOpenChange! : setInternalOpen;
   const otelConfig = useEditorStore((s) => s.otelConfig);
   const updateOtelConfig = useEditorStore((s) => s.updateOtelConfig);
 
@@ -26,9 +29,11 @@ export function WorkspaceSettingsDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" size="sm" />}>
-        <SettingsIcon className="size-4" />
-      </DialogTrigger>
+      {!isControlled && (
+        <DialogTrigger render={<Button variant="outline" size="sm" />}>
+          <SettingsIcon className="size-4" />
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Workspace Settings</DialogTitle>

@@ -15,12 +15,15 @@ const shortcuts = [
   { keys: "Delete / Backspace", action: "Delete selected" },
 ];
 
-export function KeyboardShortcutsDialog() {
+export function KeyboardShortcutsDialog({ open, onOpenChange }: { open?: boolean; onOpenChange?: (open: boolean) => void } = {}) {
+  const isControlled = open !== undefined;
   return (
-    <Dialog>
-      <DialogTrigger render={<Button variant="outline" size="sm" />}>
-        <KeyboardIcon className="size-4" />
-      </DialogTrigger>
+    <Dialog open={isControlled ? open : undefined} onOpenChange={isControlled ? onOpenChange : undefined}>
+      {!isControlled && (
+        <DialogTrigger render={<Button variant="outline" size="sm" />}>
+          <KeyboardIcon className="size-4" />
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Keyboard Shortcuts</DialogTitle>

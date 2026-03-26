@@ -10,15 +10,9 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { useState, useEffect } from "react";
-import { useEditorStore, buildWorkspaceGraph } from "@/store/editorStore";
-import { useValidationStore } from "@/store/validationStore";
-import { usePreviewStore } from "@/store/previewStore";
+import { useEditorStore } from "@/store/editorStore";
 import { useHistoryStore } from "@/store/historyStore";
-import { validateGraph } from "@/lib/validation";
-import { ExportDialog } from "@/components/dialogs/ExportDialog";
-import { KeyboardShortcutsDialog } from "@/components/dialogs/KeyboardShortcutsDialog";
-import { SaveLoadDialog } from "@/components/dialogs/SaveLoadDialog";
-import { WorkspaceSettingsDialog } from "@/components/dialogs/WorkspaceSettingsDialog";
+import { ToolsMenuDialog } from "@/components/dialogs/ToolsMenuDialog";
 import type { BuiltinToolType } from "@/types/graph";
 import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon } from "lucide-react";
 
@@ -34,10 +28,6 @@ const builtinToolOptions: { type: BuiltinToolType; label: string }[] = [
 
 export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspace: () => void; mcpConnected?: boolean }) {
   const addNode = useEditorStore((s) => s.addNode);
-  const setErrors = useValidationStore((s) => s.setErrors);
-  const previewIsOpen = usePreviewStore((s) => s.isOpen);
-  const togglePreview = usePreviewStore((s) => s.toggleOpen);
-  const resetPreview = usePreviewStore((s) => s.reset);
   const past = useHistoryStore((s) => s.past);
   const future = useHistoryStore((s) => s.future);
   const undo = useHistoryStore((s) => s.undo);
@@ -45,12 +35,6 @@ export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspa
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-
-  const handleValidate = () => {
-    const graph = buildWorkspaceGraph();
-    const errors = validateGraph(graph);
-    setErrors(errors);
-  };
 
   return (
     <div className="flex items-center gap-2 p-2 border-b bg-background">
@@ -138,29 +122,7 @@ export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspa
       </Button>
 
       <div className="flex-1" />
-      <Button variant="outline" size="sm" onClick={handleValidate}>
-        Validate
-      </Button>
-      <Button
-        variant={previewIsOpen ? "default" : "outline"}
-        size="sm"
-        onClick={() => {
-          if (!previewIsOpen) {
-            resetPreview();
-          }
-          togglePreview();
-        }}
-      >
-        {previewIsOpen ? "■ Preview" : "▶ Preview"}
-      </Button>
-      <SaveLoadDialog />
-      <WorkspaceSettingsDialog />
-      <ExportDialog />
-      <KeyboardShortcutsDialog />
-      <div className="flex items-center gap-1.5 ml-2 text-xs text-muted-foreground">
-        <span className={`inline-block h-2 w-2 rounded-full ${mcpConnected ? "bg-green-400" : "bg-gray-500"}`} />
-        {mcpConnected ? "MCP" : "MCP Off"}
-      </div>
+      <ToolsMenuDialog mcpConnected={mcpConnected} />
     </div>
   );
 }

@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { useEditorStore, buildWorkspaceGraph, DEFAULT_OTEL_CONFIG } from "@/store/editorStore";
 import { deserializeWorkspace, downloadWorkspace } from "@/lib/persistence";
 
-export function SaveLoadDialog() {
+export function SaveLoadDialog({ open, onOpenChange }: { open?: boolean; onOpenChange?: (open: boolean) => void } = {}) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const reset = useEditorStore((s) => s.reset);
+  const isControlled = open !== undefined;
 
   const handleSave = () => {
     const graph = buildWorkspaceGraph();
@@ -38,10 +39,12 @@ export function SaveLoadDialog() {
   };
 
   return (
-    <Dialog>
-      <DialogTrigger render={<Button variant="outline" size="sm" />}>
-        Save/Load
-      </DialogTrigger>
+    <Dialog open={isControlled ? open : undefined} onOpenChange={isControlled ? onOpenChange : undefined}>
+      {!isControlled && (
+        <DialogTrigger render={<Button variant="outline" size="sm" />}>
+          Save/Load
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Workspace</DialogTitle>
