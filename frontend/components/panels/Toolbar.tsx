@@ -57,14 +57,14 @@ export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspa
               className="cursor-pointer gap-2"
               onClick={() => addNode("agent", { x: 100, y: 100 })}
             >
-              <BotIcon className="size-4" /> Agent
+              <BotIcon className="size-4 text-blue-400" /> Agent
             </NavigationMenuLink>
           </NavigationMenuItem>
 
           <span className="text-border select-none">|</span>
 
           <NavigationMenuItem>
-            <NavigationMenuTrigger className="gap-2"><WrenchIcon className="size-4" /> Tool</NavigationMenuTrigger>
+            <NavigationMenuTrigger className="gap-2"><WrenchIcon className="size-4 text-green-400" /> Tool</NavigationMenuTrigger>
             <NavigationMenuContent>
               <div className="w-48">
                 <NavigationMenuLink
@@ -94,7 +94,7 @@ export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspa
               className="cursor-pointer gap-2"
               onClick={() => addNode("sub-agent", { x: 200, y: 200 })}
             >
-              <UsersIcon className="size-4 shrink-0" /> Sub-Agent
+              <UsersIcon className="size-4 shrink-0 text-yellow-400" /> Sub-Agent
             </NavigationMenuLink>
           </NavigationMenuItem>
 
@@ -105,7 +105,7 @@ export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspa
               className="cursor-pointer gap-2"
               onClick={() => addNode("mcp-server", { x: 100, y: 300 })}
             >
-              <ServerIcon className="size-4 shrink-0" /> MCP Server
+              <ServerIcon className="size-4 shrink-0 text-purple-400" /> MCP Server
             </NavigationMenuLink>
           </NavigationMenuItem>
         </NavigationMenuList>
@@ -118,7 +118,7 @@ export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspa
         title="Add Planner Agent"
       >
         <ClipboardListIcon className="h-4 w-4 mr-1 text-pink-400" />
-        Planner
+        Agent Planner
       </Button>
 
       <div className="flex-1" />
