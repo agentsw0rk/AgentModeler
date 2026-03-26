@@ -29,6 +29,15 @@ class GraphValidator {
                     val prompt = node.data["systemPrompt"] as? String ?: ""
                     if (name.isBlank()) errors.add("[${node.id}] Agent requires a name")
                     if (prompt.isBlank()) errors.add("[${node.id}] Agent requires a system prompt")
+                    @Suppress("UNCHECKED_CAST")
+                    val a2aConfig = node.data["a2aConfig"] as? Map<String, Any?>
+                    if (a2aConfig != null && a2aConfig["enabled"] == true) {
+                        val cardMap = a2aConfig["agentCard"] as? Map<String, Any?>
+                        val cardName = (cardMap?.get("name") as? String) ?: ""
+                        val cardUrl = (cardMap?.get("url") as? String) ?: ""
+                        if (cardName.isBlank()) errors.add("[${node.id}] A2A AgentCard requires a name")
+                        if (cardUrl.isBlank()) errors.add("[${node.id}] A2A AgentCard requires a url")
+                    }
                 }
                 "tool" -> {
                     val name = node.data["name"] as? String ?: ""
@@ -116,6 +125,25 @@ class GraphValidator {
                             errors.add("[${node.id}] LLM planner requires a model provider")
                         }
                     }
+                    @Suppress("UNCHECKED_CAST")
+                    val a2aConfig = node.data["a2aConfig"] as? Map<String, Any?>
+                    if (a2aConfig != null && a2aConfig["enabled"] == true) {
+                        val cardMap = a2aConfig["agentCard"] as? Map<String, Any?>
+                        val cardName = (cardMap?.get("name") as? String) ?: ""
+                        val cardUrl = (cardMap?.get("url") as? String) ?: ""
+                        if (cardName.isBlank()) errors.add("[${node.id}] A2A AgentCard requires a name")
+                        if (cardUrl.isBlank()) errors.add("[${node.id}] A2A AgentCard requires a url")
+                    }
+                }
+                "a2a-agent" -> {
+                    val name = node.data["name"] as? String ?: ""
+                    val url = node.data["url"] as? String ?: ""
+                    val timeout = (node.data["timeout"] as? Number)?.toInt() ?: 30000
+                    if (name.isBlank()) errors.add("[${node.id}] A2A Agent requires a name")
+                    if (url.isBlank()) errors.add("[${node.id}] A2A Agent requires a URL")
+                    val isConnected = graph.edges.any { it.source == node.id }
+                    if (!isConnected) errors.add("[${node.id}] A2A Agent must be connected to an Agent")
+                    if (timeout <= 0) errors.add("[${node.id}] A2A Agent timeout should be greater than 0")
                 }
                 "sub-agent" -> {
                     val name = node.data["name"] as? String ?: ""
