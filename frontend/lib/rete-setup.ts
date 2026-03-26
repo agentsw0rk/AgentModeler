@@ -24,6 +24,7 @@ import {
   BuiltinToolReteNode,
   SubAgentReteNode,
   McpServerReteNode,
+  PlannerAgentReteNode,
   A2AAgentReteNode,
 } from "./rete-nodes";
 
@@ -93,9 +94,10 @@ export async function createEditor(container: HTMLElement) {
       if (isMcpSource && (isAgentTarget || isSubAgentTarget)) {
         return context;
       }
-      // A2A Agent -> Agent: OK
+      // A2A Agent -> Agent or PlannerAgent: OK
       const isA2ASource = sourceNode instanceof A2AAgentReteNode;
-      if (isA2ASource && isAgentTarget) {
+      const isPlannerAgentTarget = targetNode instanceof PlannerAgentReteNode;
+      if (isA2ASource && (isAgentTarget || isPlannerAgentTarget)) {
         return context;
       }
       // Everything else: blocked

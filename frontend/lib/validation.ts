@@ -193,6 +193,19 @@ export function validateGraph(graph: WorkspaceGraph): ValidationError[] {
           }
         }
       }
+      // A2A config validation for planner-agent
+      if (d.a2aConfig?.enabled) {
+        const card = d.a2aConfig.agentCard;
+        if (!card?.name?.trim()) {
+          errors.push({ nodeId: node.id, severity: "error", message: "A2A AgentCard requires a name" });
+        }
+        if (!card?.url?.trim()) {
+          errors.push({ nodeId: node.id, severity: "error", message: "A2A AgentCard requires a URL" });
+        }
+        if (!card?.skills?.length) {
+          errors.push({ nodeId: node.id, severity: "warning", message: "A2A AgentCard has no skills defined" });
+        }
+      }
     }
 
     if (node.type === "a2a-agent") {
