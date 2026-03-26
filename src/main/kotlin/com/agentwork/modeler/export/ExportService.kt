@@ -32,6 +32,7 @@ class ExportService(
     private val plannerAgentGenerator: PlannerAgentGenerator,
     private val a2aServerGenerator: A2AServerGenerator,
     private val a2aClientGenerator: A2AClientGenerator,
+    private val inputOutputGenerator: InputOutputGenerator,
     private val zipBuilder: ZipBuilder
 ) {
     fun export(graph: WorkspaceGraph): ByteArray {
@@ -109,6 +110,16 @@ class ExportService(
             for (a2aAgent in planner.a2aAgents) {
                 val className = "${a2aAgent.name.replace(" ", "").replaceFirstChar { it.uppercase() }}A2AClient"
                 files["$pkg/a2a/${className}.kt"] = a2aClientGenerator.generate(a2aAgent)
+            }
+
+            // Input/Output classes
+            val inputCode = inputOutputGenerator.generateInputClass(planner.name, planner.inputs)
+            if (inputCode != null) {
+                files["$pkg/${planner.name.replaceFirstChar { it.uppercase() }}Input.kt"] = inputCode
+            }
+            val outputCode = inputOutputGenerator.generateOutputClass(planner.name, planner.outputs)
+            if (outputCode != null) {
+                files["$pkg/${planner.name.replaceFirstChar { it.uppercase() }}Output.kt"] = outputCode
             }
 
             if (planner.tools.isNotEmpty() || planner.builtinTools.isNotEmpty() || planner.mcpServers.isNotEmpty()) {
@@ -195,6 +206,16 @@ class ExportService(
         for (a2aAgent in agent.a2aAgents) {
             val className = "${a2aAgent.name.replace(" ", "").replaceFirstChar { it.uppercase() }}A2AClient"
             files["$pkg/a2a/${className}.kt"] = a2aClientGenerator.generate(a2aAgent)
+        }
+
+        // Input/Output classes
+        val inputCode = inputOutputGenerator.generateInputClass(agent.name, agent.inputs)
+        if (inputCode != null) {
+            files["$pkg/${agent.name.replaceFirstChar { it.uppercase() }}Input.kt"] = inputCode
+        }
+        val outputCode = inputOutputGenerator.generateOutputClass(agent.name, agent.outputs)
+        if (outputCode != null) {
+            files["$pkg/${agent.name.replaceFirstChar { it.uppercase() }}Output.kt"] = outputCode
         }
 
         if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty() || agent.subAgents.isNotEmpty() || agent.mcpServers.isNotEmpty()) {
