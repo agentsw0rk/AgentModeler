@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { usePreviewStore, generateStepId, generateMsgId } from "@/store/previewStore";
@@ -27,13 +27,11 @@ const statusBadge: Record<string, { label: string; variant: "default" | "seconda
 };
 
 export function PreviewPanel() {
-  const isOpen = usePreviewStore((s) => s.isOpen);
   const status = usePreviewStore((s) => s.status);
   const sessionId = usePreviewStore((s) => s.sessionId);
   const useMock = usePreviewStore((s) => s.useMock);
   const activeTab = usePreviewStore((s) => s.activeTab);
   const setActiveTab = usePreviewStore((s) => s.setActiveTab);
-  const toggleOpen = usePreviewStore((s) => s.toggleOpen);
   const toggleMock = usePreviewStore((s) => s.toggleMock);
   const reset = usePreviewStore((s) => s.reset);
   const setStatus = usePreviewStore((s) => s.setStatus);
@@ -163,12 +161,38 @@ export function PreviewPanel() {
     reset();
   }, [sessionId, client, reset]);
 
-  if (!isOpen) return null;
+  const [panelHeight, setPanelHeight] = useState(300);
+  const dragRef = useRef<{ startY: number; startHeight: number } | null>(null);
+
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    dragRef.current = { startY: e.clientY, startHeight: panelHeight };
+
+    const handleDragMove = (ev: MouseEvent) => {
+      if (!dragRef.current) return;
+      const delta = dragRef.current.startY - ev.clientY;
+      const newHeight = Math.max(120, Math.min(600, dragRef.current.startHeight + delta));
+      setPanelHeight(newHeight);
+    };
+
+    const handleDragEnd = () => {
+      dragRef.current = null;
+      document.removeEventListener("mousemove", handleDragMove);
+      document.removeEventListener("mouseup", handleDragEnd);
+    };
+
+    document.addEventListener("mousemove", handleDragMove);
+    document.addEventListener("mouseup", handleDragEnd);
+  }, [panelHeight]);
 
   const badge = statusBadge[status] || statusBadge.idle;
 
   return (
-    <div className="border-t flex flex-col" style={{ height: 300 }}>
+    <div className="border-t flex flex-col" style={{ height: panelHeight }}>
+      <div
+        className="h-1.5 cursor-row-resize bg-transparent hover:bg-blue-500/30 active:bg-blue-500/50 transition-colors shrink-0"
+        onMouseDown={handleDragStart}
+      />
       <div className="flex items-center justify-between px-3 py-1.5 border-b bg-muted/30">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1">
@@ -212,9 +236,6 @@ export function PreviewPanel() {
               Stop
             </Button>
           )}
-          <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={toggleOpen}>
-            ▼
-          </Button>
         </div>
       </div>
       {activeTab === "preview" && isPlannerSelected && selectedPlannerData ? (

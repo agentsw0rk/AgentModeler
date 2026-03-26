@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { buildWorkspaceGraph } from "@/store/editorStore";
 import { useValidationStore } from "@/store/validationStore";
-import { usePreviewStore } from "@/store/previewStore";
 import { validateGraph } from "@/lib/validation";
 import { SaveLoadDialog } from "./SaveLoadDialog";
 import { WorkspaceSettingsDialog } from "./WorkspaceSettingsDialog";
@@ -14,7 +13,6 @@ import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 import {
   MenuIcon,
   CheckCircleIcon,
-  PlayIcon,
   SaveIcon,
   SettingsIcon,
   PackageIcon,
@@ -26,20 +24,11 @@ export function ToolsMenuDialog({ mcpConnected = false }: { mcpConnected?: boole
   const [menuOpen, setMenuOpen] = useState(false);
   const [subDialog, setSubDialog] = useState<"save" | "settings" | "export" | "keyboard" | null>(null);
   const setErrors = useValidationStore((s) => s.setErrors);
-  const previewIsOpen = usePreviewStore((s) => s.isOpen);
-  const togglePreview = usePreviewStore((s) => s.toggleOpen);
-  const resetPreview = usePreviewStore((s) => s.reset);
 
   const handleValidate = () => {
     const graph = buildWorkspaceGraph();
     const errors = validateGraph(graph);
     setErrors(errors);
-    setMenuOpen(false);
-  };
-
-  const handlePreview = () => {
-    if (!previewIsOpen) resetPreview();
-    togglePreview();
     setMenuOpen(false);
   };
 
@@ -63,10 +52,6 @@ export function ToolsMenuDialog({ mcpConnected = false }: { mcpConnected?: boole
             <Button variant="ghost" className="justify-start gap-3 h-10" onClick={handleValidate}>
               <CheckCircleIcon className="size-4 text-muted-foreground" />
               Validate
-            </Button>
-            <Button variant="ghost" className="justify-start gap-3 h-10" onClick={handlePreview}>
-              <PlayIcon className="size-4 text-muted-foreground" />
-              {previewIsOpen ? "Close Preview" : "Open Preview"}
             </Button>
             <div className="border-t my-1" />
             <Button variant="ghost" className="justify-start gap-3 h-10" onClick={() => openSubDialog("save")}>
