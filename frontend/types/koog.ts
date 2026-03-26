@@ -1,3 +1,5 @@
+import type { A2AConfig } from "./a2a";
+
 export type ModelProvider = "openai" | "anthropic" | "google";
 
 export interface AgentConfig {
@@ -6,6 +8,7 @@ export interface AgentConfig {
   modelProvider: ModelProvider;
   modelId?: string;
   temperature?: number;
+  a2aConfig?: A2AConfig;
 }
 
 export interface ToolParameter {

@@ -2,6 +2,7 @@ import { AgentConfig, ToolConfig } from "./koog";
 import { SubAgentConfig } from "./subagent";
 import { McpServerConfig } from "./mcp";
 import { PlannerAgentConfig } from "./planner";
+import { A2AAgentConfig } from "./a2a";
 
 export type BuiltinToolType = "think" | "shell" | "filesystem" | "fetch" | "memory" | "todo" | "user_prompt";
 
@@ -25,13 +26,13 @@ export interface BuiltinToolConfig {
   path?: string;
 }
 
-export type NodeType = "agent" | "tool" | "builtin-tool" | "sub-agent" | "mcp-server" | "planner-agent";
+export type NodeType = "agent" | "tool" | "builtin-tool" | "sub-agent" | "mcp-server" | "planner-agent" | "a2a-agent";
 
 export interface GraphNode {
   id: string;
   type: NodeType;
   position: { x: number; y: number };
-  data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | PlannerAgentConfig;
+  data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | PlannerAgentConfig | A2AAgentConfig;
 }
 
 export interface GraphEdge {

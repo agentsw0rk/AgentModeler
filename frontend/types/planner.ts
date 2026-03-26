@@ -1,4 +1,5 @@
 import type { ModelProvider } from "./koog";
+import type { A2AConfig } from "./a2a";
 
 export interface PlannerAgentConfig {
   name: string;
@@ -11,6 +12,7 @@ export interface PlannerAgentConfig {
   goals: PlannerGoal[];
   actions: PlannerAction[];
   initialState: StateEntry[];
+  a2aConfig?: A2AConfig;
 }
 
 export interface PlannerGoal {
