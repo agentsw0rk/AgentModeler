@@ -168,8 +168,60 @@ class GraphValidator {
                         }
                     }
                 }
+                "input" -> {
+                    val name = node.data["name"] as? String ?: ""
+                    if (name.isBlank()) errors.add("[${node.id}] Input requires a name")
+                    val isConnected = graph.edges.any { it.source == node.id }
+                    if (!isConnected) errors.add("[${node.id}] Input must be connected to an Agent")
+                    val connectedAgentCount = graph.edges
+                        .filter { it.source == node.id }
+                        .map { edge -> graph.nodes.find { it.id == edge.target } }
+                        .count { it?.type == "agent" || it?.type == "sub-agent" || it?.type == "planner-agent" }
+                    if (connectedAgentCount > 1) {
+                        errors.add("[${node.id}] Input can only be connected to one Agent")
+                    }
+                }
+                "output" -> {
+                    val name = node.data["name"] as? String ?: ""
+                    if (name.isBlank()) errors.add("[${node.id}] Output requires a name")
+                    val isConnected = graph.edges.any { it.target == node.id }
+                    if (!isConnected) errors.add("[${node.id}] Output must be connected to an Agent")
+                    val connectedAgentCount = graph.edges
+                        .filter { it.target == node.id }
+                        .map { edge -> graph.nodes.find { it.id == edge.source } }
+                        .count { it?.type == "agent" || it?.type == "sub-agent" || it?.type == "planner-agent" }
+                    if (connectedAgentCount > 1) {
+                        errors.add("[${node.id}] Output can only be connected to one Agent")
+                    }
+                }
             }
         }
+
+        // Duplicate input/output name checks per agent
+        val agentTypes = setOf("agent", "sub-agent", "planner-agent")
+        for (agentNode in graph.nodes.filter { it.type in agentTypes }) {
+            val inputNames = mutableSetOf<String>()
+            val connectedInputs = graph.edges
+                .filter { it.target == agentNode.id }
+                .mapNotNull { edge -> graph.nodes.find { it.id == edge.source && it.type == "input" } }
+            for (inputNode in connectedInputs) {
+                val name = inputNode.data["name"] as? String ?: ""
+                if (name.isNotBlank() && !inputNames.add(name)) {
+                    errors.add("[${inputNode.id}] Duplicate input name '${name}' on agent '${agentNode.data["name"]}'")
+                }
+            }
+            val outputNames = mutableSetOf<String>()
+            val connectedOutputs = graph.edges
+                .filter { it.source == agentNode.id }
+                .mapNotNull { edge -> graph.nodes.find { it.id == edge.target && it.type == "output" } }
+            for (outputNode in connectedOutputs) {
+                val name = outputNode.data["name"] as? String ?: ""
+                if (name.isNotBlank() && !outputNames.add(name)) {
+                    errors.add("[${outputNode.id}] Duplicate output name '${name}' on agent '${agentNode.data["name"]}'")
+                }
+            }
+        }
+
         return errors
     }
 }
