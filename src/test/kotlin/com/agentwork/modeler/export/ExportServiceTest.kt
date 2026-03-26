@@ -35,6 +35,7 @@ class ExportServiceTest {
         plannerAgentGenerator = PlannerAgentGenerator(),
         a2aServerGenerator = A2AServerGenerator(),
         a2aClientGenerator = A2AClientGenerator(),
+        inputOutputGenerator = InputOutputGenerator(),
         zipBuilder = ZipBuilder()
     )
 
