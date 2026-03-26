@@ -32,7 +32,7 @@ const builtinToolOptions: { type: BuiltinToolType; label: string }[] = [
   { type: "user_prompt", label: "User Prompt" },
 ];
 
-export function Toolbar({ onNewWorkspace }: { onNewWorkspace: () => void }) {
+export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspace: () => void; mcpConnected?: boolean }) {
   const addNode = useEditorStore((s) => s.addNode);
   const setErrors = useValidationStore((s) => s.setErrors);
   const previewIsOpen = usePreviewStore((s) => s.isOpen);
@@ -157,6 +157,10 @@ export function Toolbar({ onNewWorkspace }: { onNewWorkspace: () => void }) {
       <WorkspaceSettingsDialog />
       <ExportDialog />
       <KeyboardShortcutsDialog />
+      <div className="flex items-center gap-1.5 ml-2 text-xs text-muted-foreground">
+        <span className={`inline-block h-2 w-2 rounded-full ${mcpConnected ? "bg-green-400" : "bg-gray-500"}`} />
+        {mcpConnected ? "MCP" : "MCP Off"}
+      </div>
     </div>
   );
 }
