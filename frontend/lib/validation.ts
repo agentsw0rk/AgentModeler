@@ -3,6 +3,7 @@ import { AgentConfig, ToolConfig } from "@/types/koog";
 import { SubAgentConfig } from "@/types/subagent";
 import { McpServerConfig } from "@/types/mcp";
 import { PlannerAgentConfig } from "@/types/planner";
+import { A2AAgentConfig } from "@/types/a2a";
 
 export interface ValidationError {
   nodeId: string;
@@ -21,6 +22,20 @@ export function validateGraph(graph: WorkspaceGraph): ValidationError[] {
       }
       if (!data.systemPrompt.trim()) {
         errors.push({ nodeId: node.id, severity: "error", message: "Agent requires a system prompt" });
+      }
+      // A2A config validation
+      const agentData = node.data as AgentConfig;
+      if (agentData.a2aConfig?.enabled) {
+        const card = agentData.a2aConfig.agentCard;
+        if (!card?.name?.trim()) {
+          errors.push({ nodeId: node.id, severity: "error", message: "A2A AgentCard requires a name" });
+        }
+        if (!card?.url?.trim()) {
+          errors.push({ nodeId: node.id, severity: "error", message: "A2A AgentCard requires a URL" });
+        }
+        if (!card?.skills?.length) {
+          errors.push({ nodeId: node.id, severity: "warning", message: "A2A AgentCard has no skills defined" });
+        }
       }
     }
 
@@ -177,6 +192,23 @@ export function validateGraph(graph: WorkspaceGraph): ValidationError[] {
             errors.push({ nodeId: node.id, severity: "error", message: "Effect key must not be empty" });
           }
         }
+      }
+    }
+
+    if (node.type === "a2a-agent") {
+      const data = node.data as A2AAgentConfig;
+      if (!data.name?.trim()) {
+        errors.push({ nodeId: node.id, severity: "error", message: "A2A Agent requires a name" });
+      }
+      if (!data.url?.trim()) {
+        errors.push({ nodeId: node.id, severity: "error", message: "A2A Agent requires a URL" });
+      }
+      const isConnected = graph.edges.some((e) => e.source === node.id);
+      if (!isConnected) {
+        errors.push({ nodeId: node.id, severity: "error", message: "A2A Agent must be connected to an Agent" });
+      }
+      if ((data.timeout ?? 0) <= 0) {
+        errors.push({ nodeId: node.id, severity: "warning", message: "A2A Agent timeout should be greater than 0" });
       }
     }
 

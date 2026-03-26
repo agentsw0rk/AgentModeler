@@ -4,6 +4,7 @@ import { AgentConfig, ToolConfig } from "@/types/koog";
 import { SubAgentConfig } from "@/types/subagent";
 import { McpServerConfig } from "@/types/mcp";
 import { PlannerAgentConfig } from "@/types/planner";
+import { A2AAgentConfig } from "@/types/a2a";
 
 export const DEFAULT_WORKSPACE_NAME = "Untitled Workspace";
 
@@ -16,7 +17,7 @@ interface EditorState {
   addNode: (type: NodeType, position: { x: number; y: number }, toolType?: BuiltinToolType) => void;
   addNodes: (nodes: GraphNode[], edges: GraphEdge[]) => void;
   removeNode: (id: string) => void;
-  updateNodeData: (id: string, data: Partial<AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig>) => void;
+  updateNodeData: (id: string, data: Partial<AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | A2AAgentConfig>) => void;
   updateNodePosition: (id: string, position: { x: number; y: number }) => void;
   commitPosition: () => void;
   addEdge: (source: string, target: string) => void;
@@ -62,6 +63,15 @@ const defaultMcpServerData: McpServerConfig = {
   transportType: "sse",
   envVars: [],
   discoveredTools: [],
+};
+
+const defaultA2AAgentData: A2AAgentConfig = {
+  name: "",
+  description: "",
+  url: "",
+  authType: "none",
+  timeout: 30000,
+  communicationMode: "message",
 };
 
 const defaultPlannerAgentData: PlannerAgentConfig = {
@@ -115,7 +125,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   addNode(type, position, toolType?) {
     pushHistory();
     set((state) => {
-      let data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | PlannerAgentConfig;
+      let data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | PlannerAgentConfig | A2AAgentConfig;
       if (type === "agent") {
         data = { ...defaultAgentData };
       } else if (type === "sub-agent") {
@@ -126,6 +136,8 @@ export const useEditorStore = create<EditorState>((set) => ({
         data = { ...defaultMcpServerData };
       } else if (type === "planner-agent") {
         data = { ...defaultPlannerAgentData };
+      } else if (type === "a2a-agent") {
+        data = { ...defaultA2AAgentData };
       } else {
         data = { ...defaultToolData };
       }
