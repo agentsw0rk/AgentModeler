@@ -4,6 +4,15 @@ spring:
       api-key: x
     model:
       chat: openai
+    mcp:
+      server:
+        protocol: STREAMABLE
+        name: agent-studio-editor
+        version: 1.0.0
+        type: SYNC
+        instructions: "MCP server for the Agent Studio visual editor. Provides tools to create, modify, and inspect AI agent graphs consisting of agents, tools, sub-agents, MCP servers, and planner agents."
+        streamable-http:
+          mcp-endpoint: /mcp
   application:
     name: modeler
 

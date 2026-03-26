@@ -28,6 +28,7 @@ dependencies {
     implementation("tools.jackson.module:jackson-module-kotlin")
     implementation("com.google.jimfs:jimfs:1.3.0")
     implementation("org.springframework.ai:spring-ai-starter-model-openai")
+    implementation("org.springframework.ai:spring-ai-starter-mcp-server-webmvc")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.mockito:mockito-core:5.+")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
