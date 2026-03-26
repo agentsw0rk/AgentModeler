@@ -46,6 +46,9 @@ class BuildGradleGenerator {
             if (agent.builtinTools.any { it.type == BuiltinToolType.MEMORY }) {
                 appendLine("""    implementation("org.xerial:sqlite-jdbc:$SQLITE_VERSION")""")
             }
+            if (agent.mcpServers.isNotEmpty()) {
+                appendLine("""    implementation("ai.koog:agents-ext-mcp:$KOOG_VERSION")""")
+            }
             if (agent.otelConfig?.enabled == true) {
                 appendLine("""    implementation(platform("io.opentelemetry:opentelemetry-bom:$OTEL_BOM_VERSION"))""")
                 appendLine("""    implementation("ai.koog:koog-opentelemetry:$KOOG_VERSION")""")
