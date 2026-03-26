@@ -27,6 +27,13 @@ interface EditorState {
   otelConfig: OtelConfig;
   updateOtelConfig: (partial: Partial<OtelConfig>) => void;
   reset: () => void;
+  applyRemoteNodeCreated: (node: GraphNode) => void;
+  applyRemoteNodeUpdated: (nodeId: string, data: Record<string, unknown>) => void;
+  applyRemoteNodeDeleted: (nodeId: string) => void;
+  applyRemoteEdgeCreated: (edge: GraphEdge) => void;
+  applyRemoteEdgeDeleted: (edgeId: string) => void;
+  applyRemoteGraphReset: (graph: { name: string; nodes: GraphNode[]; edges: GraphEdge[] }) => void;
+  applyRemoteWorkspaceRenamed: (name: string) => void;
 }
 
 const defaultAgentData: AgentConfig = {
@@ -222,6 +229,43 @@ export const useEditorStore = create<EditorState>((set) => ({
       workspaceName: DEFAULT_WORKSPACE_NAME,
       otelConfig: { ...DEFAULT_OTEL_CONFIG },
     });
+  },
+
+  applyRemoteNodeCreated: (node) => {
+    set((state) => ({ nodes: [...state.nodes, node] }));
+  },
+  applyRemoteNodeUpdated: (nodeId, data) => {
+    set((state) => ({
+      nodes: state.nodes.map((n) =>
+        n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n
+      ),
+    }));
+  },
+  applyRemoteNodeDeleted: (nodeId) => {
+    set((state) => ({
+      nodes: state.nodes.filter((n) => n.id !== nodeId),
+      edges: state.edges.filter((e) => e.source !== nodeId && e.target !== nodeId),
+      selectedNodeIds: state.selectedNodeIds.filter((id) => id !== nodeId),
+    }));
+  },
+  applyRemoteEdgeCreated: (edge) => {
+    set((state) => ({ edges: [...state.edges, edge] }));
+  },
+  applyRemoteEdgeDeleted: (edgeId) => {
+    set((state) => ({
+      edges: state.edges.filter((e) => e.id !== edgeId),
+    }));
+  },
+  applyRemoteGraphReset: (graph) => {
+    set({
+      nodes: graph.nodes,
+      edges: graph.edges,
+      workspaceName: graph.name,
+      selectedNodeIds: [],
+    });
+  },
+  applyRemoteWorkspaceRenamed: (name) => {
+    set({ workspaceName: name });
   },
 }));
 
