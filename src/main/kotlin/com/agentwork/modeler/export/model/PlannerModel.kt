@@ -16,7 +16,9 @@ data class KoogPlannerAgent(
     val subAgents: List<KoogSubAgent> = emptyList(),
     val mcpServers: List<KoogMcpServer> = emptyList(),
     val a2aConfig: KoogA2AConfig? = null,
-    val a2aAgents: List<KoogA2AAgent> = emptyList()
+    val a2aAgents: List<KoogA2AAgent> = emptyList(),
+    val inputs: List<KoogInput> = emptyList(),
+    val outputs: List<KoogOutput> = emptyList()
 )
 
 enum class PlannerType { LLM, GOAP }

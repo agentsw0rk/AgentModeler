@@ -12,7 +12,9 @@ data class KoogAgent(
     val mcpServers: List<KoogMcpServer> = emptyList(),
     val otelConfig: OtelConfig? = null,
     val a2aConfig: KoogA2AConfig? = null,
-    val a2aAgents: List<KoogA2AAgent> = emptyList()
+    val a2aAgents: List<KoogA2AAgent> = emptyList(),
+    val inputs: List<KoogInput> = emptyList(),
+    val outputs: List<KoogOutput> = emptyList()
 )
 
 enum class ModelProvider(val importPackage: String, val executorFactory: String, val defaultModel: String) {
@@ -69,5 +71,7 @@ data class KoogSubAgent(
     val delegationMode: String,
     val inputDescription: String,
     val tools: List<KoogTool>,
-    val builtinTools: List<KoogBuiltinTool>
+    val builtinTools: List<KoogBuiltinTool>,
+    val inputs: List<KoogInput> = emptyList(),
+    val outputs: List<KoogOutput> = emptyList()
 )
