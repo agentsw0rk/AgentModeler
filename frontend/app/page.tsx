@@ -17,6 +17,7 @@ import { ActivityBar } from "@/components/code-explorer/ActivityBar";
 import { CodeExplorerPanel } from "@/components/code-explorer/CodeExplorerPanel";
 import { CodeViewerModal } from "@/components/code-explorer/CodeViewerModal";
 import { useCodeGeneration } from "@/hooks/useCodeGeneration";
+import { A2AInspectorPanel } from "@/components/a2a/A2AInspectorPanel";
 
 export default function EditorPage() {
   useCodeGeneration();
@@ -150,6 +151,7 @@ export default function EditorPage() {
         <div className="flex flex-1 overflow-hidden">
           <Canvas />
           <PropertiesPanel />
+          <A2AInspectorPanel />
         </div>
         <div className="flex border-t overflow-hidden" style={{ minHeight: 0 }}>
           <div className="flex-1 min-w-0">
