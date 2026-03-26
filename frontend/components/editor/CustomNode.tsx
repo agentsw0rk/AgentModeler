@@ -10,9 +10,10 @@ import {
   SubAgentReteNode,
   McpServerReteNode,
   PlannerAgentReteNode,
+  A2AAgentReteNode,
 } from "@/lib/rete-nodes";
 import type { Schemes } from "@/lib/rete-setup";
-import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon } from "lucide-react";
+import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon, ArrowRightLeftIcon } from "lucide-react";
 import { useValidationStore } from "@/store/validationStore";
 
 const nodeIcons: Record<string, React.ReactNode> = {
@@ -22,6 +23,7 @@ const nodeIcons: Record<string, React.ReactNode> = {
   "sub-agent": <UsersIcon size={10} />,
   "mcp-server": <ServerIcon size={10} />,
   "planner-agent": <ClipboardListIcon size={10} />,
+  "a2a-agent": <ArrowRightLeftIcon size={10} />,
 };
 
 const nodeColors: Record<string, { border: string; glow: string; badge: string; badgeText: string }> = {
@@ -36,6 +38,12 @@ const nodeColors: Record<string, { border: string; glow: string; badge: string; 
     badge: "rgba(236, 72, 153, 0.15)",
     badgeText: "#ec4899",
   },
+  "a2a-agent": {
+    border: "rgba(244, 63, 94, 0.4)",
+    glow: "rgba(244, 63, 94, 0.12)",
+    badge: "rgba(244, 63, 94, 0.15)",
+    badgeText: "#fb7185",
+  },
 };
 
 const nodeTypeLabels: Record<string, string> = {
@@ -45,6 +53,7 @@ const nodeTypeLabels: Record<string, string> = {
   "sub-agent": "SUB-AGENT",
   "mcp-server": "MCP SERVER",
   "planner-agent": "PLANNER",
+  "a2a-agent": "A2A AGENT",
 };
 
 function getNodeType(data: Schemes["Node"]): string {
@@ -54,6 +63,7 @@ function getNodeType(data: Schemes["Node"]): string {
   if (data instanceof SubAgentReteNode) return "sub-agent";
   if (data instanceof McpServerReteNode) return "mcp-server";
   if (data instanceof PlannerAgentReteNode) return "planner-agent";
+  if (data instanceof A2AAgentReteNode) return "a2a-agent";
   return "tool";
 }
 
@@ -112,6 +122,9 @@ export function CustomNode(props: {
         break;
       case "planner-agent":
         subtitle = d?.plannerType === "goap" ? "GOAP Planner" : "LLM Planner";
+        break;
+      case "a2a-agent":
+        if (d.url) subtitle = d.url.length > 30 ? d.url.slice(0, 30) + "..." : d.url;
         break;
     }
   }

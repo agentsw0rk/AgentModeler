@@ -24,6 +24,7 @@ import {
   BuiltinToolReteNode,
   SubAgentReteNode,
   McpServerReteNode,
+  A2AAgentReteNode,
 } from "./rete-nodes";
 
 export type Schemes = GetSchemes<AppNode, AppConnection>;
@@ -90,6 +91,11 @@ export async function createEditor(container: HTMLElement) {
       }
       // MCP -> Agent or SubAgent: OK
       if (isMcpSource && (isAgentTarget || isSubAgentTarget)) {
+        return context;
+      }
+      // A2A Agent -> Agent: OK
+      const isA2ASource = sourceNode instanceof A2AAgentReteNode;
+      if (isA2ASource && isAgentTarget) {
         return context;
       }
       // Everything else: blocked
