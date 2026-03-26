@@ -1,7 +1,7 @@
 spring:
   ai:
     openai:
-      api-key: x
+      api-key: "${OPENAI_API_KEY:REMOVED_OPENAI_KEY}"
     model:
       chat: openai
     mcp:

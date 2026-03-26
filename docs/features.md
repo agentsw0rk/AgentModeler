@@ -153,16 +153,8 @@ Ein Built-in Tool Node repräsentiert ein vorgefertigtes Koog-Framework-Tool, da
 
 **Beispiel — Recherche-Agent mit Fetch + Memory + Think:**
 
-1. Erstelle einen Agent Node:
-   - **Name:** `ResearchAgent`
-   - **System Prompt:** `Du bist ein Recherche-Agent. Nutze HTTP-Requests, um Informationen zu sammeln, und speichere wichtige Fakten im Memory.`
-   - **Model Provider:** OpenAI
-   - **Model ID:** `gpt-4o`
-2. Füge drei Built-in Tools hinzu:
-   - **Fetch** — Base URL: `https://api.example.com`
-   - **Memory** — Database Path: `research.db`
-   - **Think** — (keine Konfiguration nötig)
-3. Verbinde alle drei Tools mit dem ResearchAgent
+
+
 
 ### Zusammenspiel: Agent + Tools → Kotlin-Export
 
