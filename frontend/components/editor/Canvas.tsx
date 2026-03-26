@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { createEditor } from "@/lib/rete-setup";
 import { useEditorStore } from "@/store/editorStore";
-import { AgentReteNode, ToolReteNode, BuiltinToolReteNode, SubAgentReteNode, McpServerReteNode, PlannerAgentReteNode, A2AAgentReteNode } from "@/lib/rete-nodes";
+import { AgentReteNode, ToolReteNode, BuiltinToolReteNode, SubAgentReteNode, McpServerReteNode, PlannerAgentReteNode, A2AAgentReteNode, InputReteNode, OutputReteNode } from "@/lib/rete-nodes";
 import { BuiltinToolType, BUILTIN_TOOL_LABELS } from "@/types/graph";
 import type { Schemes } from "@/lib/rete-setup";
 import type { NodeEditor } from "rete";
@@ -74,11 +74,18 @@ export function Canvas() {
           const isSubAgentSource = sourceNode instanceof SubAgentReteNode;
           const isMcpSource = sourceNode instanceof McpServerReteNode;
           const isA2ASource = sourceNode instanceof A2AAgentReteNode;
+          const isInputSource = sourceNode instanceof InputReteNode;
+          const isAgentSource = sourceNode instanceof AgentReteNode;
+          const isPlannerAgentSource = sourceNode instanceof PlannerAgentReteNode;
           const isAgentTarget = targetNode instanceof AgentReteNode;
           const isSubAgentTarget = targetNode instanceof SubAgentReteNode;
           const isPlannerAgentTarget = targetNode instanceof PlannerAgentReteNode;
+          const isOutputTarget = targetNode instanceof OutputReteNode;
 
-          if ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget)) {
+          if (
+            ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource || isInputSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget)) ||
+            ((isAgentSource || isSubAgentSource || isPlannerAgentSource) && isOutputTarget)
+          ) {
             syncing = true;
             const sourceStoreId = (sourceNode as any).storeNodeId;
             const targetStoreId = (targetNode as any).storeNodeId;
@@ -99,11 +106,18 @@ export function Canvas() {
           const isSubAgentSource = sourceNode instanceof SubAgentReteNode;
           const isMcpSource = sourceNode instanceof McpServerReteNode;
           const isA2ASource = sourceNode instanceof A2AAgentReteNode;
+          const isInputSource = sourceNode instanceof InputReteNode;
+          const isAgentSource = sourceNode instanceof AgentReteNode;
+          const isPlannerAgentSource = sourceNode instanceof PlannerAgentReteNode;
           const isAgentTarget = targetNode instanceof AgentReteNode;
           const isSubAgentTarget = targetNode instanceof SubAgentReteNode;
           const isPlannerAgentTarget = targetNode instanceof PlannerAgentReteNode;
+          const isOutputTarget = targetNode instanceof OutputReteNode;
 
-          if ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget)) {
+          if (
+            ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource || isInputSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget)) ||
+            ((isAgentSource || isSubAgentSource || isPlannerAgentSource) && isOutputTarget)
+          ) {
             syncing = true;
             const sourceStoreId = (sourceNode as any).storeNodeId;
             const targetStoreId = (targetNode as any).storeNodeId;
@@ -142,6 +156,10 @@ export function Canvas() {
               reteNode = new PlannerAgentReteNode(node.id, (node.data as any).name || "Planner Agent");
             } else if (node.type === "a2a-agent") {
               reteNode = new A2AAgentReteNode(node.id, (node.data as any).name || "A2A Agent");
+            } else if (node.type === "input") {
+              reteNode = new InputReteNode(node.id, (node.data as any).name || "Input");
+            } else if (node.type === "output") {
+              reteNode = new OutputReteNode(node.id, (node.data as any).name || "Output");
             } else {
               reteNode = new ToolReteNode(node.id, (node.data as any).name || "Tool");
             }

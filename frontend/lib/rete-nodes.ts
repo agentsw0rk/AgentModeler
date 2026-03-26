@@ -18,6 +18,7 @@ export class AgentReteNode extends ClassicPreset.Node {
   constructor(public storeNodeId: string, label: string) {
     super(label || "Agent");
     this.addInput("tools", new ClassicPreset.Input(toolSocket, "Tools", true));
+    this.addOutput("outputs", new ClassicPreset.Output(toolSocket, "Outputs"));
   }
 }
 
@@ -49,6 +50,7 @@ export class SubAgentReteNode extends ClassicPreset.Node {
     super(label || "Sub-Agent");
     this.addInput("tools", new ClassicPreset.Input(toolSocket, "Tools", true));
     this.addOutput("agent", new ClassicPreset.Output(toolSocket, "Agent"));
+    this.addOutput("outputs", new ClassicPreset.Output(toolSocket, "Outputs"));
   }
 }
 
@@ -70,6 +72,7 @@ export class PlannerAgentReteNode extends ClassicPreset.Node {
     super(label);
     this.storeNodeId = storeNodeId;
     this.addInput("tools", new ClassicPreset.Input(toolSocket, "Tools", true));
+    this.addOutput("outputs", new ClassicPreset.Output(toolSocket, "Outputs"));
   }
 }
 
@@ -83,7 +86,27 @@ export class A2AAgentReteNode extends ClassicPreset.Node {
   }
 }
 
-export type AppNode = AgentReteNode | ToolReteNode | BuiltinToolReteNode | SubAgentReteNode | McpServerReteNode | PlannerAgentReteNode | A2AAgentReteNode;
+export class InputReteNode extends ClassicPreset.Node {
+  width = 180;
+  height = 80;
+
+  constructor(public storeNodeId: string, label: string) {
+    super(label || "Input");
+    this.addOutput("agent", new ClassicPreset.Output(toolSocket, "Agent"));
+  }
+}
+
+export class OutputReteNode extends ClassicPreset.Node {
+  width = 180;
+  height = 80;
+
+  constructor(public storeNodeId: string, label: string) {
+    super(label || "Output");
+    this.addInput("agent", new ClassicPreset.Input(toolSocket, "Agent", true));
+  }
+}
+
+export type AppNode = AgentReteNode | ToolReteNode | BuiltinToolReteNode | SubAgentReteNode | McpServerReteNode | PlannerAgentReteNode | A2AAgentReteNode | InputReteNode | OutputReteNode;
 export type AppConnection = ClassicPreset.Connection<
   ClassicPreset.Node,
   ClassicPreset.Node

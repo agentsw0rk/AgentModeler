@@ -11,9 +11,11 @@ import {
   McpServerReteNode,
   PlannerAgentReteNode,
   A2AAgentReteNode,
+  InputReteNode,
+  OutputReteNode,
 } from "@/lib/rete-nodes";
 import type { Schemes } from "@/lib/rete-setup";
-import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon, ArrowRightLeftIcon } from "lucide-react";
+import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon, ArrowRightLeftIcon, ArrowDownToLineIcon, ArrowUpFromLineIcon } from "lucide-react";
 import { useValidationStore } from "@/store/validationStore";
 
 const nodeIcons: Record<string, React.ReactNode> = {
@@ -24,6 +26,8 @@ const nodeIcons: Record<string, React.ReactNode> = {
   "mcp-server": <ServerIcon size={10} />,
   "planner-agent": <ClipboardListIcon size={10} />,
   "a2a-agent": <ArrowRightLeftIcon size={10} />,
+  "input": <ArrowDownToLineIcon size={10} />,
+  "output": <ArrowUpFromLineIcon size={10} />,
 };
 
 const nodeColors: Record<string, { border: string; glow: string; badge: string; badgeText: string }> = {
@@ -44,6 +48,18 @@ const nodeColors: Record<string, { border: string; glow: string; badge: string; 
     badge: "rgba(244, 63, 94, 0.15)",
     badgeText: "#fb7185",
   },
+  "input": {
+    border: "rgba(6, 182, 212, 0.4)",
+    glow: "rgba(6, 182, 212, 0.12)",
+    badge: "rgba(6, 182, 212, 0.15)",
+    badgeText: "#22d3ee",
+  },
+  "output": {
+    border: "rgba(249, 115, 22, 0.4)",
+    glow: "rgba(249, 115, 22, 0.12)",
+    badge: "rgba(249, 115, 22, 0.15)",
+    badgeText: "#fb923c",
+  },
 };
 
 const nodeTypeLabels: Record<string, string> = {
@@ -54,6 +70,8 @@ const nodeTypeLabels: Record<string, string> = {
   "mcp-server": "MCP SERVER",
   "planner-agent": "PLANNER",
   "a2a-agent": "A2A AGENT",
+  "input": "INPUT",
+  "output": "OUTPUT",
 };
 
 function getNodeType(data: Schemes["Node"]): string {
@@ -64,6 +82,8 @@ function getNodeType(data: Schemes["Node"]): string {
   if (data instanceof McpServerReteNode) return "mcp-server";
   if (data instanceof PlannerAgentReteNode) return "planner-agent";
   if (data instanceof A2AAgentReteNode) return "a2a-agent";
+  if (data instanceof InputReteNode) return "input";
+  if (data instanceof OutputReteNode) return "output";
   return "tool";
 }
 
@@ -125,6 +145,12 @@ export function CustomNode(props: {
         break;
       case "a2a-agent":
         if (d.url) subtitle = d.url.length > 30 ? d.url.slice(0, 30) + "..." : d.url;
+        break;
+      case "input":
+        if (d.dataType) subtitle = `${d.dataType}${d.required ? " · required" : " · optional"}`;
+        break;
+      case "output":
+        if (d.dataType) subtitle = d.dataType;
         break;
     }
   }

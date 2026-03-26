@@ -26,6 +26,8 @@ import {
   McpServerReteNode,
   PlannerAgentReteNode,
   A2AAgentReteNode,
+  InputReteNode,
+  OutputReteNode,
 } from "./rete-nodes";
 
 export type Schemes = GetSchemes<AppNode, AppConnection>;
@@ -98,6 +100,19 @@ export async function createEditor(container: HTMLElement) {
       const isA2ASource = sourceNode instanceof A2AAgentReteNode;
       const isPlannerAgentTarget = targetNode instanceof PlannerAgentReteNode;
       if (isA2ASource && (isAgentTarget || isPlannerAgentTarget)) {
+        return context;
+      }
+      // Input -> Agent or SubAgent or PlannerAgent: OK
+      const isInputSource = sourceNode instanceof InputReteNode;
+      if (isInputSource && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget)) {
+        return context;
+      }
+      // Agent or SubAgent or PlannerAgent -> Output: OK
+      const isOutputTarget = targetNode instanceof OutputReteNode;
+      const isAgentSource = sourceNode instanceof AgentReteNode;
+      const isSubAgentSource2 = sourceNode instanceof SubAgentReteNode;
+      const isPlannerAgentSource = sourceNode instanceof PlannerAgentReteNode;
+      if ((isAgentSource || isSubAgentSource2 || isPlannerAgentSource) && isOutputTarget) {
         return context;
       }
       // Everything else: blocked
