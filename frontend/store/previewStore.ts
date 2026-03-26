@@ -9,7 +9,7 @@ interface PreviewState {
   error: string | null;
   isOpen: boolean;
   useMock: boolean;
-  activeTab: "preview" | "review";
+  activeTab: "preview" | "review" | "agent-chat";
 
   setStatus: (status: PreviewStatus) => void;
   setSessionId: (id: string) => void;
@@ -20,7 +20,7 @@ interface PreviewState {
   setError: (error: string) => void;
   toggleOpen: () => void;
   toggleMock: () => void;
-  setActiveTab: (tab: "preview" | "review") => void;
+  setActiveTab: (tab: "preview" | "review" | "agent-chat") => void;
   reset: () => void;
 }
 

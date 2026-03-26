@@ -10,6 +10,7 @@ import { validateGraph, hasBlockingErrors } from "@/lib/validation";
 import { ExecutionTimeline } from "./ExecutionTimeline";
 import { ChatArea } from "./ChatArea";
 import { ExportReviewPanel } from "@/components/review/ExportReviewPanel";
+import { AgentChatPanel } from "@/components/agent-chat/AgentChatPanel";
 import { PlanInspector } from "@/components/planner/PlanInspector";
 import { WorkspaceGraph } from "@/types/graph";
 import { PreviewEvent } from "@/types/preview";
@@ -183,6 +184,12 @@ export function PreviewPanel() {
             >
               Export Review
             </button>
+            <button
+              className={`text-xs px-2 py-0.5 rounded ${activeTab === "agent-chat" ? "bg-muted font-medium" : "text-muted-foreground hover:text-foreground"}`}
+              onClick={() => setActiveTab("agent-chat")}
+            >
+              Agent Chat
+            </button>
           </div>
           <Badge variant={badge.variant}>{badge.label}</Badge>
         </div>
@@ -221,6 +228,8 @@ export function PreviewPanel() {
           </div>
           <ChatArea onSendMessage={handleSendMessage} />
         </div>
+      ) : activeTab === "agent-chat" ? (
+        <AgentChatPanel />
       ) : (
         <ExportReviewPanel />
       )}
