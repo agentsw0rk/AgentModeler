@@ -2,6 +2,8 @@ package com.agentwork.modeler.export
 
 import com.agentwork.modeler.export.adapter.GraphToKoogAdapter
 import com.agentwork.modeler.export.generator.*
+import com.agentwork.modeler.export.generator.A2AServerGenerator
+import com.agentwork.modeler.export.generator.A2AClientGenerator
 import com.agentwork.modeler.export.model.KoogPlannerAgent
 import com.agentwork.modeler.export.model.WorkspaceGraph
 import com.agentwork.modeler.export.validation.GraphValidator
@@ -28,6 +30,8 @@ class ExportService(
     private val subAgentGenerator: SubAgentGenerator,
     private val mcpServerGenerator: McpServerGenerator,
     private val plannerAgentGenerator: PlannerAgentGenerator,
+    private val a2aServerGenerator: A2AServerGenerator,
+    private val a2aClientGenerator: A2AClientGenerator,
     private val zipBuilder: ZipBuilder
 ) {
     fun export(graph: WorkspaceGraph): ByteArray {
@@ -90,6 +94,21 @@ class ExportService(
             for (mcpServer in planner.mcpServers) {
                 val fileName = "${mcpServer.name.replace(" ", "")}Mcp"
                 files["$pkg/mcp/$fileName.kt"] = mcpServerGenerator.generate(mcpServer)
+            }
+
+            // A2A Server (if planner has A2A config)
+            val a2aConfig = planner.a2aConfig
+            if (a2aConfig != null && a2aConfig.enabled) {
+                val a2aFiles = a2aServerGenerator.generate(a2aConfig)
+                for ((fileName, content) in a2aFiles) {
+                    files["$pkg/a2a/$fileName"] = content
+                }
+            }
+
+            // A2A Clients
+            for (a2aAgent in planner.a2aAgents) {
+                val className = "${a2aAgent.name.replace(" ", "").replaceFirstChar { it.uppercase() }}A2AClient"
+                files["$pkg/a2a/${className}.kt"] = a2aClientGenerator.generate(a2aAgent)
             }
 
             if (planner.tools.isNotEmpty() || planner.builtinTools.isNotEmpty() || planner.mcpServers.isNotEmpty()) {
@@ -161,6 +180,21 @@ class ExportService(
         for (mcpServer in agent.mcpServers) {
             val fileName = "${mcpServer.name.replace(" ", "")}Mcp"
             files["$pkg/mcp/$fileName.kt"] = mcpServerGenerator.generate(mcpServer)
+        }
+
+        // A2A Server (if agent has A2A config)
+        val a2aConfig = agent.a2aConfig
+        if (a2aConfig != null && a2aConfig.enabled) {
+            val a2aFiles = a2aServerGenerator.generate(a2aConfig)
+            for ((fileName, content) in a2aFiles) {
+                files["$pkg/a2a/$fileName"] = content
+            }
+        }
+
+        // A2A Clients (for connected a2a-agent nodes)
+        for (a2aAgent in agent.a2aAgents) {
+            val className = "${a2aAgent.name.replace(" ", "").replaceFirstChar { it.uppercase() }}A2AClient"
+            files["$pkg/a2a/${className}.kt"] = a2aClientGenerator.generate(a2aAgent)
         }
 
         if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty() || agent.subAgents.isNotEmpty() || agent.mcpServers.isNotEmpty()) {
