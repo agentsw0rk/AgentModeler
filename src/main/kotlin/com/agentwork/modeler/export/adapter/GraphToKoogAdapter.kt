@@ -17,6 +17,7 @@ class GraphToKoogAdapter {
         val agentNodes = graph.nodes.filter { it.type == "agent" }
         val subAgentNodes = graph.nodes.filter { it.type == "sub-agent" }
         val mcpServerNodes = graph.nodes.filter { it.type == "mcp-server" }
+        val a2aAgentNodes = graph.nodes.filter { it.type == "a2a-agent" }
 
         return agentNodes.map { agentNode ->
             val name = agentNode.data["name"] as? String ?: ""
@@ -56,6 +57,12 @@ class GraphToKoogAdapter {
                 .filter { it.id in connectedToAgent }
                 .map { convertMcpServer(it) }
 
+            val a2aAgents = a2aAgentNodes
+                .filter { it.id in connectedToAgent }
+                .map { convertA2AAgent(it) }
+
+            val a2aConfig = extractA2AConfig(agentNode)
+
             KoogAgent(
                 name = name,
                 systemPrompt = agentNode.data["systemPrompt"] as? String ?: "",
@@ -66,7 +73,9 @@ class GraphToKoogAdapter {
                 builtinTools = builtinTools,
                 subAgents = subAgents,
                 mcpServers = mcpServers,
-                otelConfig = graph.otelConfig
+                otelConfig = graph.otelConfig,
+                a2aConfig = a2aConfig,
+                a2aAgents = a2aAgents
             )
         }
     }
@@ -153,6 +162,7 @@ class GraphToKoogAdapter {
         val builtinToolNodes = graph.nodes.filter { it.type == "builtin-tool" }
         val subAgentNodes = graph.nodes.filter { it.type == "sub-agent" }
         val mcpServerNodes = graph.nodes.filter { it.type == "mcp-server" }
+        val a2aAgentNodes = graph.nodes.filter { it.type == "a2a-agent" }
 
         return graph.nodes.filter { it.type == "planner-agent" }.map { plannerNode ->
             val connectedIds = graph.edges
@@ -174,6 +184,12 @@ class GraphToKoogAdapter {
             val mcpServers = mcpServerNodes
                 .filter { it.id in connectedIds }
                 .map { convertMcpServer(it) }
+
+            val a2aAgents = a2aAgentNodes
+                .filter { it.id in connectedIds }
+                .map { convertA2AAgent(it) }
+
+            val a2aConfig = extractA2AConfig(plannerNode)
 
             @Suppress("UNCHECKED_CAST")
             val goalMaps = plannerNode.data["goals"] as? List<Map<String, Any?>> ?: emptyList()
@@ -234,7 +250,9 @@ class GraphToKoogAdapter {
                 tools = tools,
                 builtinTools = builtinTools,
                 subAgents = subAgents,
-                mcpServers = mcpServers
+                mcpServers = mcpServers,
+                a2aConfig = a2aConfig,
+                a2aAgents = a2aAgents
             )
         }
     }
@@ -272,5 +290,60 @@ class GraphToKoogAdapter {
         "Float" -> KoogParamType.FLOAT
         "Boolean" -> KoogParamType.BOOLEAN
         else -> KoogParamType.STRING
+    }
+
+    private fun convertA2AAgent(node: GraphNode): KoogA2AAgent {
+        return KoogA2AAgent(
+            name = node.data["name"] as? String ?: "",
+            description = node.data["description"] as? String ?: "",
+            url = node.data["url"] as? String ?: "",
+            authType = node.data["authType"] as? String ?: "none",
+            authToken = node.data["authToken"] as? String,
+            timeout = (node.data["timeout"] as? Number)?.toInt() ?: 30000,
+            communicationMode = node.data["communicationMode"] as? String ?: "message"
+        )
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun extractA2AConfig(node: GraphNode): KoogA2AConfig? {
+        val configMap = node.data["a2aConfig"] as? Map<String, Any?> ?: return null
+        val enabled = configMap["enabled"] as? Boolean ?: false
+        if (!enabled) return null
+
+        val cardMap = configMap["agentCard"] as? Map<String, Any?> ?: return null
+        val capsMap = cardMap["capabilities"] as? Map<String, Any?> ?: emptyMap()
+        val skillsList = (cardMap["skills"] as? List<Map<String, Any?>>)?.map { sMap ->
+            KoogA2ASkill(
+                id = sMap["id"] as? String ?: "",
+                name = sMap["name"] as? String ?: "",
+                description = sMap["description"] as? String ?: "",
+                tags = (sMap["tags"] as? List<String>) ?: emptyList()
+            )
+        } ?: emptyList()
+
+        val serverMap = configMap["server"] as? Map<String, Any?> ?: emptyMap()
+
+        return KoogA2AConfig(
+            enabled = true,
+            agentCard = KoogAgentCard(
+                name = cardMap["name"] as? String ?: "",
+                description = cardMap["description"] as? String ?: "",
+                url = cardMap["url"] as? String ?: "",
+                version = cardMap["version"] as? String ?: "1.0.0",
+                capabilities = KoogA2ACapabilities(
+                    streaming = capsMap["streaming"] as? Boolean ?: false,
+                    pushNotifications = capsMap["pushNotifications"] as? Boolean ?: false,
+                    stateTransitionHistory = capsMap["stateTransitionHistory"] as? Boolean ?: false
+                ),
+                skills = skillsList,
+                defaultInputModes = (cardMap["defaultInputModes"] as? List<String>) ?: listOf("text"),
+                defaultOutputModes = (cardMap["defaultOutputModes"] as? List<String>) ?: listOf("text")
+            ),
+            server = KoogA2AServerConfig(
+                transportType = serverMap["transportType"] as? String ?: "http-jsonrpc",
+                port = (serverMap["port"] as? Number)?.toInt() ?: 9000,
+                basePath = serverMap["basePath"] as? String ?: "/a2a"
+            )
+        )
     }
 }
