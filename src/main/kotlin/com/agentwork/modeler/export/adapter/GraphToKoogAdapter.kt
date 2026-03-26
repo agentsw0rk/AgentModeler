@@ -18,6 +18,8 @@ class GraphToKoogAdapter {
         val subAgentNodes = graph.nodes.filter { it.type == "sub-agent" }
         val mcpServerNodes = graph.nodes.filter { it.type == "mcp-server" }
         val a2aAgentNodes = graph.nodes.filter { it.type == "a2a-agent" }
+        val inputNodes = graph.nodes.filter { it.type == "input" }
+        val outputNodes = graph.nodes.filter { it.type == "output" }
 
         return agentNodes.map { agentNode ->
             val name = agentNode.data["name"] as? String ?: ""
@@ -51,7 +53,7 @@ class GraphToKoogAdapter {
             // Sub-agents with their own tools
             val subAgents = subAgentNodes
                 .filter { it.id in connectedToAgent }
-                .map { saNode -> convertSubAgent(saNode, graph, toolNodes, builtinToolNodes) }
+                .map { saNode -> convertSubAgent(saNode, graph, toolNodes, builtinToolNodes, inputNodes, outputNodes) }
 
             val mcpServers = mcpServerNodes
                 .filter { it.id in connectedToAgent }
@@ -60,6 +62,18 @@ class GraphToKoogAdapter {
             val a2aAgents = a2aAgentNodes
                 .filter { it.id in connectedToAgent }
                 .map { convertA2AAgent(it) }
+
+            val inputs = inputNodes
+                .filter { it.id in connectedToAgent }
+                .map { convertInput(it) }
+
+            val connectedFromAgent = graph.edges
+                .filter { it.source == agentNode.id }
+                .map { it.target }
+
+            val outputs = outputNodes
+                .filter { it.id in connectedFromAgent }
+                .map { convertOutput(it) }
 
             val a2aConfig = extractA2AConfig(agentNode)
 
@@ -75,7 +89,9 @@ class GraphToKoogAdapter {
                 mcpServers = mcpServers,
                 otelConfig = graph.otelConfig,
                 a2aConfig = a2aConfig,
-                a2aAgents = a2aAgents
+                a2aAgents = a2aAgents,
+                inputs = inputs,
+                outputs = outputs
             )
         }
     }
@@ -84,7 +100,9 @@ class GraphToKoogAdapter {
         saNode: GraphNode,
         graph: WorkspaceGraph,
         toolNodes: List<GraphNode>,
-        builtinToolNodes: List<GraphNode>
+        builtinToolNodes: List<GraphNode>,
+        inputNodes: List<GraphNode>,
+        outputNodes: List<GraphNode>
     ): KoogSubAgent {
         val connectedIds = graph.edges
             .filter { it.target == saNode.id }
@@ -98,6 +116,18 @@ class GraphToKoogAdapter {
             .filter { it.id in connectedIds }
             .map { convertBuiltinTool(it) }
 
+        val inputs = inputNodes
+            .filter { it.id in connectedIds }
+            .map { convertInput(it) }
+
+        val connectedFromSa = graph.edges
+            .filter { it.source == saNode.id }
+            .map { it.target }
+
+        val outputs = outputNodes
+            .filter { it.id in connectedFromSa }
+            .map { convertOutput(it) }
+
         return KoogSubAgent(
             name = saNode.data["name"] as? String ?: "",
             description = saNode.data["description"] as? String ?: "",
@@ -108,7 +138,9 @@ class GraphToKoogAdapter {
             delegationMode = saNode.data["delegationMode"] as? String ?: "automatic",
             inputDescription = saNode.data["inputDescription"] as? String ?: "",
             tools = tools,
-            builtinTools = builtinTools
+            builtinTools = builtinTools,
+            inputs = inputs,
+            outputs = outputs
         )
     }
 
@@ -163,6 +195,8 @@ class GraphToKoogAdapter {
         val subAgentNodes = graph.nodes.filter { it.type == "sub-agent" }
         val mcpServerNodes = graph.nodes.filter { it.type == "mcp-server" }
         val a2aAgentNodes = graph.nodes.filter { it.type == "a2a-agent" }
+        val inputNodes = graph.nodes.filter { it.type == "input" }
+        val outputNodes = graph.nodes.filter { it.type == "output" }
 
         return graph.nodes.filter { it.type == "planner-agent" }.map { plannerNode ->
             val connectedIds = graph.edges
@@ -179,7 +213,7 @@ class GraphToKoogAdapter {
 
             val subAgents = subAgentNodes
                 .filter { it.id in connectedIds }
-                .map { saNode -> convertSubAgent(saNode, graph, toolNodes, builtinToolNodes) }
+                .map { saNode -> convertSubAgent(saNode, graph, toolNodes, builtinToolNodes, inputNodes, outputNodes) }
 
             val mcpServers = mcpServerNodes
                 .filter { it.id in connectedIds }
@@ -190,6 +224,18 @@ class GraphToKoogAdapter {
                 .map { convertA2AAgent(it) }
 
             val a2aConfig = extractA2AConfig(plannerNode)
+
+            val inputs = inputNodes
+                .filter { it.id in connectedIds }
+                .map { convertInput(it) }
+
+            val connectedFromPlanner = graph.edges
+                .filter { it.source == plannerNode.id }
+                .map { it.target }
+
+            val outputs = outputNodes
+                .filter { it.id in connectedFromPlanner }
+                .map { convertOutput(it) }
 
             @Suppress("UNCHECKED_CAST")
             val goalMaps = plannerNode.data["goals"] as? List<Map<String, Any?>> ?: emptyList()
@@ -252,7 +298,9 @@ class GraphToKoogAdapter {
                 subAgents = subAgents,
                 mcpServers = mcpServers,
                 a2aConfig = a2aConfig,
-                a2aAgents = a2aAgents
+                a2aAgents = a2aAgents,
+                inputs = inputs,
+                outputs = outputs
             )
         }
     }
@@ -301,6 +349,24 @@ class GraphToKoogAdapter {
             authToken = node.data["authToken"] as? String,
             timeout = (node.data["timeout"] as? Number)?.toInt() ?: 30000,
             communicationMode = node.data["communicationMode"] as? String ?: "message"
+        )
+    }
+
+    private fun convertInput(node: GraphNode): KoogInput {
+        return KoogInput(
+            name = node.data["name"] as? String ?: "",
+            description = node.data["description"] as? String ?: "",
+            dataType = node.data["dataType"] as? String ?: "string",
+            required = node.data["required"] as? Boolean ?: true,
+            defaultValue = node.data["defaultValue"] as? String
+        )
+    }
+
+    private fun convertOutput(node: GraphNode): KoogOutput {
+        return KoogOutput(
+            name = node.data["name"] as? String ?: "",
+            description = node.data["description"] as? String ?: "",
+            dataType = node.data["dataType"] as? String ?: "string"
         )
     }
 
