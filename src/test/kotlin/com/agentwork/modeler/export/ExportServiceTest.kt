@@ -33,6 +33,8 @@ class ExportServiceTest {
         subAgentGenerator = SubAgentGenerator(),
         mcpServerGenerator = McpServerGenerator(),
         plannerAgentGenerator = PlannerAgentGenerator(),
+        a2aServerGenerator = A2AServerGenerator(),
+        a2aClientGenerator = A2AClientGenerator(),
         zipBuilder = ZipBuilder()
     )
 
