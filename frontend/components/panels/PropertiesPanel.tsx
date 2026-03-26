@@ -15,6 +15,9 @@ import { PlannerProperties } from "./PlannerProperties";
 import { PlannerAgentConfig } from "@/types/planner";
 import { A2AAgentProperties } from "@/components/a2a/A2AAgentProperties";
 import { A2AAgentConfig } from "@/types/a2a";
+import { InputProperties } from "./InputProperties";
+import { OutputProperties } from "./OutputProperties";
+import { InputNodeConfig, OutputNodeConfig } from "@/types/io";
 
 export function PropertiesPanel() {
   const selectedNodeIds = useEditorStore((s) => s.selectedNodeIds);
@@ -46,6 +49,8 @@ export function PropertiesPanel() {
            selectedNode.type === "builtin-tool" ? "Built-in Tool" :
            selectedNode.type === "sub-agent" ? "Sub-Agent" :
            selectedNode.type === "a2a-agent" ? "A2A Agent" :
+           selectedNode.type === "input" ? "Input" :
+           selectedNode.type === "output" ? "Output" :
            selectedNode.type} Properties
         </h3>
         {selectedNode.type === "agent" && (
@@ -68,6 +73,12 @@ export function PropertiesPanel() {
         )}
         {selectedNode.type === "a2a-agent" && (
           <A2AAgentProperties nodeId={selectedNode.id} data={selectedNode.data as A2AAgentConfig} />
+        )}
+        {selectedNode.type === "input" && (
+          <InputProperties nodeId={selectedNode.id} data={selectedNode.data as InputNodeConfig} />
+        )}
+        {selectedNode.type === "output" && (
+          <OutputProperties nodeId={selectedNode.id} data={selectedNode.data as OutputNodeConfig} />
         )}
       </div>
     </ScrollArea>
