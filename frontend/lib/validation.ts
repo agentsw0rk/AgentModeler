@@ -4,6 +4,7 @@ import { SubAgentConfig } from "@/types/subagent";
 import { McpServerConfig } from "@/types/mcp";
 import { PlannerAgentConfig } from "@/types/planner";
 import { A2AAgentConfig } from "@/types/a2a";
+import { InputNodeConfig, OutputNodeConfig } from "@/types/io";
 
 export interface ValidationError {
   nodeId: string;
@@ -225,6 +226,39 @@ export function validateGraph(graph: WorkspaceGraph): ValidationError[] {
       }
     }
 
+    if (node.type === "input") {
+      const data = node.data as InputNodeConfig;
+      if (!data.name?.trim()) {
+        errors.push({ nodeId: node.id, severity: "error", message: "Input requires a name" });
+      }
+      const isConnected = graph.edges.some((e) => e.source === node.id);
+      if (!isConnected) {
+        errors.push({ nodeId: node.id, severity: "error", message: "Input must be connected to an Agent" });
+      }
+      const connectedAgentCount = graph.edges
+        .filter((e) => e.source === node.id)
+        .map((e) => graph.nodes.find((n) => n.id === e.target))
+        .filter((n) => n?.type === "agent" || n?.type === "sub-agent" || n?.type === "planner-agent")
+        .length;
+      if (connectedAgentCount > 1) {
+        errors.push({ nodeId: node.id, severity: "error", message: "Input can only be connected to one Agent" });
+      }
+      if (!data.required && !data.defaultValue?.trim()) {
+        errors.push({ nodeId: node.id, severity: "warning", message: "Optional input has no default value" });
+      }
+    }
+
+    if (node.type === "output") {
+      const data = node.data as OutputNodeConfig;
+      if (!data.name?.trim()) {
+        errors.push({ nodeId: node.id, severity: "error", message: "Output requires a name" });
+      }
+      const isConnected = graph.edges.some((e) => e.target === node.id);
+      if (!isConnected) {
+        errors.push({ nodeId: node.id, severity: "error", message: "Output must be connected to an Agent" });
+      }
+    }
+
     // Check: tool connected to multiple agents/sub-agents
     if (node.type === "tool" || node.type === "builtin-tool" || node.type === "mcp-server") {
       const connectedTargets = graph.edges
@@ -234,6 +268,35 @@ export function validateGraph(graph: WorkspaceGraph): ValidationError[] {
       if (connectedTargets.length > 1) {
         errors.push({ nodeId: node.id, severity: "error", message: "Tool can only be connected to one Agent or Sub-Agent" });
       }
+    }
+  }
+
+  // Duplicate input/output name checks
+  const agentTypeNodes = graph.nodes.filter((n) => n.type === "agent" || n.type === "sub-agent" || n.type === "planner-agent");
+  for (const agentNode of agentTypeNodes) {
+    const inputNames = new Set<string>();
+    const connectedInputs = graph.edges
+      .filter((e) => e.target === agentNode.id)
+      .map((e) => graph.nodes.find((n) => n.id === e.source && n.type === "input"))
+      .filter(Boolean);
+    for (const inputNode of connectedInputs) {
+      const name = (inputNode!.data as InputNodeConfig).name?.trim();
+      if (name && inputNames.has(name)) {
+        errors.push({ nodeId: inputNode!.id, severity: "error", message: `Duplicate input name '${name}'` });
+      }
+      if (name) inputNames.add(name);
+    }
+    const outputNames = new Set<string>();
+    const connectedOutputs = graph.edges
+      .filter((e) => e.source === agentNode.id)
+      .map((e) => graph.nodes.find((n) => n.id === e.target && n.type === "output"))
+      .filter(Boolean);
+    for (const outputNode of connectedOutputs) {
+      const name = (outputNode!.data as OutputNodeConfig).name?.trim();
+      if (name && outputNames.has(name)) {
+        errors.push({ nodeId: outputNode!.id, severity: "error", message: `Duplicate output name '${name}'` });
+      }
+      if (name) outputNames.add(name);
     }
   }
 
