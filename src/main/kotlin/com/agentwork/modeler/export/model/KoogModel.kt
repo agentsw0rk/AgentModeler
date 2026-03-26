@@ -10,7 +10,9 @@ data class KoogAgent(
     val builtinTools: List<KoogBuiltinTool> = emptyList(),
     val subAgents: List<KoogSubAgent> = emptyList(),
     val mcpServers: List<KoogMcpServer> = emptyList(),
-    val otelConfig: OtelConfig? = null
+    val otelConfig: OtelConfig? = null,
+    val a2aConfig: KoogA2AConfig? = null,
+    val a2aAgents: List<KoogA2AAgent> = emptyList()
 )
 
 enum class ModelProvider(val importPackage: String, val executorFactory: String, val defaultModel: String) {
