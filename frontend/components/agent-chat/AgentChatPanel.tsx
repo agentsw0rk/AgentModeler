@@ -2,7 +2,6 @@
 
 import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useAgentChatStore, ToolCallInfo } from "@/store/agentChatStore";
 import { sendAgentMessage, resetAgentChat, AgentChatSseEvent } from "@/lib/agent-chat-client";
 import { ChevronDownIcon, ChevronRightIcon, RotateCcwIcon } from "lucide-react";
@@ -145,16 +144,17 @@ export function AgentChatPanel() {
         )}
         <div ref={scrollRef} />
       </div>
-      <div className="border-t p-2 flex gap-2">
+      <div className="border-t p-2 flex gap-2 items-end">
         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 shrink-0" onClick={handleReset} title="Reset chat">
           <RotateCcwIcon className="size-3.5" />
         </Button>
-        <Input
+        <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Describe what to build..."
-          className="h-8 text-sm"
+          className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-1.5 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          rows={Math.min(5, Math.max(1, input.split("\n").length))}
           disabled={status === "streaming"}
         />
         <Button size="sm" className="h-8 shrink-0" onClick={handleSend} disabled={status === "streaming" || !input.trim()}>
