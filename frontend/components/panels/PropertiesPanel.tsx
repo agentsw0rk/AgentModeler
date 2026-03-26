@@ -13,6 +13,8 @@ import { McpServerProperties } from "./McpServerProperties";
 import { McpServerConfig } from "@/types/mcp";
 import { PlannerProperties } from "./PlannerProperties";
 import { PlannerAgentConfig } from "@/types/planner";
+import { A2AAgentProperties } from "@/components/a2a/A2AAgentProperties";
+import { A2AAgentConfig } from "@/types/a2a";
 
 export function PropertiesPanel() {
   const selectedNodeIds = useEditorStore((s) => s.selectedNodeIds);
@@ -43,6 +45,7 @@ export function PropertiesPanel() {
           {selectedNode.type === "mcp-server" ? "MCP Server" :
            selectedNode.type === "builtin-tool" ? "Built-in Tool" :
            selectedNode.type === "sub-agent" ? "Sub-Agent" :
+           selectedNode.type === "a2a-agent" ? "A2A Agent" :
            selectedNode.type} Properties
         </h3>
         {selectedNode.type === "agent" && (
@@ -62,6 +65,9 @@ export function PropertiesPanel() {
         )}
         {selectedNode.type === "planner-agent" && (
           <PlannerProperties nodeId={selectedNode.id} data={selectedNode.data as PlannerAgentConfig} />
+        )}
+        {selectedNode.type === "a2a-agent" && (
+          <A2AAgentProperties nodeId={selectedNode.id} data={selectedNode.data as A2AAgentConfig} />
         )}
       </div>
     </ScrollArea>
