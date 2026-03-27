@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 @Component
 class AgentGenerator {
 
-    fun generate(agent: KoogAgent): String {
+    fun generate(agent: KoogAgent, strategyCall: String? = null): String {
         val hasThink = agent.builtinTools.any { it.type == BuiltinToolType.THINK }
         val effectivePrompt = if (hasThink) {
             agent.systemPrompt + "\nThink step by step before answering."
@@ -24,6 +24,9 @@ class AgentGenerator {
             "llmModel = $modelRef"
         )
         agent.temperature?.let { params.add("temperature = $it") }
+        if (strategyCall != null) {
+            params.add("strategy = $strategyCall")
+        }
         if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty() || agent.subAgents.isNotEmpty() || agent.mcpServers.isNotEmpty()) {
             params.add("toolRegistry = createToolRegistry()")
         }

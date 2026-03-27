@@ -33,6 +33,7 @@ class ExportService(
     private val a2aServerGenerator: A2AServerGenerator,
     private val a2aClientGenerator: A2AClientGenerator,
     private val inputOutputGenerator: InputOutputGenerator,
+    private val graphAgentGenerator: GraphAgentGenerator,
     private val zipBuilder: ZipBuilder
 ) {
     fun export(graph: WorkspaceGraph): ByteArray {
@@ -124,6 +125,62 @@ class ExportService(
 
             if (planner.tools.isNotEmpty() || planner.builtinTools.isNotEmpty() || planner.mcpServers.isNotEmpty()) {
                 files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(planner.tools, planner.builtinTools, emptyList(), planner.mcpServers)
+            }
+
+            return files
+        }
+
+        val graphAgents = adapter.convertGraphAgents(graph)
+        if (graphAgents.isNotEmpty()) {
+            val ga = graphAgents.first()
+
+            files["settings.gradle.kts"] = settingsGradleGenerator.generate(graph.name)
+            files["gradle.properties"] = gradlePropertiesGenerator.generate()
+            files["Dockerfile"] = dockerfileGenerator.generate()
+
+            val infraAgent = com.agentwork.modeler.export.model.KoogAgent(
+                name = ga.name,
+                systemPrompt = ga.systemPrompt,
+                modelProvider = ga.modelProvider,
+                modelId = ga.modelId,
+                temperature = ga.temperature,
+                tools = ga.tools,
+                builtinTools = ga.builtinTools,
+                subAgents = ga.subAgents,
+                mcpServers = ga.mcpServers,
+                inputs = ga.inputs,
+                outputs = ga.outputs
+            )
+            files["build.gradle.kts"] = buildGradleGenerator.generate(infraAgent)
+            files["src/main/resources/application.properties"] = applicationPropertiesGenerator.generate(infraAgent)
+
+            files["$pkg/Application.kt"] = applicationGenerator.generate()
+            files["$pkg/AgentConfig.kt"] = agentGenerator.generate(infraAgent, "create${ga.name.replaceFirstChar { it.uppercase() }}Strategy()")
+            files["$pkg/ChatController.kt"] = controllerGenerator.generate()
+
+            files["$pkg/${ga.name.replaceFirstChar { it.uppercase() }}Strategy.kt"] = graphAgentGenerator.generate(ga)
+
+            for (tool in ga.tools) {
+                val className = tool.name.replaceFirstChar { it.uppercase() } + "ToolSet"
+                files["$pkg/tools/${className}.kt"] = toolGenerator.generate(tool)
+            }
+            for (builtinTool in ga.builtinTools) {
+                val code = builtinToolGenerator.generate(builtinTool)
+                val fileName = builtinTool.type.toFileName()
+                if (code != null && fileName != null) files["$pkg/tools/$fileName"] = code
+            }
+            for (mcpServer in ga.mcpServers) {
+                val fileName = "${mcpServer.name.replace(" ", "")}Mcp"
+                files["$pkg/mcp/$fileName.kt"] = mcpServerGenerator.generate(mcpServer)
+            }
+
+            val inputCode = inputOutputGenerator.generateInputClass(ga.name, ga.inputs)
+            if (inputCode != null) files["$pkg/${ga.name.replaceFirstChar { it.uppercase() }}Input.kt"] = inputCode
+            val outputCode = inputOutputGenerator.generateOutputClass(ga.name, ga.outputs)
+            if (outputCode != null) files["$pkg/${ga.name.replaceFirstChar { it.uppercase() }}Output.kt"] = outputCode
+
+            if (ga.tools.isNotEmpty() || ga.builtinTools.isNotEmpty() || ga.subAgents.isNotEmpty() || ga.mcpServers.isNotEmpty()) {
+                files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(ga.tools, ga.builtinTools, ga.subAgents, ga.mcpServers)
             }
 
             return files

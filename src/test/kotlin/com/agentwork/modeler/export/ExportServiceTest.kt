@@ -2,6 +2,7 @@ package com.agentwork.modeler.export
 
 import com.agentwork.modeler.export.adapter.GraphToKoogAdapter
 import com.agentwork.modeler.export.generator.*
+import com.agentwork.modeler.export.generator.GraphAgentGenerator
 import com.agentwork.modeler.export.generator.McpServerGenerator
 import com.agentwork.modeler.export.generator.SubAgentGenerator
 import com.agentwork.modeler.export.model.*
@@ -36,6 +37,7 @@ class ExportServiceTest {
         a2aServerGenerator = A2AServerGenerator(),
         a2aClientGenerator = A2AClientGenerator(),
         inputOutputGenerator = InputOutputGenerator(),
+        graphAgentGenerator = GraphAgentGenerator(),
         zipBuilder = ZipBuilder()
     )
 
