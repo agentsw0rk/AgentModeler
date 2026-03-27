@@ -13,8 +13,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Koog Agent Modeler",
-  description: "Visual editor for Koog AI agents",
+  title: "Agent Studio",
+  description: "Visual editor for AI agents",
 };
 
 export default function RootLayout({

@@ -109,7 +109,7 @@ export function ExportDialog({ open: controlledOpen, onOpenChange: controlledOnO
       )}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Export Koog Agent</DialogTitle>
+          <DialogTitle>Export Agent</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
