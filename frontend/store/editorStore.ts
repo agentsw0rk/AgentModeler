@@ -19,7 +19,7 @@ interface EditorState {
   addNode: (type: NodeType, position: { x: number; y: number }, toolType?: BuiltinToolType) => void;
   addNodes: (nodes: GraphNode[], edges: GraphEdge[]) => void;
   removeNode: (id: string) => void;
-  updateNodeData: (id: string, data: Partial<AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | A2AAgentConfig | InputNodeConfig | OutputNodeConfig | GraphAgentConfig>) => void;
+  updateNodeData: (id: string, data: Record<string, unknown>) => void;
   updateNodePosition: (id: string, position: { x: number; y: number }) => void;
   commitPosition: () => void;
   addEdge: (source: string, target: string) => void;

@@ -30,7 +30,7 @@ export function StrategyNodeProperties({
       {node.type === "node-execute-tool" && (
         <div>
           <Label>Tool</Label>
-          <Select value={d.toolName ?? ""} onValueChange={(v) => onUpdate({ toolName: v })}>
+          <Select value={d.toolName ?? ""} onValueChange={(v) => onUpdate({ toolName: v || undefined })}>
             <SelectTrigger><SelectValue placeholder="Select tool..." /></SelectTrigger>
             <SelectContent>
               {connectedTools.map((t) => (
