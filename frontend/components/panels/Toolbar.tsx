@@ -14,7 +14,7 @@ import { useEditorStore } from "@/store/editorStore";
 import { useHistoryStore } from "@/store/historyStore";
 import { ToolsMenuDialog } from "@/components/dialogs/ToolsMenuDialog";
 import type { BuiltinToolType } from "@/types/graph";
-import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon } from "lucide-react";
+import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon, ArrowDownToLineIcon, ArrowUpFromLineIcon } from "lucide-react";
 
 const builtinToolOptions: { type: BuiltinToolType; label: string }[] = [
   { type: "think", label: "Think" },
@@ -119,6 +119,28 @@ export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspa
       >
         <ClipboardListIcon className="h-4 w-4 mr-1 text-pink-400" />
         Agent Planner
+      </Button>
+
+      <span className="text-border select-none">|</span>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => addNode("input", { x: 100, y: 100 })}
+        title="Add Input"
+      >
+        <ArrowDownToLineIcon className="h-4 w-4 mr-1 text-cyan-400" />
+        Input
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => addNode("output", { x: 100, y: 200 })}
+        title="Add Output"
+      >
+        <ArrowUpFromLineIcon className="h-4 w-4 mr-1 text-orange-400" />
+        Output
       </Button>
 
       <div className="flex-1" />
