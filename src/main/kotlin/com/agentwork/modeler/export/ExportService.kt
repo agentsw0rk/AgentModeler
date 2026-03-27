@@ -185,6 +185,16 @@ class ExportService(
                     files["$pkg/tools/$fileName"] = code
                 }
             }
+
+            // Input/Output classes for sub-agent
+            val saInputCode = inputOutputGenerator.generateInputClass(subAgent.name, subAgent.inputs)
+            if (saInputCode != null) {
+                files["$pkg/subagents/${subAgent.name.replaceFirstChar { it.uppercase() }}Input.kt"] = saInputCode
+            }
+            val saOutputCode = inputOutputGenerator.generateOutputClass(subAgent.name, subAgent.outputs)
+            if (saOutputCode != null) {
+                files["$pkg/subagents/${subAgent.name.replaceFirstChar { it.uppercase() }}Output.kt"] = saOutputCode
+            }
         }
 
         // MCP servers
