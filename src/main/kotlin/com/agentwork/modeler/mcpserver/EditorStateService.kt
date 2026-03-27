@@ -13,9 +13,9 @@ import kotlin.concurrent.write
 class EditorStateService {
 
     companion object {
-        val VALID_NODE_TYPES = setOf("agent", "tool", "builtin-tool", "sub-agent", "mcp-server", "planner-agent")
-        val VALID_SOURCE_TYPES = setOf("tool", "builtin-tool", "sub-agent", "mcp-server")
-        val VALID_TARGET_TYPES = setOf("agent", "sub-agent", "planner-agent")
+        val VALID_NODE_TYPES = setOf("agent", "tool", "builtin-tool", "sub-agent", "mcp-server", "planner-agent", "a2a-agent", "input", "output")
+        val VALID_SOURCE_TYPES = setOf("tool", "builtin-tool", "sub-agent", "mcp-server", "a2a-agent", "input")
+        val VALID_TARGET_TYPES = setOf("agent", "sub-agent", "planner-agent", "output")
     }
 
     private val lock = ReentrantReadWriteLock()

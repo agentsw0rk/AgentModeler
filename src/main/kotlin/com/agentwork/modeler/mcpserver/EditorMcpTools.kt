@@ -48,6 +48,21 @@ class EditorMcpTools(
                 "type" to "planner-agent",
                 "required" to listOf("name", "goals", "actions"),
                 "optional" to listOf("plannerType", "modelProvider", "modelId")
+            ),
+            mapOf(
+                "type" to "a2a-agent",
+                "required" to listOf("name", "url"),
+                "optional" to listOf("description", "authType", "authToken", "timeout", "communicationMode")
+            ),
+            mapOf(
+                "type" to "input",
+                "required" to listOf("name"),
+                "optional" to listOf("description", "dataType", "required", "defaultValue")
+            ),
+            mapOf(
+                "type" to "output",
+                "required" to listOf("name"),
+                "optional" to listOf("description", "dataType")
             )
         )
         return mapper.writeValueAsString(mapOf("types" to types))
@@ -78,7 +93,7 @@ class EditorMcpTools(
 
     @Tool(description = "Create a new node in the graph with a given type, position, and data properties")
     fun createNode(
-        @ToolParam(description = "Node type: agent, tool, builtin-tool, sub-agent, mcp-server, or planner-agent") type: String,
+        @ToolParam(description = "Node type: agent, tool, builtin-tool, sub-agent, mcp-server, planner-agent, a2a-agent, input, or output") type: String,
         @ToolParam(description = "X position on canvas") x: Double,
         @ToolParam(description = "Y position on canvas") y: Double,
         @ToolParam(description = "Node data properties as key-value pairs") data: Map<String, Any?>
@@ -93,8 +108,8 @@ class EditorMcpTools(
 
     @Tool(description = "Create an edge connecting a source node to a target node")
     fun createEdge(
-        @ToolParam(description = "ID of the source node (tool, builtin-tool, sub-agent, or mcp-server)") sourceId: String,
-        @ToolParam(description = "ID of the target node (agent, sub-agent, or planner-agent)") targetId: String
+        @ToolParam(description = "ID of the source node (tool, builtin-tool, sub-agent, mcp-server, a2a-agent, or input)") sourceId: String,
+        @ToolParam(description = "ID of the target node (agent, sub-agent, planner-agent, or output)") targetId: String
     ): String {
         return try {
             val edgeId = editorStateService.createEdge(sourceId, targetId)

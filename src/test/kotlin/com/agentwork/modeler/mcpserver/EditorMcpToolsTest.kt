@@ -40,7 +40,7 @@ class EditorMcpToolsTest {
         val result = tools.listNodeTypes()
         val parsed = mapper.readValue<Map<String, Any>>(result)
         val types = parsed["types"] as List<*>
-        assertEquals(6, types.size)
+        assertEquals(9, types.size)
     }
 
     @Test
