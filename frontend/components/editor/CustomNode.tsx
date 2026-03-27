@@ -281,18 +281,49 @@ export function CustomSocket(props: { data: ClassicPreset.Socket }) {
   );
 }
 
-export function CustomConnection() {
+export function CustomConnection(props: { data: { id: string; source: string; target: string } }) {
   const { path } = Presets.classic.useConnection();
+  const [hovered, setHovered] = React.useState(false);
 
   if (!path) return null;
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const { useEditorStore } = require("@/store/editorStore");
+    const edges = useEditorStore.getState().edges;
+    // Find Rete nodes to map back to store IDs
+    const editorRef = (window as any).__reteEditor;
+    if (editorRef) {
+      const sourceNode = editorRef.getNode(props.data.source);
+      const targetNode = editorRef.getNode(props.data.target);
+      const sourceStoreId = sourceNode && "storeNodeId" in sourceNode ? (sourceNode as any).storeNodeId : null;
+      const targetStoreId = targetNode && "storeNodeId" in targetNode ? (targetNode as any).storeNodeId : null;
+      if (sourceStoreId && targetStoreId) {
+        const edge = edges.find((e: any) => e.source === sourceStoreId && e.target === targetStoreId);
+        if (edge) useEditorStore.getState().removeEdge(edge.id);
+      }
+    }
+  };
+
   return (
     <svg data-testid="connection" style={{ overflow: "visible", position: "absolute", pointerEvents: "none", width: "100%", height: "100%" }}>
+      {/* Invisible wider path for easier clicking */}
       <path
         d={path}
-        stroke="rgba(59, 130, 246, 0.5)"
-        strokeWidth={2}
+        stroke="transparent"
+        strokeWidth={16}
         fill="none"
+        style={{ pointerEvents: "stroke", cursor: "pointer" }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onClick={handleClick}
+      />
+      <path
+        d={path}
+        stroke={hovered ? "rgba(239, 68, 68, 0.8)" : "rgba(59, 130, 246, 0.5)"}
+        strokeWidth={hovered ? 3 : 2}
+        fill="none"
+        style={{ pointerEvents: "none", transition: "stroke 0.15s, stroke-width 0.15s" }}
       />
     </svg>
   );

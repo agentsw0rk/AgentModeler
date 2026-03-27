@@ -24,6 +24,7 @@ export function Canvas() {
       const { editor, area } = await createEditor(containerRef.current!);
       editorRef = editor;
       areaRef = area;
+      (window as any).__reteEditor = editor;
 
       // Rete → Zustand: node selection + drag-end detection
       let dragging = false;
@@ -256,6 +257,7 @@ export function Canvas() {
       areaRef?.destroy();
       editorRef = null;
       areaRef = null;
+      delete (window as any).__reteEditor;
     };
   }, []);
 
