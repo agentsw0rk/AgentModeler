@@ -201,7 +201,12 @@ export function Canvas() {
         for (const conn of reteConnections) {
           const sourceNode = editor.getNode(conn.source);
           const targetNode = editor.getNode(conn.target);
-          if (!sourceNode || !targetNode) continue;
+          if (!sourceNode || !targetNode) {
+            syncing = true;
+            await editor.removeConnection(conn.id);
+            syncing = false;
+            continue;
+          }
           const sourceStoreId = "storeNodeId" in sourceNode ? (sourceNode as any).storeNodeId : null;
           const targetStoreId = "storeNodeId" in targetNode ? (targetNode as any).storeNodeId : null;
           if (sourceStoreId && targetStoreId && !storeEdgeKeys.has(`${sourceStoreId}→${targetStoreId}`)) {

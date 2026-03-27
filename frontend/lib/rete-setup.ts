@@ -11,11 +11,7 @@ import {
   ReactArea2D,
 } from "rete-react-plugin";
 import { CustomNode, CustomSocket, CustomConnection } from "@/components/editor/CustomNode";
-import {
-  ContextMenuPlugin,
-  ContextMenuExtra,
-  Presets as ContextMenuPresets,
-} from "rete-context-menu-plugin";
+import type { ContextMenuExtra } from "rete-context-menu-plugin";
 import {
   AppNode,
   AppConnection,
@@ -49,18 +45,9 @@ export async function createEditor(container: HTMLElement) {
   render.addPreset(ReactPresets.contextMenu.setup());
   connection.addPreset(ConnectionPresets.classic.setup());
 
-  // Context menu for adding nodes
-  const contextMenu = new ContextMenuPlugin<Schemes>({
-    items: ContextMenuPresets.classic.setup([
-      ["Agent", () => new AgentReteNode("temp", "Agent")],
-      ["Tool", () => new ToolReteNode("temp", "Tool")],
-    ]),
-  });
-
   // Plugin order matters
   editor.use(area);
   area.use(connection);
-  area.use(contextMenu);
   area.use(render);
 
   // Selection
