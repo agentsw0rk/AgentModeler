@@ -37,9 +37,7 @@ export function CodeViewerModal() {
         }
       })
       .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+      .finally(() => setLoading(false));
 
     return () => {
       cancelled = true;
