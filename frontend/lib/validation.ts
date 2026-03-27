@@ -1,4 +1,5 @@
 import { WorkspaceGraph, BuiltinToolConfig, BUILTIN_TOOL_TYPES } from "@/types/graph";
+import { validateGraphAgent } from "./graph-agent-validation";
 import { AgentConfig, ToolConfig } from "@/types/koog";
 import { SubAgentConfig } from "@/types/subagent";
 import { McpServerConfig } from "@/types/mcp";
@@ -257,6 +258,10 @@ export function validateGraph(graph: WorkspaceGraph): ValidationError[] {
       if (!isConnected) {
         errors.push({ nodeId: node.id, severity: "error", message: "Output must be connected to an Agent" });
       }
+    }
+
+    if (node.type === "graph-agent") {
+      errors.push(...validateGraphAgent(node, graph));
     }
 
     // Check: tool connected to multiple agents/sub-agents

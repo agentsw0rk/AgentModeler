@@ -24,6 +24,7 @@ import {
   A2AAgentReteNode,
   InputReteNode,
   OutputReteNode,
+  GraphAgentReteNode,
 } from "./rete-nodes";
 
 export type Schemes = GetSchemes<AppNode, AppConnection>;
@@ -100,6 +101,19 @@ export async function createEditor(container: HTMLElement) {
       const isSubAgentSource2 = sourceNode instanceof SubAgentReteNode;
       const isPlannerAgentSource = sourceNode instanceof PlannerAgentReteNode;
       if ((isAgentSource || isSubAgentSource2 || isPlannerAgentSource) && isOutputTarget) {
+        return context;
+      }
+      // Tool/Builtin/SubAgent/MCP/Input -> GraphAgent: OK
+      const isGraphAgentTarget = targetNode instanceof GraphAgentReteNode;
+      if ((isToolSource || isSubAgentSource || isMcpSource || isInputSource) && isGraphAgentTarget) {
+        return context;
+      }
+      if (isA2ASource && isGraphAgentTarget) {
+        return context;
+      }
+      // GraphAgent -> Output: OK
+      const isGraphAgentSource = sourceNode instanceof GraphAgentReteNode;
+      if (isGraphAgentSource && isOutputTarget) {
         return context;
       }
       // Everything else: blocked

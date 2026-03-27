@@ -18,6 +18,8 @@ import { A2AAgentConfig } from "@/types/a2a";
 import { InputProperties } from "./InputProperties";
 import { OutputProperties } from "./OutputProperties";
 import { InputNodeConfig, OutputNodeConfig } from "@/types/io";
+import { GraphAgentProperties } from "./GraphAgentProperties";
+import { GraphAgentConfig } from "@/types/graph-agent";
 
 export function PropertiesPanel() {
   const selectedNodeIds = useEditorStore((s) => s.selectedNodeIds);
@@ -51,6 +53,7 @@ export function PropertiesPanel() {
            selectedNode.type === "a2a-agent" ? "A2A Agent" :
            selectedNode.type === "input" ? "Input" :
            selectedNode.type === "output" ? "Output" :
+           selectedNode.type === "graph-agent" ? "Graph Agent" :
            selectedNode.type} Properties
         </h3>
         {selectedNode.type === "agent" && (
@@ -79,6 +82,9 @@ export function PropertiesPanel() {
         )}
         {selectedNode.type === "output" && (
           <OutputProperties nodeId={selectedNode.id} data={selectedNode.data as OutputNodeConfig} />
+        )}
+        {selectedNode.type === "graph-agent" && (
+          <GraphAgentProperties nodeId={selectedNode.id} data={selectedNode.data as GraphAgentConfig} />
         )}
       </div>
     </ScrollArea>

@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { createEditor } from "@/lib/rete-setup";
 import { useEditorStore } from "@/store/editorStore";
-import { AgentReteNode, ToolReteNode, BuiltinToolReteNode, SubAgentReteNode, McpServerReteNode, PlannerAgentReteNode, A2AAgentReteNode, InputReteNode, OutputReteNode } from "@/lib/rete-nodes";
+import { AgentReteNode, ToolReteNode, BuiltinToolReteNode, SubAgentReteNode, McpServerReteNode, PlannerAgentReteNode, A2AAgentReteNode, InputReteNode, OutputReteNode, GraphAgentReteNode } from "@/lib/rete-nodes";
 import { BuiltinToolType, BUILTIN_TOOL_LABELS } from "@/types/graph";
 import type { Schemes } from "@/lib/rete-setup";
 import type { NodeEditor } from "rete";
@@ -78,14 +78,16 @@ export function Canvas() {
           const isInputSource = sourceNode instanceof InputReteNode;
           const isAgentSource = sourceNode instanceof AgentReteNode;
           const isPlannerAgentSource = sourceNode instanceof PlannerAgentReteNode;
+          const isGraphAgentSource = sourceNode instanceof GraphAgentReteNode;
           const isAgentTarget = targetNode instanceof AgentReteNode;
           const isSubAgentTarget = targetNode instanceof SubAgentReteNode;
           const isPlannerAgentTarget = targetNode instanceof PlannerAgentReteNode;
+          const isGraphAgentTarget = targetNode instanceof GraphAgentReteNode;
           const isOutputTarget = targetNode instanceof OutputReteNode;
 
           if (
-            ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource || isInputSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget)) ||
-            ((isAgentSource || isSubAgentSource || isPlannerAgentSource) && isOutputTarget)
+            ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource || isInputSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget || isGraphAgentTarget)) ||
+            ((isAgentSource || isSubAgentSource || isPlannerAgentSource || isGraphAgentSource) && isOutputTarget)
           ) {
             syncing = true;
             const sourceStoreId = (sourceNode as any).storeNodeId;
@@ -110,14 +112,16 @@ export function Canvas() {
           const isInputSource = sourceNode instanceof InputReteNode;
           const isAgentSource = sourceNode instanceof AgentReteNode;
           const isPlannerAgentSource = sourceNode instanceof PlannerAgentReteNode;
+          const isGraphAgentSource = sourceNode instanceof GraphAgentReteNode;
           const isAgentTarget = targetNode instanceof AgentReteNode;
           const isSubAgentTarget = targetNode instanceof SubAgentReteNode;
           const isPlannerAgentTarget = targetNode instanceof PlannerAgentReteNode;
+          const isGraphAgentTarget = targetNode instanceof GraphAgentReteNode;
           const isOutputTarget = targetNode instanceof OutputReteNode;
 
           if (
-            ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource || isInputSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget)) ||
-            ((isAgentSource || isSubAgentSource || isPlannerAgentSource) && isOutputTarget)
+            ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource || isInputSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget || isGraphAgentTarget)) ||
+            ((isAgentSource || isSubAgentSource || isPlannerAgentSource || isGraphAgentSource) && isOutputTarget)
           ) {
             syncing = true;
             const sourceStoreId = (sourceNode as any).storeNodeId;
@@ -161,6 +165,8 @@ export function Canvas() {
               reteNode = new InputReteNode(node.id, (node.data as any).name || "Input");
             } else if (node.type === "output") {
               reteNode = new OutputReteNode(node.id, (node.data as any).name || "Output");
+            } else if (node.type === "graph-agent") {
+              reteNode = new GraphAgentReteNode(node.id, (node.data as any).name || "Graph Agent");
             } else {
               reteNode = new ToolReteNode(node.id, (node.data as any).name || "Tool");
             }
