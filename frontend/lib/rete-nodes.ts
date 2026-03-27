@@ -13,10 +13,11 @@ export const toolSocket = new ToolSocket();
 
 export class AgentReteNode extends ClassicPreset.Node {
   width = 200;
-  height = 100;
+  height = 120;
 
   constructor(public storeNodeId: string, label: string) {
     super(label || "Agent");
+    this.addInput("inputs", new ClassicPreset.Input(toolSocket, "Inputs", true));
     this.addInput("tools", new ClassicPreset.Input(toolSocket, "Tools", true));
     this.addOutput("outputs", new ClassicPreset.Output(toolSocket, "Outputs"));
   }
@@ -44,10 +45,11 @@ export class BuiltinToolReteNode extends ClassicPreset.Node {
 
 export class SubAgentReteNode extends ClassicPreset.Node {
   width = 220;
-  height = 100;
+  height = 120;
 
   constructor(public storeNodeId: string, label: string) {
     super(label || "Sub-Agent");
+    this.addInput("inputs", new ClassicPreset.Input(toolSocket, "Inputs", true));
     this.addInput("tools", new ClassicPreset.Input(toolSocket, "Tools", true));
     this.addOutput("agent", new ClassicPreset.Output(toolSocket, "Agent"));
     this.addOutput("outputs", new ClassicPreset.Output(toolSocket, "Outputs"));
@@ -66,11 +68,12 @@ export class McpServerReteNode extends ClassicPreset.Node {
 
 export class PlannerAgentReteNode extends ClassicPreset.Node {
   width = 220;
-  height = 100;
+  height = 120;
   public storeNodeId: string;
   constructor(storeNodeId: string, label: string) {
     super(label);
     this.storeNodeId = storeNodeId;
+    this.addInput("inputs", new ClassicPreset.Input(toolSocket, "Inputs", true));
     this.addInput("tools", new ClassicPreset.Input(toolSocket, "Tools", true));
     this.addOutput("outputs", new ClassicPreset.Output(toolSocket, "Outputs"));
   }

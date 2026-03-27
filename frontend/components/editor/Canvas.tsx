@@ -232,7 +232,11 @@ export function Canvas() {
             const targetRete = findReteNode(edge.target);
             if (sourceRete && targetRete) {
               const outputKey = Object.keys(sourceRete.outputs || {})[0];
-              const inputKey = Object.keys(targetRete.inputs || {})[0];
+              const isInputSource = sourceRete instanceof InputReteNode;
+              const isOutputTarget = targetRete instanceof OutputReteNode;
+              const inputKey = isOutputTarget ? "agent"
+                : isInputSource && targetRete.inputs?.["inputs"] ? "inputs"
+                : Object.keys(targetRete.inputs || {})[0];
               if (outputKey && inputKey) {
                 syncing = true;
                 const { ClassicPreset } = await import("rete");
