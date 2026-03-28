@@ -39,6 +39,8 @@ export interface ToolFunction {
   name: string;
   description: string;
   parameters: ToolParameter[];
+  returnType: "String" | "Unit";
+  body: string;
 }
 
 export interface ToolConfig {
@@ -67,6 +69,8 @@ export function migrateToolNodeData(data: Record<string, unknown>): ToolConfig {
     name: (data.name as string) || "",
     description: (data.description as string) || "",
     parameters: params,
+    returnType: "String",
+    body: "",
   };
   return {
     name: (data.name as string) || "",

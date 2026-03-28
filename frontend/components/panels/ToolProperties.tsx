@@ -25,6 +25,8 @@ export function ToolProperties({ nodeId, data }: { nodeId: string; data: ToolCon
       name: "",
       description: "",
       parameters: [],
+      returnType: "String",
+      body: "",
     };
     updateFunctions([...data.functions, fn]);
     setExpandedFnIds((s) => new Set(s).add(fn.id));
@@ -274,6 +276,30 @@ export function ToolProperties({ nodeId, data }: { nodeId: string; data: ToolCon
                           );
                         })}
                       </div>
+                    </div>
+
+                    {/* Return Type */}
+                    <div>
+                      <Label className="text-xs">Return Type</Label>
+                      <Select value={fn.returnType || "String"} onValueChange={(v) => updateFunction(fn.id, { returnType: v as "String" | "Unit" })}>
+                        <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="String">String</SelectItem>
+                          <SelectItem value="Unit">Unit (no return)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Function Body */}
+                    <div>
+                      <Label className="text-xs">Function Body</Label>
+                      <textarea
+                        value={fn.body || ""}
+                        onChange={(e) => updateFunction(fn.id, { body: e.target.value })}
+                        rows={6}
+                        placeholder={fn.returnType === "Unit" ? "// Implementation code" : 'return "Not implemented"'}
+                        className="w-full rounded-md border bg-background px-3 py-2 text-xs font-mono resize-y min-h-[80px] focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
                     </div>
                   </div>
                 )}
