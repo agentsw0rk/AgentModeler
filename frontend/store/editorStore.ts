@@ -5,7 +5,7 @@ import { SubAgentConfig } from "@/types/subagent";
 import { McpServerConfig } from "@/types/mcp";
 import { PlannerAgentConfig } from "@/types/planner";
 import { A2AAgentConfig } from "@/types/a2a";
-import { InputNodeConfig, OutputNodeConfig } from "@/types/io";
+import { InputNodeConfig, OutputNodeConfig, migrateIONodeData } from "@/types/io";
 import { GraphAgentConfig } from "@/types/graph-agent";
 
 export const DEFAULT_WORKSPACE_NAME = "Untitled Workspace";
@@ -68,16 +68,11 @@ const defaultMcpServerData: McpServerConfig = {
 };
 
 const defaultInputData: InputNodeConfig = {
-  name: "",
-  description: "",
-  dataType: "string",
-  required: true,
+  fields: [],
 };
 
 const defaultOutputData: OutputNodeConfig = {
-  name: "",
-  description: "",
-  dataType: "string",
+  fields: [],
 };
 
 const defaultA2AAgentData: A2AAgentConfig = {
@@ -302,8 +297,14 @@ export const useEditorStore = create<EditorState>((set) => ({
     }));
   },
   applyRemoteGraphReset: (graph) => {
+    const migratedNodes = graph.nodes.map((n) => {
+      if ((n.type === "input" || n.type === "output") && !Array.isArray((n.data as Record<string, unknown>).fields)) {
+        return { ...n, data: migrateIONodeData(n.data as Record<string, unknown>) };
+      }
+      return n;
+    });
     set({
-      nodes: graph.nodes,
+      nodes: migratedNodes,
       edges: graph.edges,
       workspaceName: graph.name,
       selectedNodeIds: [],
