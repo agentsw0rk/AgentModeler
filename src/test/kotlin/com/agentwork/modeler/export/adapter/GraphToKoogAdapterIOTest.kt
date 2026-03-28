@@ -28,13 +28,12 @@ class GraphToKoogAdapterIOTest {
         )
         val agents = adapter.convert(graph)
         assertEquals(1, agents.size)
-        assertEquals(2, agents[0].inputs.size)
-        val q = agents[0].inputs.find { it.name == "query" }!!
-        assertEquals("string", q.dataType)
-        assertTrue(q.required)
-        val l = agents[0].inputs.find { it.name == "limit" }!!
-        assertEquals("number", l.dataType)
-        assertEquals("10", l.defaultValue)
+        val input = agents[0].inputs.first()
+        assertEquals(2, input.fields.size)
+        val q = input.fields.find { it.name == "query" }!!
+        assertEquals("String", q.type)
+        val l = input.fields.find { it.name == "limit" }!!
+        assertEquals("Double", l.type)
     }
 
     @Test
@@ -49,9 +48,9 @@ class GraphToKoogAdapterIOTest {
         )
         val agents = adapter.convert(graph)
         assertEquals(1, agents.size)
-        assertEquals(1, agents[0].outputs.size)
-        assertEquals("result", agents[0].outputs[0].name)
-        assertEquals("string", agents[0].outputs[0].dataType)
+        val output = agents[0].outputs.first()
+        assertEquals(1, output.fields.size)
+        assertEquals("result", output.fields[0].name)
     }
 
     @Test
@@ -80,10 +79,12 @@ class GraphToKoogAdapterIOTest {
         )
         val agents = adapter.convert(graph)
         val sa = agents[0].subAgents[0]
-        assertEquals(1, sa.inputs.size)
-        assertEquals("topic", sa.inputs[0].name)
-        assertEquals(1, sa.outputs.size)
-        assertEquals("findings", sa.outputs[0].name)
+        val saInput = sa.inputs.first()
+        assertEquals(1, saInput.fields.size)
+        assertEquals("topic", saInput.fields[0].name)
+        val saOutput = sa.outputs.first()
+        assertEquals(1, saOutput.fields.size)
+        assertEquals("findings", saOutput.fields[0].name)
     }
 
     @Test
@@ -102,9 +103,11 @@ class GraphToKoogAdapterIOTest {
             edges = listOf(edge("i1", "p1"), edge("p1", "o1"))
         )
         val planners = adapter.convertPlannerAgents(graph)
-        assertEquals(1, planners[0].inputs.size)
-        assertEquals("goal", planners[0].inputs[0].name)
-        assertEquals(1, planners[0].outputs.size)
-        assertEquals("plan", planners[0].outputs[0].name)
+        val plannerInput = planners[0].inputs.first()
+        assertEquals(1, plannerInput.fields.size)
+        assertEquals("goal", plannerInput.fields[0].name)
+        val plannerOutput = planners[0].outputs.first()
+        assertEquals(1, plannerOutput.fields.size)
+        assertEquals("plan", plannerOutput.fields[0].name)
     }
 }

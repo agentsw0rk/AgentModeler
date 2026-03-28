@@ -127,8 +127,8 @@ class RegistryGeneratorTest {
             modelId = null, temperature = null, delegationMode = "automatic",
             inputDescription = "A topic",
             tools = emptyList(), builtinTools = emptyList(),
-            inputs = listOf(KoogInput("query", "Q", "string", true, null)),
-            outputs = listOf(KoogOutput("result", "R", "string"))
+            inputs = listOf(KoogInput(null, listOf(KoogField("query", "String", "Q", false)))),
+            outputs = listOf(KoogOutput(null, listOf(KoogField("result", "String", "R", false))))
         )
         val code = generator.generate(emptyList(), emptyList(), listOf(subAgent))
         assertContains(code, "GraphAIAgent<ResearchInput, ResearchOutput>")

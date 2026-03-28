@@ -1,10 +1,10 @@
 package com.agentwork.modeler.export.generator
 
+import com.agentwork.modeler.export.model.KoogField
 import com.agentwork.modeler.export.model.KoogInput
 import com.agentwork.modeler.export.model.KoogOutput
 import org.junit.jupiter.api.Test
 import kotlin.test.assertContains
-import kotlin.test.assertFalse
 import kotlin.test.assertNull
 
 class InputOutputGeneratorTest {
@@ -12,78 +12,124 @@ class InputOutputGeneratorTest {
     private val generator = InputOutputGenerator()
 
     @Test
-    fun `generates input data class with required field`() {
-        val inputs = listOf(KoogInput("query", "Search query", "string", true, null))
-        val code = generator.generateInputClass("MyAgent", inputs)!!
-        assertContains(code, "package generated")
-        assertContains(code, "data class MyAgentInput")
+    fun `generates input class with multiple fields and LLMDescription`() {
+        val input = KoogInput(
+            className = null,
+            fields = listOf(
+                KoogField("successful", "Boolean", "Was the order successful?", false),
+                KoogField("comment", "String", "Optional comment", true),
+                KoogField("totalPrice", "Int", "Total price in USD", false)
+            )
+        )
+        val code = generator.generateInputClass("OrderAgent", input)!!
+        assertContains(code, "data class OrderAgentInput(")
+        assertContains(code, "@Serializable")
+        assertContains(code, "import kotlinx.serialization.Serializable")
+        assertContains(code, "import ai.koog.agents.core.tools.annotations.LLMDescription")
+        assertContains(code, "@property:LLMDescription(\"Was the order successful?\")")
+        assertContains(code, "val successful: Boolean,")
+        assertContains(code, "val totalPrice: Int,")
+        assertContains(code, "@property:LLMDescription(\"Optional comment\")")
+        assertContains(code, "val comment: String? = null")
+    }
+
+    @Test
+    fun `uses custom className when provided`() {
+        val input = KoogInput(
+            className = "FinalOrderResult",
+            fields = listOf(KoogField("ok", "Boolean", "", false))
+        )
+        val code = generator.generateInputClass("OrderAgent", input)!!
+        assertContains(code, "data class FinalOrderResult(")
+    }
+
+    @Test
+    fun `omits LLMDescription when description is empty`() {
+        val input = KoogInput(
+            className = null,
+            fields = listOf(KoogField("query", "String", "", false))
+        )
+        val code = generator.generateInputClass("Test", input)!!
+        assert(!code.contains("LLMDescription"))
         assertContains(code, "val query: String")
-        assertFalse(code.contains("="))
     }
 
     @Test
-    fun `generates input data class with optional field and default`() {
-        val inputs = listOf(
-            KoogInput("query", "Search query", "string", true, null),
-            KoogInput("limit", "Max results", "number", false, "10")
+    fun `maps all field types correctly`() {
+        val input = KoogInput(
+            className = null,
+            fields = listOf(
+                KoogField("a", "String", "", false),
+                KoogField("b", "Int", "", false),
+                KoogField("c", "Double", "", false),
+                KoogField("d", "Boolean", "", false),
+                KoogField("e", "List", "", false),
+                KoogField("f", "Map", "", false)
+            )
         )
-        val code = generator.generateInputClass("MyAgent", inputs)!!
-        assertContains(code, "val query: String")
-        assertContains(code, "val limit: Double = 10.0")
-    }
-
-    @Test
-    fun `generates output data class`() {
-        val outputs = listOf(
-            KoogOutput("result", "The result", "string"),
-            KoogOutput("count", "Number of results", "number")
-        )
-        val code = generator.generateOutputClass("MyAgent", outputs)!!
-        assertContains(code, "data class MyAgentOutput")
-        assertContains(code, "val result: String")
-        assertContains(code, "val count: Double")
-    }
-
-    @Test
-    fun `maps all data types correctly`() {
-        val inputs = listOf(
-            KoogInput("a", "", "string", true, null),
-            KoogInput("b", "", "number", true, null),
-            KoogInput("c", "", "boolean", true, null),
-            KoogInput("d", "", "object", true, null),
-            KoogInput("e", "", "array", true, null)
-        )
-        val code = generator.generateInputClass("Test", inputs)!!
+        val code = generator.generateInputClass("Test", input)!!
         assertContains(code, "val a: String")
-        assertContains(code, "val b: Double")
-        assertContains(code, "val c: Boolean")
-        assertContains(code, "val d: Map<String, Any>")
+        assertContains(code, "val b: Int")
+        assertContains(code, "val c: Double")
+        assertContains(code, "val d: Boolean")
         assertContains(code, "val e: List<Any>")
+        assertContains(code, "val f: Map<String, Any>")
     }
 
     @Test
-    fun `returns null for empty inputs`() {
-        assertNull(generator.generateInputClass("MyAgent", emptyList()))
+    fun `optional fields get nullable type with null default`() {
+        val input = KoogInput(
+            className = null,
+            fields = listOf(
+                KoogField("name", "String", "", false),
+                KoogField("age", "Int", "", true)
+            )
+        )
+        val code = generator.generateInputClass("Test", input)!!
+        assertContains(code, "val name: String,")
+        assertContains(code, "val age: Int? = null")
     }
 
     @Test
-    fun `returns null for empty outputs`() {
-        assertNull(generator.generateOutputClass("MyAgent", emptyList()))
+    fun `returns null for empty fields`() {
+        assertNull(generator.generateInputClass("Test", KoogInput(null, emptyList())))
+        assertNull(generator.generateOutputClass("Test", KoogOutput(null, emptyList())))
     }
 
     @Test
-    fun `generates input class with Serializable annotation`() {
-        val inputs = listOf(KoogInput("query", "Search query", "string", true, null))
-        val code = generator.generateInputClass("MyAgent", inputs)!!
-        assertContains(code, "@Serializable")
-        assertContains(code, "import kotlinx.serialization.Serializable")
+    fun `generates output class with fields and LLMDescription`() {
+        val output = KoogOutput(
+            className = "OrderResult",
+            fields = listOf(
+                KoogField("status", "String", "Order status", false),
+                KoogField("details", "String", "Extra info", true)
+            )
+        )
+        val code = generator.generateOutputClass("OrderAgent", output)!!
+        assertContains(code, "data class OrderResult(")
+        assertContains(code, "@property:LLMDescription(\"Order status\")")
+        assertContains(code, "val status: String,")
+        assertContains(code, "val details: String? = null")
     }
 
     @Test
-    fun `generates output class with Serializable annotation`() {
-        val outputs = listOf(KoogOutput("result", "The result", "string"))
-        val code = generator.generateOutputClass("MyAgent", outputs)!!
-        assertContains(code, "@Serializable")
-        assertContains(code, "import kotlinx.serialization.Serializable")
+    fun `required fields come before optional fields`() {
+        val input = KoogInput(
+            className = null,
+            fields = listOf(
+                KoogField("opt1", "String", "", true),
+                KoogField("req1", "String", "", false),
+                KoogField("opt2", "Int", "", true),
+                KoogField("req2", "Boolean", "", false)
+            )
+        )
+        val code = generator.generateInputClass("Test", input)!!
+        val req1Idx = code.indexOf("val req1: String")
+        val req2Idx = code.indexOf("val req2: Boolean")
+        val opt1Idx = code.indexOf("val opt1: String?")
+        val opt2Idx = code.indexOf("val opt2: Int?")
+        assert(req1Idx < opt1Idx) { "Required fields should come before optional" }
+        assert(req2Idx < opt1Idx) { "Required fields should come before optional" }
+        assert(opt1Idx < opt2Idx) { "Optional fields should maintain relative order" }
     }
 }

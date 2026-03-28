@@ -93,8 +93,8 @@ class GraphToKoogAdapterGraphAgentTest {
         val result = adapter.convertGraphAgents(graph)
         assertEquals(1, result.size)
         assertEquals(1, result.first().inputs.size)
-        assertEquals("query", result.first().inputs.first().name)
+        assertEquals("query", result.first().inputs.first().fields.first().name)
         assertEquals(1, result.first().outputs.size)
-        assertEquals("result", result.first().outputs.first().name)
+        assertEquals("result", result.first().outputs.first().fields.first().name)
     }
 }

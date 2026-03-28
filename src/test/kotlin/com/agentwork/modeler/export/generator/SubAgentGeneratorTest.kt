@@ -105,8 +105,8 @@ class SubAgentGeneratorTest {
             modelId = null, temperature = null, delegationMode = "automatic",
             inputDescription = "Input",
             tools = emptyList(), builtinTools = emptyList(),
-            inputs = listOf(KoogInput("query", "Query", "string", true, null)),
-            outputs = listOf(KoogOutput("result", "Result", "string"))
+            inputs = listOf(KoogInput(null, listOf(KoogField("query", "String", "Query", false)))),
+            outputs = listOf(KoogOutput(null, listOf(KoogField("result", "String", "Result", false))))
         )
         val code = generator.generate(subAgent)
         assertContains(code, "fun createResearch(): AIAgent<ResearchInput, ResearchOutput>")
