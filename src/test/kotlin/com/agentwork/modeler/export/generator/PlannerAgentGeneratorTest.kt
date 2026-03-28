@@ -91,7 +91,7 @@ class PlannerAgentGeneratorTest {
 
     @Test
     fun `generates tool registry when tools present`() {
-        val tool = KoogTool("SearchTool", "Searches things", emptyList(), null)
+        val tool = KoogTool("SearchTool", "Searches things", emptyList())
         val files = generator.generate(llmPlanner(tools = listOf(tool)))
         val config = files["PlannerAgent.kt"]!!
         assertContains(config, "toolRegistry")

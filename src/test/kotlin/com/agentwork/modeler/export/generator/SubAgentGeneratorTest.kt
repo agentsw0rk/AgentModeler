@@ -48,7 +48,7 @@ class SubAgentGeneratorTest {
             systemPrompt = "Prompt", modelProvider = ModelProvider.OPENAI,
             modelId = null, temperature = null, delegationMode = "automatic",
             inputDescription = "Input",
-            tools = listOf(KoogTool("fetchTool", "Fetches", emptyList(), null)),
+            tools = listOf(KoogTool("fetchTool", "Fetches", emptyList())),
             builtinTools = emptyList()
         )
         val code = generator.generate(subAgent)
@@ -75,7 +75,7 @@ class SubAgentGeneratorTest {
             systemPrompt = "Prompt", modelProvider = ModelProvider.OPENAI,
             modelId = null, temperature = null, delegationMode = "automatic",
             inputDescription = "Input",
-            tools = listOf(KoogTool("fetchTool", "Fetches", emptyList(), null)),
+            tools = listOf(KoogTool("fetchTool", "Fetches", emptyList())),
             builtinTools = emptyList()
         )
         val code = generator.generateRegistry(subAgent)!!

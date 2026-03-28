@@ -31,7 +31,7 @@ class AgentGeneratorTest {
     @Test
     fun `generates agent with tool registry reference`() {
         val agent = KoogAgent("AgentWithTools", "Help", ModelProvider.ANTHROPIC, null, null,
-            listOf(KoogTool("searchTool", "Searches", emptyList(), null)))
+            listOf(KoogTool("searchTool", "Searches", emptyList())))
         val code = generator.generate(agent)
         assertContains(code, "toolRegistry = createToolRegistry()")
         assertContains(code, "AnthropicModels")

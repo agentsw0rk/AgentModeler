@@ -13,8 +13,8 @@ class RegistryGeneratorTest {
     @Test
     fun `generates registry with custom tools only`() {
         val tools = listOf(
-            KoogTool("searchTool", "Searches", emptyList(), null),
-            KoogTool("calcTool", "Calculates", emptyList(), null)
+            KoogTool("searchTool", "Searches", emptyList()),
+            KoogTool("calcTool", "Calculates", emptyList())
         )
         val code = generator.generate(tools, emptyList())
         assertContains(code, "ToolRegistry")
@@ -59,7 +59,7 @@ class RegistryGeneratorTest {
 
     @Test
     fun `generates mixed custom and builtin tools`() {
-        val tools = listOf(KoogTool("searchTool", "Searches", emptyList(), null))
+        val tools = listOf(KoogTool("searchTool", "Searches", emptyList()))
         val builtinTools = listOf(
             KoogBuiltinTool(BuiltinToolType.SHELL),
             KoogBuiltinTool(BuiltinToolType.USER_PROMPT)
@@ -93,7 +93,7 @@ class RegistryGeneratorTest {
 
     @Test
     fun `generates registry with mixed tools and sub-agents`() {
-        val tools = listOf(KoogTool("weatherTool", "Weather", emptyList(), null))
+        val tools = listOf(KoogTool("weatherTool", "Weather", emptyList()))
         val subAgents = listOf(
             KoogSubAgent(
                 name = "SA", description = "Desc",
@@ -139,7 +139,7 @@ class RegistryGeneratorTest {
 
     @Test
     fun `generates non-suspend registry without MCP`() {
-        val tools = listOf(KoogTool("searchTool", "Searches", emptyList(), null))
+        val tools = listOf(KoogTool("searchTool", "Searches", emptyList()))
         val code = generator.generate(tools)
         assertFalse(code.contains("suspend"))
         assertFalse(code.contains("import generated.mcp"))
@@ -147,7 +147,7 @@ class RegistryGeneratorTest {
 
     @Test
     fun `generates suspend registry with tools and MCP`() {
-        val tools = listOf(KoogTool("weatherTool", "Weather", emptyList(), null))
+        val tools = listOf(KoogTool("weatherTool", "Weather", emptyList()))
         val mcpServers = listOf(
             KoogMcpServer("Maps", "sse", "http://localhost", null, null, emptyList())
         )

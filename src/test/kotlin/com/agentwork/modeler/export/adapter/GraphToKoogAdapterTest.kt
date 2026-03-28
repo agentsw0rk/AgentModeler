@@ -40,8 +40,9 @@ class GraphToKoogAdapterTest {
         assertEquals(ModelProvider.OPENAI, agents[0].modelProvider)
         assertEquals(1, agents[0].tools.size)
         assertEquals("searchTool", agents[0].tools[0].name)
-        assertEquals(1, agents[0].tools[0].parameters.size)
-        assertEquals(KoogParamType.STRING, agents[0].tools[0].parameters[0].type)
+        assertEquals(1, agents[0].tools[0].functions.size)
+        assertEquals(1, agents[0].tools[0].functions[0].parameters.size)
+        assertEquals(KoogParamType.STRING, agents[0].tools[0].functions[0].parameters[0].type)
     }
 
     @Test
