@@ -32,6 +32,7 @@ export function GraphStrategyCanvas(props: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<NodeEditor<StrategySchemes> | null>(null);
   const areaRef = useRef<AreaPlugin<StrategySchemes, any> | null>(null);
+  const initializedRef = useRef(false);
   const propsRef = useRef(props);
   propsRef.current = props;
 
@@ -113,6 +114,7 @@ export function GraphStrategyCanvas(props: Props) {
       window.addEventListener("strategy-edge-delete", handleEdgeDelete);
 
       await syncToRete(editor, area, propsRef.current.strategyNodes, propsRef.current.strategyEdges);
+      initializedRef.current = true;
     };
 
     init();
@@ -126,7 +128,7 @@ export function GraphStrategyCanvas(props: Props) {
   }, []);
 
   useEffect(() => {
-    if (syncing || !editorRef.current || !areaRef.current) return;
+    if (!initializedRef.current || syncing || !editorRef.current || !areaRef.current) return;
     syncToRete(editorRef.current, areaRef.current, props.strategyNodes, props.strategyEdges);
   }, [props.strategyNodes, props.strategyEdges]);
 
