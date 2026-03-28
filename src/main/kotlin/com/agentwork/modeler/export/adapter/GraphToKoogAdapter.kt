@@ -168,7 +168,9 @@ class GraphToKoogAdapter {
             KoogToolFunction(
                 name = fnMap["name"] as? String ?: "",
                 description = fnMap["description"] as? String ?: "",
-                parameters = params
+                parameters = params,
+                returnType = fnMap["returnType"] as? String ?: "String",
+                body = fnMap["body"] as? String ?: ""
             )
         }
         return KoogTool(

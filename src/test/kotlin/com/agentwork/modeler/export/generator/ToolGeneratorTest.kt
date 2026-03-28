@@ -105,6 +105,46 @@ class ToolGeneratorTest {
     }
 
     @Test
+    fun `generates function with Unit return type`() {
+        val tool = KoogTool("Tools", "Test.", listOf(
+            KoogToolFunction("logAction", "Logs an action.", listOf(
+                KoogToolParameter("action", KoogParamType.STRING, "Action name.", true, null)
+            ), returnType = "Unit")
+        ))
+        val code = generator.generate(tool)
+        assertContains(code, "fun logAction(")
+        assertContains(code, ") {")
+        assertFalse(code.contains("): String"))
+        assertContains(code, "// TODO: Implement tool logic")
+        assertFalse(code.contains("return"))
+    }
+
+    @Test
+    fun `generates function with custom body`() {
+        val tool = KoogTool("Tools", "Test.", listOf(
+            KoogToolFunction("getBalance", "Returns balance.", listOf(
+                KoogToolParameter("userId", KoogParamType.INT, "User id.", true, null)
+            ), body = "return \"Balance: 200.00 EUR\"")
+        ))
+        val code = generator.generate(tool)
+        assertContains(code, "): String {")
+        assertContains(code, "return \"Balance: 200.00 EUR\"")
+        assertFalse(code.contains("TODO"))
+    }
+
+    @Test
+    fun `generates Unit function with custom body`() {
+        val tool = KoogTool("Tools", "Test.", listOf(
+            KoogToolFunction("log", "Logs.", emptyList(), returnType = "Unit", body = "println(\"done\")")
+        ))
+        val code = generator.generate(tool)
+        assertContains(code, "fun log() {")
+        assertFalse(code.contains(": String"))
+        assertContains(code, "println(\"done\")")
+        assertFalse(code.contains("TODO"))
+    }
+
+    @Test
     fun `default value formatting for different types`() {
         val tool = KoogTool("Tools", "Test.", listOf(
             KoogToolFunction("fn", "Test fn.", listOf(

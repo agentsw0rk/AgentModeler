@@ -27,15 +27,24 @@ class ToolGenerator {
                 appendLine("""    @LLMDescription("${fn.description}")""")
             }
             val paramStr = generateParams(fn.parameters)
+            val returnSuffix = if (fn.returnType == "Unit") "" else ": String"
             if (paramStr.isEmpty()) {
-                appendLine("    fun ${fn.name}(): String {")
+                appendLine("    fun ${fn.name}()$returnSuffix {")
             } else {
                 appendLine("    fun ${fn.name}(")
                 append(paramStr)
-                appendLine("    ): String {")
+                appendLine("    )$returnSuffix {")
             }
-            appendLine("        // TODO: Implement tool logic")
-            appendLine("        return \"Not implemented\"")
+            if (fn.body.isBlank()) {
+                appendLine("        // TODO: Implement tool logic")
+                if (fn.returnType != "Unit") {
+                    appendLine("        return \"Not implemented\"")
+                }
+            } else {
+                for (line in fn.body.lines()) {
+                    if (line.isBlank()) appendLine() else appendLine("        $line")
+                }
+            }
             appendLine("    }")
         }
         appendLine("}")

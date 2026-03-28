@@ -32,7 +32,9 @@ data class KoogTool(
 data class KoogToolFunction(
     val name: String,
     val description: String,
-    val parameters: List<KoogToolParameter>
+    val parameters: List<KoogToolParameter>,
+    val returnType: String = "String",
+    val body: String = ""
 )
 
 data class KoogToolParameter(
