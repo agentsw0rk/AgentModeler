@@ -116,13 +116,17 @@ class ExportService(
             }
 
             // Input/Output classes
-            val inputCode = inputOutputGenerator.generateInputClass(planner.name, planner.inputs)
+            val mergedIn = mergedInput(planner.inputs)
+            val inputCode = inputOutputGenerator.generateInputClass(planner.name, mergedIn)
             if (inputCode != null) {
-                files["$pkg/${planner.name.replaceFirstChar { it.uppercase() }}Input.kt"] = inputCode
+                val inName = mergedIn.className?.ifBlank { null } ?: "${planner.name.replaceFirstChar { it.uppercase() }}Input"
+                files["$pkg/$inName.kt"] = inputCode
             }
-            val outputCode = inputOutputGenerator.generateOutputClass(planner.name, planner.outputs)
+            val mergedOut = mergedOutput(planner.outputs)
+            val outputCode = inputOutputGenerator.generateOutputClass(planner.name, mergedOut)
             if (outputCode != null) {
-                files["$pkg/${planner.name.replaceFirstChar { it.uppercase() }}Output.kt"] = outputCode
+                val outName = mergedOut.className?.ifBlank { null } ?: "${planner.name.replaceFirstChar { it.uppercase() }}Output"
+                files["$pkg/$outName.kt"] = outputCode
             }
 
             if (planner.tools.isNotEmpty() || planner.builtinTools.isNotEmpty() || planner.mcpServers.isNotEmpty()) {
@@ -177,10 +181,18 @@ class ExportService(
                 files["$pkg/mcp/$fileName.kt"] = mcpServerGenerator.generate(mcpServer)
             }
 
-            val inputCode = inputOutputGenerator.generateInputClass(ga.name, ga.inputs)
-            if (inputCode != null) files["$pkg/${ga.name.replaceFirstChar { it.uppercase() }}Input.kt"] = inputCode
-            val outputCode = inputOutputGenerator.generateOutputClass(ga.name, ga.outputs)
-            if (outputCode != null) files["$pkg/${ga.name.replaceFirstChar { it.uppercase() }}Output.kt"] = outputCode
+            val gaIn = mergedInput(ga.inputs)
+            val gaInputCode = inputOutputGenerator.generateInputClass(ga.name, gaIn)
+            if (gaInputCode != null) {
+                val inName = gaIn.className?.ifBlank { null } ?: "${ga.name.replaceFirstChar { it.uppercase() }}Input"
+                files["$pkg/$inName.kt"] = gaInputCode
+            }
+            val gaOut = mergedOutput(ga.outputs)
+            val gaOutputCode = inputOutputGenerator.generateOutputClass(ga.name, gaOut)
+            if (gaOutputCode != null) {
+                val outName = gaOut.className?.ifBlank { null } ?: "${ga.name.replaceFirstChar { it.uppercase() }}Output"
+                files["$pkg/$outName.kt"] = gaOutputCode
+            }
 
             if (ga.tools.isNotEmpty() || ga.builtinTools.isNotEmpty() || ga.subAgents.isNotEmpty() || ga.mcpServers.isNotEmpty()) {
                 files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(ga.tools, ga.builtinTools, ga.subAgents, ga.mcpServers)
@@ -248,13 +260,17 @@ class ExportService(
             }
 
             // Input/Output classes for sub-agent
-            val saInputCode = inputOutputGenerator.generateInputClass(subAgent.name, subAgent.inputs)
+            val saIn = mergedInput(subAgent.inputs)
+            val saInputCode = inputOutputGenerator.generateInputClass(subAgent.name, saIn)
             if (saInputCode != null) {
-                files["$pkg/subagents/${subAgent.name.replaceFirstChar { it.uppercase() }}Input.kt"] = saInputCode
+                val saInName = saIn.className?.ifBlank { null } ?: "${subAgent.name.replaceFirstChar { it.uppercase() }}Input"
+                files["$pkg/subagents/$saInName.kt"] = saInputCode
             }
-            val saOutputCode = inputOutputGenerator.generateOutputClass(subAgent.name, subAgent.outputs)
+            val saOut = mergedOutput(subAgent.outputs)
+            val saOutputCode = inputOutputGenerator.generateOutputClass(subAgent.name, saOut)
             if (saOutputCode != null) {
-                files["$pkg/subagents/${subAgent.name.replaceFirstChar { it.uppercase() }}Output.kt"] = saOutputCode
+                val saOutName = saOut.className?.ifBlank { null } ?: "${subAgent.name.replaceFirstChar { it.uppercase() }}Output"
+                files["$pkg/subagents/$saOutName.kt"] = saOutputCode
             }
         }
 
@@ -280,13 +296,17 @@ class ExportService(
         }
 
         // Input/Output classes
-        val inputCode = inputOutputGenerator.generateInputClass(agent.name, agent.inputs)
+        val mergedIn = mergedInput(agent.inputs)
+        val inputCode = inputOutputGenerator.generateInputClass(agent.name, mergedIn)
         if (inputCode != null) {
-            files["$pkg/${agent.name.replaceFirstChar { it.uppercase() }}Input.kt"] = inputCode
+            val inName = mergedIn.className?.ifBlank { null } ?: "${agent.name.replaceFirstChar { it.uppercase() }}Input"
+            files["$pkg/$inName.kt"] = inputCode
         }
-        val outputCode = inputOutputGenerator.generateOutputClass(agent.name, agent.outputs)
+        val mergedOut = mergedOutput(agent.outputs)
+        val outputCode = inputOutputGenerator.generateOutputClass(agent.name, mergedOut)
         if (outputCode != null) {
-            files["$pkg/${agent.name.replaceFirstChar { it.uppercase() }}Output.kt"] = outputCode
+            val outName = mergedOut.className?.ifBlank { null } ?: "${agent.name.replaceFirstChar { it.uppercase() }}Output"
+            files["$pkg/$outName.kt"] = outputCode
         }
 
         if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty() || agent.subAgents.isNotEmpty() || agent.mcpServers.isNotEmpty()) {
@@ -296,9 +316,27 @@ class ExportService(
         return files
     }
 
+    private fun mergedInput(inputs: List<KoogInput>): KoogInput {
+        val className = inputs.firstNotNullOfOrNull { it.className?.ifBlank { null } }
+        val fields = inputs.flatMap { it.fields }
+        return KoogInput(className = className, fields = fields)
+    }
+
+    private fun mergedOutput(outputs: List<KoogOutput>): KoogOutput {
+        val className = outputs.firstNotNullOfOrNull { it.className?.ifBlank { null } }
+        val fields = outputs.flatMap { it.fields }
+        return KoogOutput(className = className, fields = fields)
+    }
+
     private fun ioClassNames(name: String, inputs: List<KoogInput>, outputs: List<KoogOutput>): Pair<String?, String?> {
-        val inputClassName = if (inputs.isNotEmpty()) "${name.replaceFirstChar { it.uppercase() }}Input" else null
-        val outputClassName = if (outputs.isNotEmpty()) "${name.replaceFirstChar { it.uppercase() }}Output" else null
+        val mergedIn = mergedInput(inputs)
+        val inputClassName = if (mergedIn.fields.isNotEmpty()) {
+            mergedIn.className?.ifBlank { null } ?: "${name.replaceFirstChar { c -> c.uppercase() }}Input"
+        } else null
+        val mergedOut = mergedOutput(outputs)
+        val outputClassName = if (mergedOut.fields.isNotEmpty()) {
+            mergedOut.className?.ifBlank { null } ?: "${name.replaceFirstChar { c -> c.uppercase() }}Output"
+        } else null
         return Pair(inputClassName, outputClassName)
     }
 
