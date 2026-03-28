@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { GraphNode, GraphEdge, NodeType, BuiltinToolType, BuiltinToolConfig, WorkspaceGraph, OtelConfig } from "@/types/graph";
-import { AgentConfig, ToolConfig } from "@/types/koog";
+import { AgentConfig, ToolConfig, migrateToolNodeData } from "@/types/koog";
 import { SubAgentConfig } from "@/types/subagent";
 import { McpServerConfig } from "@/types/mcp";
 import { PlannerAgentConfig } from "@/types/planner";
@@ -48,7 +48,7 @@ const defaultAgentData: AgentConfig = {
 const defaultToolData: ToolConfig = {
   name: "",
   description: "",
-  parameters: [],
+  functions: [],
 };
 
 const defaultSubAgentData: SubAgentConfig = {
@@ -300,6 +300,9 @@ export const useEditorStore = create<EditorState>((set) => ({
     const migratedNodes = graph.nodes.map((n) => {
       if ((n.type === "input" || n.type === "output") && !Array.isArray((n.data as unknown as Record<string, unknown>).fields)) {
         return { ...n, data: migrateIONodeData(n.data as unknown as Record<string, unknown>) };
+      }
+      if (n.type === "tool" && !Array.isArray((n.data as unknown as Record<string, unknown>).functions)) {
+        return { ...n, data: migrateToolNodeData(n.data as unknown as Record<string, unknown>) };
       }
       return n;
     });
