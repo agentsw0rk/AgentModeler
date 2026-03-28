@@ -4,7 +4,12 @@ import org.springframework.stereotype.Component
 
 @Component
 class ControllerGenerator {
-    fun generate(): String {
+    fun generate(inputClassName: String? = null, outputClassName: String? = null): String {
+        val inputType = inputClassName ?: "String"
+        val outputType = outputClassName ?: "String"
+        val hasCustomInput = inputClassName != null
+        val hasCustomOutput = outputClassName != null
+
         return buildString {
             appendLine("package generated")
             appendLine()
@@ -15,17 +20,29 @@ class ControllerGenerator {
             appendLine("import org.springframework.web.bind.annotation.RestController")
             appendLine()
             appendLine("@RestController")
-            appendLine("class ChatController(private val agent: AIAgent<String, String>) {")
+            appendLine("class ChatController(private val agent: AIAgent<$inputType, $outputType>) {")
             appendLine()
             appendLine("""    @PostMapping("/api/chat")""")
-            appendLine("    fun chat(@RequestBody request: ChatRequest): ChatResponse {")
-            appendLine("        val result = runBlocking { agent.run(request.message) }")
-            appendLine("        return ChatResponse(response = result)")
+
+            val requestType = if (hasCustomInput) inputType else "ChatRequest"
+            val responseType = if (hasCustomOutput) outputType else "ChatResponse"
+            val runArg = if (hasCustomInput) "request" else "request.message"
+            val resultWrap = if (hasCustomOutput) "result" else "ChatResponse(response = result)"
+
+            appendLine("    fun chat(@RequestBody request: $requestType): $responseType {")
+            appendLine("        val result = runBlocking { agent.run($runArg) }")
+            appendLine("        return $resultWrap")
             appendLine("    }")
             appendLine("}")
-            appendLine()
-            appendLine("data class ChatRequest(val message: String)")
-            appendLine("data class ChatResponse(val response: String)")
+
+            if (!hasCustomInput) {
+                appendLine()
+                appendLine("data class ChatRequest(val message: String)")
+            }
+            if (!hasCustomOutput) {
+                appendLine()
+                appendLine("data class ChatResponse(val response: String)")
+            }
         }
     }
 }
