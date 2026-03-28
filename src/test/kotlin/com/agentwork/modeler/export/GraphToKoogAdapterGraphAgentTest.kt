@@ -22,11 +22,11 @@ class GraphToKoogAdapterGraphAgentTest {
                     "modelId" to "claude-sonnet-4",
                     "temperature" to 0.7,
                     "strategyNodes" to listOf(
-                        mapOf("id" to "sn1", "type" to "node-start"),
-                        mapOf("id" to "sn2", "type" to "node-llm-request", "label" to "llmRequest"),
-                        mapOf("id" to "sn3", "type" to "node-execute-tool", "label" to "executeTool", "toolName" to "searchTool"),
-                        mapOf("id" to "sn4", "type" to "node-llm-send-tool-result", "label" to "sendResult"),
-                        mapOf("id" to "sn5", "type" to "node-finish")
+                        mapOf("id" to "sn1", "type" to "node-start", "data" to emptyMap<String, Any?>()),
+                        mapOf("id" to "sn2", "type" to "node-llm-request", "data" to mapOf("label" to "llmRequest")),
+                        mapOf("id" to "sn3", "type" to "node-execute-tool", "data" to mapOf("label" to "executeTool", "toolName" to "searchTool")),
+                        mapOf("id" to "sn4", "type" to "node-llm-send-tool-result", "data" to mapOf("label" to "sendResult")),
+                        mapOf("id" to "sn5", "type" to "node-finish", "data" to emptyMap<String, Any?>())
                     ),
                     "strategyEdges" to listOf(
                         mapOf("source" to "sn1", "target" to "sn2", "edgeType" to "onCondition"),
@@ -74,8 +74,8 @@ class GraphToKoogAdapterGraphAgentTest {
                     "systemPrompt" to "Help",
                     "modelProvider" to "openai",
                     "strategyNodes" to listOf(
-                        mapOf("id" to "sn1", "type" to "node-start"),
-                        mapOf("id" to "sn2", "type" to "node-finish")
+                        mapOf("id" to "sn1", "type" to "node-start", "data" to emptyMap<String, Any?>()),
+                        mapOf("id" to "sn2", "type" to "node-finish", "data" to emptyMap<String, Any?>())
                     ),
                     "strategyEdges" to listOf(
                         mapOf("source" to "sn1", "target" to "sn2", "edgeType" to "onCondition")

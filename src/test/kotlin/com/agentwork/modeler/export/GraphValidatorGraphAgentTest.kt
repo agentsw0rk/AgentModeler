@@ -10,10 +10,13 @@ class GraphValidatorGraphAgentTest {
 
     private val validator = GraphValidator()
 
+    private fun sn(id: String, type: String, data: Map<String, Any?> = emptyMap()) =
+        mapOf("id" to id, "type" to type, "data" to data)
+
     private fun validStrategyNodes() = listOf(
-        mapOf("id" to "sn1", "type" to "node-start"),
-        mapOf("id" to "sn2", "type" to "node-llm-request", "label" to "llmRequest"),
-        mapOf("id" to "sn3", "type" to "node-finish")
+        sn("sn1", "node-start"),
+        sn("sn2", "node-llm-request", mapOf("label" to "llmRequest")),
+        sn("sn3", "node-finish")
     )
 
     private fun validStrategyEdges() = listOf(
@@ -57,8 +60,8 @@ class GraphValidatorGraphAgentTest {
     @Test
     fun `graph-agent without node-start fails`() {
         val noStart = listOf(
-            mapOf("id" to "sn2", "type" to "node-llm-request", "label" to "llm"),
-            mapOf("id" to "sn3", "type" to "node-finish")
+            sn("sn2", "node-llm-request", mapOf("label" to "llm")),
+            sn("sn3", "node-finish")
         )
         val edges = listOf(mapOf("source" to "sn2", "target" to "sn3", "edgeType" to "onAssistantMessage"))
         val graph = WorkspaceGraph(1, "Test", listOf(graphAgentNode(mapOf("strategyNodes" to noStart, "strategyEdges" to edges))), emptyList())
@@ -69,8 +72,8 @@ class GraphValidatorGraphAgentTest {
     @Test
     fun `graph-agent without node-finish fails`() {
         val noFinish = listOf(
-            mapOf("id" to "sn1", "type" to "node-start"),
-            mapOf("id" to "sn2", "type" to "node-llm-request", "label" to "llm")
+            sn("sn1", "node-start"),
+            sn("sn2", "node-llm-request", mapOf("label" to "llm"))
         )
         val edges = listOf(mapOf("source" to "sn1", "target" to "sn2", "edgeType" to "onCondition"))
         val graph = WorkspaceGraph(1, "Test", listOf(graphAgentNode(mapOf("strategyNodes" to noFinish, "strategyEdges" to edges))), emptyList())
@@ -81,8 +84,8 @@ class GraphValidatorGraphAgentTest {
     @Test
     fun `graph-agent start without outgoing edge fails`() {
         val nodes = listOf(
-            mapOf("id" to "sn1", "type" to "node-start"),
-            mapOf("id" to "sn2", "type" to "node-finish")
+            sn("sn1", "node-start"),
+            sn("sn2", "node-finish")
         )
         val graph = WorkspaceGraph(1, "Test", listOf(graphAgentNode(mapOf("strategyNodes" to nodes, "strategyEdges" to emptyList<Any>()))), emptyList())
         val errors = validator.validate(graph)
@@ -92,9 +95,9 @@ class GraphValidatorGraphAgentTest {
     @Test
     fun `graph-agent finish not reachable from start fails`() {
         val nodes = listOf(
-            mapOf("id" to "sn1", "type" to "node-start"),
-            mapOf("id" to "sn2", "type" to "node-llm-request", "label" to "llm"),
-            mapOf("id" to "sn3", "type" to "node-finish")
+            sn("sn1", "node-start"),
+            sn("sn2", "node-llm-request", mapOf("label" to "llm")),
+            sn("sn3", "node-finish")
         )
         val edges = listOf(mapOf("source" to "sn1", "target" to "sn2", "edgeType" to "onCondition"))
         val graph = WorkspaceGraph(1, "Test", listOf(graphAgentNode(mapOf("strategyNodes" to nodes, "strategyEdges" to edges))), emptyList())
@@ -105,9 +108,9 @@ class GraphValidatorGraphAgentTest {
     @Test
     fun `graph-agent node-execute-tool without toolName fails`() {
         val nodes = listOf(
-            mapOf("id" to "sn1", "type" to "node-start"),
-            mapOf("id" to "sn2", "type" to "node-execute-tool", "label" to "exec"),
-            mapOf("id" to "sn3", "type" to "node-finish")
+            sn("sn1", "node-start"),
+            sn("sn2", "node-execute-tool", mapOf("label" to "exec")),
+            sn("sn3", "node-finish")
         )
         val edges = listOf(
             mapOf("source" to "sn1", "target" to "sn2", "edgeType" to "onCondition"),
@@ -121,9 +124,9 @@ class GraphValidatorGraphAgentTest {
     @Test
     fun `graph-agent node-condition without condition fails`() {
         val nodes = listOf(
-            mapOf("id" to "sn1", "type" to "node-start"),
-            mapOf("id" to "sn2", "type" to "node-condition", "label" to "check"),
-            mapOf("id" to "sn3", "type" to "node-finish")
+            sn("sn1", "node-start"),
+            sn("sn2", "node-condition", mapOf("label" to "check")),
+            sn("sn3", "node-finish")
         )
         val edges = listOf(
             mapOf("source" to "sn1", "target" to "sn2", "edgeType" to "onCondition"),
@@ -137,13 +140,13 @@ class GraphValidatorGraphAgentTest {
     @Test
     fun `graph-agent onCondition edge from condition node without condition fails`() {
         val nodes = listOf(
-            mapOf("id" to "sn1", "type" to "node-start"),
-            mapOf("id" to "sn2", "type" to "node-condition", "label" to "check", "condition" to "hasResult"),
-            mapOf("id" to "sn3", "type" to "node-finish")
+            sn("sn1", "node-start"),
+            sn("sn2", "node-condition", mapOf("label" to "check", "condition" to "hasResult")),
+            sn("sn3", "node-finish")
         )
         val edges = listOf(
             mapOf("source" to "sn1", "target" to "sn2", "edgeType" to "onCondition"),
-            mapOf("source" to "sn2", "target" to "sn3", "edgeType" to "onCondition") // missing condition on edge from condition node
+            mapOf("source" to "sn2", "target" to "sn3", "edgeType" to "onCondition")
         )
         val graph = WorkspaceGraph(1, "Test", listOf(graphAgentNode(mapOf("strategyNodes" to nodes, "strategyEdges" to edges))), emptyList())
         val errors = validator.validate(graph)
@@ -155,7 +158,7 @@ class GraphValidatorGraphAgentTest {
         val nodes = validStrategyNodes()
         val edges = listOf(
             mapOf("source" to "sn1", "target" to "sn2", "edgeType" to "onCondition"),
-            mapOf("source" to "sn2", "target" to "sn3", "edgeType" to "onCondition") // no condition needed from non-condition node
+            mapOf("source" to "sn2", "target" to "sn3", "edgeType" to "onCondition")
         )
         val graph = WorkspaceGraph(1, "Test", listOf(graphAgentNode(mapOf("strategyEdges" to edges))), emptyList())
         val errors = validator.validate(graph)

@@ -260,13 +260,15 @@ class GraphValidator {
 
                     for (sn in strategyNodes) {
                         val snType = sn["type"] as? String ?: ""
+                        @Suppress("UNCHECKED_CAST")
+                        val snData = sn["data"] as? Map<String, Any?> ?: emptyMap()
                         when (snType) {
                             "node-execute-tool" -> {
-                                val toolName = sn["toolName"] as? String ?: ""
+                                val toolName = snData["toolName"] as? String ?: ""
                                 if (toolName.isBlank()) errors.add("[${node.id}] node-execute-tool requires a toolName")
                             }
                             "node-condition" -> {
-                                val condition = sn["condition"] as? String ?: ""
+                                val condition = snData["condition"] as? String ?: ""
                                 if (condition.isBlank()) errors.add("[${node.id}] node-condition requires a condition expression")
                             }
                         }

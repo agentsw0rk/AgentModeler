@@ -341,13 +341,15 @@ class GraphToKoogAdapter {
             @Suppress("UNCHECKED_CAST")
             val strategyNodeMaps = gaNode.data["strategyNodes"] as? List<Map<String, Any?>> ?: emptyList()
             val strategyNodes = strategyNodeMaps.map { snMap ->
+                @Suppress("UNCHECKED_CAST")
+                val snData = snMap["data"] as? Map<String, Any?> ?: emptyMap()
                 KoogStrategyNode(
                     id = snMap["id"] as? String ?: "",
                     type = snMap["type"] as? String ?: "",
-                    label = snMap["label"] as? String,
-                    toolName = snMap["toolName"] as? String,
-                    condition = snMap["condition"] as? String,
-                    temperature = (snMap["temperature"] as? Number)?.toDouble()
+                    label = snData["label"] as? String,
+                    toolName = snData["toolName"] as? String,
+                    condition = snData["condition"] as? String,
+                    temperature = (snData["temperature"] as? Number)?.toDouble()
                 )
             }
 
