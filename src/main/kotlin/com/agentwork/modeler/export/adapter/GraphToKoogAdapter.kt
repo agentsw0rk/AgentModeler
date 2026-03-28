@@ -151,22 +151,30 @@ class GraphToKoogAdapter {
         return KoogBuiltinTool(type = type, config = config)
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun convertTool(node: GraphNode): KoogTool {
-        val params = (node.data["parameters"] as? List<*>)?.map { raw ->
-            val map = raw as Map<*, *>
-            KoogToolParameter(
-                name = map["name"] as? String ?: "",
-                type = parseParamType(map["type"] as? String ?: "String"),
-                description = map["description"] as? String ?: "",
-                required = map["required"] as? Boolean ?: true
+        val rawFunctions = node.data["functions"] as? List<Map<String, Any?>> ?: emptyList()
+        val functions = rawFunctions.map { fnMap ->
+            val rawParams = fnMap["parameters"] as? List<Map<String, Any?>> ?: emptyList()
+            val params = rawParams.map { p ->
+                KoogToolParameter(
+                    name = p["name"] as? String ?: "",
+                    type = parseParamType(p["type"] as? String ?: "String"),
+                    description = p["description"] as? String ?: "",
+                    required = p["required"] as? Boolean ?: true,
+                    defaultValue = p["defaultValue"] as? String
+                )
+            }
+            KoogToolFunction(
+                name = fnMap["name"] as? String ?: "",
+                description = fnMap["description"] as? String ?: "",
+                parameters = params
             )
-        } ?: emptyList()
-
+        }
         return KoogTool(
             name = node.data["name"] as? String ?: "",
             description = node.data["description"] as? String ?: "",
-            parameters = params,
-            handlerStubName = node.data["handlerStubName"] as? String
+            functions = functions
         )
     }
 
@@ -402,8 +410,11 @@ class GraphToKoogAdapter {
 
     private fun parseParamType(value: String): KoogParamType = when (value) {
         "Int" -> KoogParamType.INT
+        "Double" -> KoogParamType.DOUBLE
         "Float" -> KoogParamType.FLOAT
         "Boolean" -> KoogParamType.BOOLEAN
+        "List<String>" -> KoogParamType.LIST_STRING
+        "Map<String, String>" -> KoogParamType.MAP_STRING_STRING
         else -> KoogParamType.STRING
     }
 
