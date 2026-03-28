@@ -39,8 +39,17 @@ export function GraphStrategyCanvas(props: Props) {
   useEffect(() => {
     if (!containerRef.current) return;
 
+    let aborted = false;
+
     const init = async () => {
       const { editor, area } = await createStrategyEditor(containerRef.current!);
+
+      // If React StrictMode already cleaned up, discard this editor
+      if (aborted) {
+        area.destroy();
+        return;
+      }
+
       editorRef.current = editor;
       areaRef.current = area;
       (window as any).__strategyReteEditor = editor;
@@ -113,6 +122,8 @@ export function GraphStrategyCanvas(props: Props) {
       };
       window.addEventListener("strategy-edge-delete", handleEdgeDelete);
 
+      if (aborted) return;
+
       await syncToRete(editor, area, propsRef.current.strategyNodes, propsRef.current.strategyEdges);
       initializedRef.current = true;
     };
@@ -120,9 +131,11 @@ export function GraphStrategyCanvas(props: Props) {
     init();
 
     return () => {
+      aborted = true;
       areaRef.current?.destroy();
       editorRef.current = null;
       areaRef.current = null;
+      initializedRef.current = false;
       delete (window as any).__strategyReteEditor;
     };
   }, []);
