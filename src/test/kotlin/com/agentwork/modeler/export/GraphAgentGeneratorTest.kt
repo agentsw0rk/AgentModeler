@@ -55,6 +55,12 @@ class GraphAgentGeneratorTest {
         assertContains(code, "edge(sendResult forwardTo llmRequest)")
         assertFalse(code.contains("val nodeStart"))
         assertFalse(code.contains("val nodeFinish"))
+        // Verify correct imports
+        assertContains(code, "import ai.koog.agents.core.dsl.extension.nodeLLMRequest")
+        assertContains(code, "import ai.koog.agents.core.dsl.extension.nodeExecuteTool")
+        assertContains(code, "import ai.koog.agents.core.dsl.extension.nodeLLMSendToolResult")
+        assertContains(code, "import ai.koog.agents.core.dsl.extension.onToolCall")
+        assertContains(code, "import ai.koog.agents.core.dsl.extension.onAssistantMessage")
     }
 
     @Test
@@ -116,5 +122,41 @@ class GraphAgentGeneratorTest {
 
         val code = generator.generate(agent)
         assertContains(code, "onCondition { true } transformed { it.uppercase() }")
+    }
+
+    @Test
+    fun `sanitizes node IDs with hyphens and handles null labels`() {
+        val agent = KoogGraphAgent(
+            name = "testAgent",
+            description = "",
+            systemPrompt = "Help",
+            modelProvider = ModelProvider.OPENAI,
+            modelId = null,
+            temperature = null,
+            strategyNodes = listOf(
+                KoogStrategyNode("sn-1", "node-start", null, null, null, null),
+                KoogStrategyNode("sn-2", "node-llm-request", null, null, null, null),
+                KoogStrategyNode("sn-3", "node-finish", null, null, null, null)
+            ),
+            strategyEdges = listOf(
+                KoogStrategyEdge("sn-1", "sn-2", "onCondition", null, null),
+                KoogStrategyEdge("sn-2", "sn-3", "onAssistantMessage", null, null)
+            ),
+            tools = emptyList(),
+            builtinTools = emptyList(),
+            subAgents = emptyList(),
+            mcpServers = emptyList(),
+            inputs = emptyList(),
+            outputs = emptyList()
+        )
+
+        val code = generator.generate(agent)
+        // null labels should fall back to sanitized IDs
+        assertContains(code, "val sn_2 by nodeLLMRequest()")
+        // Edges should use sanitized references
+        assertContains(code, "edge(nodeStart forwardTo sn_2)")
+        assertContains(code, "edge(sn_2 forwardTo nodeFinish onAssistantMessage { true })")
+        // No "null" keyword in generated code
+        assertFalse(code.contains("val null"))
     }
 }
