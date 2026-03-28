@@ -90,8 +90,7 @@ class ExportService(
 
             // Tools connected to planner
             for (tool in planner.tools) {
-                val className = tool.name.replaceFirstChar { it.uppercase() } + "ToolSet"
-                files["$pkg/tools/${className}.kt"] = toolGenerator.generate(tool)
+                files["$pkg/tools/${tool.name}.kt"] = toolGenerator.generate(tool)
             }
 
             // MCP servers connected to planner
@@ -168,8 +167,7 @@ class ExportService(
             files["$pkg/${ga.name.replaceFirstChar { it.uppercase() }}Strategy.kt"] = graphAgentGenerator.generate(ga)
 
             for (tool in ga.tools) {
-                val className = tool.name.replaceFirstChar { it.uppercase() } + "ToolSet"
-                files["$pkg/tools/${className}.kt"] = toolGenerator.generate(tool)
+                files["$pkg/tools/${tool.name}.kt"] = toolGenerator.generate(tool)
             }
             for (builtinTool in ga.builtinTools) {
                 val code = builtinToolGenerator.generate(builtinTool)
@@ -218,8 +216,7 @@ class ExportService(
 
         // Tools
         for (tool in agent.tools) {
-            val className = tool.name.replaceFirstChar { it.uppercase() } + "ToolSet"
-            files["$pkg/tools/${className}.kt"] = toolGenerator.generate(tool)
+            files["$pkg/tools/${tool.name}.kt"] = toolGenerator.generate(tool)
         }
 
         // Built-in tools
@@ -244,9 +241,8 @@ class ExportService(
 
             // Generate ToolSet files for sub-agent's custom tools
             for (tool in subAgent.tools) {
-                val className = tool.name.replaceFirstChar { it.uppercase() } + "ToolSet"
-                if (!files.containsKey("$pkg/tools/$className.kt")) {
-                    files["$pkg/tools/$className.kt"] = toolGenerator.generate(tool)
+                if (!files.containsKey("$pkg/tools/${tool.name}.kt")) {
+                    files["$pkg/tools/${tool.name}.kt"] = toolGenerator.generate(tool)
                 }
             }
 

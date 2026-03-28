@@ -61,8 +61,7 @@ class RegistryGenerator {
             // Custom tool instances
             if (tools.isNotEmpty()) {
                 val toolInstances = tools.joinToString("\n    ") { tool ->
-                    val className = tool.name.replaceFirstChar { it.uppercase() } + "ToolSet"
-                    "val ${tool.name}Tools = $className()"
+                    "val ${tool.name.replaceFirstChar { it.lowercase() }}Tools = ${tool.name}()"
                 }
                 appendLine("    $toolInstances")
                 appendLine()
@@ -82,7 +81,7 @@ class RegistryGenerator {
             if (hasBaseTools) {
                 // Custom tools
                 for (tool in tools) {
-                    appendLine("        tools(${tool.name}Tools)")
+                    appendLine("        tools(${tool.name.replaceFirstChar { it.lowercase() }}Tools)")
                 }
 
                 // Built-in custom ToolSets
