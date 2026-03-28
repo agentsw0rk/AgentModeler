@@ -155,4 +155,33 @@ class AgentGeneratorTest {
         val code = generator.generate(agent)
         assertFalse(code.contains("OpenTelemetry"))
     }
+
+    @Test
+    fun `generates typed agent when inputs and outputs provided`() {
+        val agent = KoogAgent("MyAgent", "Help", ModelProvider.OPENAI, null, null, emptyList())
+        val code = generator.generate(agent, inputClassName = "MyAgentInput", outputClassName = "MyAgentOutput")
+        assertContains(code, "fun agent(): AIAgent<MyAgentInput, MyAgentOutput>")
+        assertFalse(code.contains("AIAgent<String, String>"))
+    }
+
+    @Test
+    fun `generates typed agent with only input`() {
+        val agent = KoogAgent("MyAgent", "Help", ModelProvider.OPENAI, null, null, emptyList())
+        val code = generator.generate(agent, inputClassName = "MyAgentInput")
+        assertContains(code, "fun agent(): AIAgent<MyAgentInput, String>")
+    }
+
+    @Test
+    fun `generates typed agent with only output`() {
+        val agent = KoogAgent("MyAgent", "Help", ModelProvider.OPENAI, null, null, emptyList())
+        val code = generator.generate(agent, outputClassName = "MyAgentOutput")
+        assertContains(code, "fun agent(): AIAgent<String, MyAgentOutput>")
+    }
+
+    @Test
+    fun `generates String String agent when no IO classes`() {
+        val agent = KoogAgent("MyAgent", "Help", ModelProvider.OPENAI, null, null, emptyList())
+        val code = generator.generate(agent)
+        assertContains(code, "fun agent(): AIAgent<String, String>")
+    }
 }

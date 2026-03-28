@@ -8,13 +8,16 @@ import org.springframework.stereotype.Component
 @Component
 class AgentGenerator {
 
-    fun generate(agent: KoogAgent, strategyCall: String? = null): String {
+    fun generate(agent: KoogAgent, strategyCall: String? = null, inputClassName: String? = null, outputClassName: String? = null): String {
         val hasThink = agent.builtinTools.any { it.type == BuiltinToolType.THINK }
         val effectivePrompt = if (hasThink) {
             agent.systemPrompt + "\nThink step by step before answering."
         } else {
             agent.systemPrompt
         }
+        val inputType = inputClassName ?: "String"
+        val outputType = outputClassName ?: "String"
+        val agentType = "AIAgent<$inputType, $outputType>"
         val modelImport = agent.modelProvider.importPackage
         val modelRef = agent.modelId?.let { mapModelId(agent.modelProvider, it) } ?: agent.modelProvider.defaultModel
 
@@ -97,7 +100,7 @@ class AgentGenerator {
                 appendLine()
                 appendLine("    @Bean")
                 appendLine("    @Primary")
-                appendLine("    fun agent(): AIAgent<String, String> = runBlocking(agentScope.coroutineContext) {")
+                appendLine("    fun agent(): $agentType = runBlocking(agentScope.coroutineContext) {")
                 appendLine("        AIAgent(")
                 appendLine("            $paramBlock")
                 append("        )")
@@ -107,7 +110,7 @@ class AgentGenerator {
             } else {
                 appendLine("    @Bean")
                 appendLine("    @Primary")
-                appendLine("    fun agent(): AIAgent<String, String> = AIAgent(")
+                appendLine("    fun agent(): $agentType = AIAgent(")
                 appendLine("            $paramBlock")
                 append("    )")
                 appendOtelInstallBlock(agent)
