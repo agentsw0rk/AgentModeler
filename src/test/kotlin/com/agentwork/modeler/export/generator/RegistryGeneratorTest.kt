@@ -120,6 +120,24 @@ class RegistryGeneratorTest {
     }
 
     @Test
+    fun `generates typed sub-agent tool when IO present`() {
+        val subAgent = KoogSubAgent(
+            name = "Research", description = "Researches topics",
+            systemPrompt = "Prompt", modelProvider = ModelProvider.OPENAI,
+            modelId = null, temperature = null, delegationMode = "automatic",
+            inputDescription = "A topic",
+            tools = emptyList(), builtinTools = emptyList(),
+            inputs = listOf(KoogInput("query", "Q", "string", true, null)),
+            outputs = listOf(KoogOutput("result", "R", "string"))
+        )
+        val code = generator.generate(emptyList(), emptyList(), listOf(subAgent))
+        assertContains(code, "GraphAIAgent<ResearchInput, ResearchOutput>")
+        assertContains(code, "createAgentTool<ResearchInput, ResearchOutput>")
+        assertContains(code, "import generated.subagents.ResearchInput")
+        assertContains(code, "import generated.subagents.ResearchOutput")
+    }
+
+    @Test
     fun `generates non-suspend registry without MCP`() {
         val tools = listOf(KoogTool("searchTool", "Searches", emptyList(), null))
         val code = generator.generate(tools)

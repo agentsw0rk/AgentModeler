@@ -39,6 +39,14 @@ class RegistryGenerator {
                 appendLine("import ai.koog.agents.core.agent.AIAgentService")
                 appendLine("import ai.koog.agents.core.agent.GraphAIAgent")
                 appendLine("import ai.koog.agents.core.agent.createAgentTool")
+                for (sa in subAgents) {
+                    if (sa.inputs.isNotEmpty()) {
+                        appendLine("import generated.subagents.${sa.name.replaceFirstChar { it.uppercase() }}Input")
+                    }
+                    if (sa.outputs.isNotEmpty()) {
+                        appendLine("import generated.subagents.${sa.name.replaceFirstChar { it.uppercase() }}Output")
+                    }
+                }
             }
             if (mcpServers.isNotEmpty()) {
                 appendLine("import generated.mcp.*")
@@ -114,8 +122,12 @@ class RegistryGenerator {
                     val funcName = "create${sa.name.replaceFirstChar { it.uppercase() }}"
                     val desc = sa.description.replace("\"", "\\\"")
                     val inputDesc = sa.inputDescription.replace("\"", "\\\"")
+                    val hasInputs = sa.inputs.isNotEmpty()
+                    val hasOutputs = sa.outputs.isNotEmpty()
+                    val i = if (hasInputs) "${sa.name.replaceFirstChar { it.uppercase() }}Input" else "String"
+                    val o = if (hasOutputs) "${sa.name.replaceFirstChar { it.uppercase() }}Output" else "String"
                     appendLine("        tool(")
-                    appendLine("            AIAgentService.fromAgent($funcName() as GraphAIAgent<String, String>).createAgentTool<String, String>(")
+                    appendLine("            AIAgentService.fromAgent($funcName() as GraphAIAgent<$i, $o>).createAgentTool<$i, $o>(")
                     appendLine("                agentName = \"${sa.name}\",")
                     appendLine("                agentDescription = \"$desc\",")
                     appendLine("                inputDescription = \"$inputDesc\"")
