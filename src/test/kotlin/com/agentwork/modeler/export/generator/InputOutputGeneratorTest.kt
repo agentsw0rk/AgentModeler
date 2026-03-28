@@ -70,4 +70,20 @@ class InputOutputGeneratorTest {
     fun `returns null for empty outputs`() {
         assertNull(generator.generateOutputClass("MyAgent", emptyList()))
     }
+
+    @Test
+    fun `generates input class with Serializable annotation`() {
+        val inputs = listOf(KoogInput("query", "Search query", "string", true, null))
+        val code = generator.generateInputClass("MyAgent", inputs)!!
+        assertContains(code, "@Serializable")
+        assertContains(code, "import kotlinx.serialization.Serializable")
+    }
+
+    @Test
+    fun `generates output class with Serializable annotation`() {
+        val outputs = listOf(KoogOutput("result", "The result", "string"))
+        val code = generator.generateOutputClass("MyAgent", outputs)!!
+        assertContains(code, "@Serializable")
+        assertContains(code, "import kotlinx.serialization.Serializable")
+    }
 }

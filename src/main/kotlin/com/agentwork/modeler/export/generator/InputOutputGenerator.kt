@@ -27,6 +27,9 @@ class InputOutputGenerator {
         return buildString {
             appendLine("package generated")
             appendLine()
+            appendLine("import kotlinx.serialization.Serializable")
+            appendLine()
+            appendLine("@Serializable")
             appendLine("data class $className(")
             val required = inputs.filter { it.required }
             val optional = inputs.filter { !it.required }
@@ -56,6 +59,9 @@ class InputOutputGenerator {
         return buildString {
             appendLine("package generated")
             appendLine()
+            appendLine("import kotlinx.serialization.Serializable")
+            appendLine()
+            appendLine("@Serializable")
             appendLine("data class $className(")
             for ((i, output) in outputs.withIndex()) {
                 val kt = kotlinType(output.dataType)
