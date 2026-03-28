@@ -16,7 +16,7 @@ interface EditorState {
   selectedNodeIds: string[];
   workspaceName: string;
 
-  addNode: (type: NodeType, position: { x: number; y: number }, toolType?: BuiltinToolType) => void;
+  addNode: (type: NodeType, position: { x: number; y: number }, toolType?: BuiltinToolType, initialData?: Record<string, unknown>) => void;
   addNodes: (nodes: GraphNode[], edges: GraphEdge[]) => void;
   removeNode: (id: string) => void;
   updateNodeData: (id: string, data: Record<string, unknown>) => void;
@@ -146,7 +146,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   workspaceName: DEFAULT_WORKSPACE_NAME,
   otelConfig: { ...DEFAULT_OTEL_CONFIG },
 
-  addNode(type, position, toolType?) {
+  addNode(type, position, toolType?, initialData?) {
     pushHistory();
     set((state) => {
       let data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | PlannerAgentConfig | A2AAgentConfig | InputNodeConfig | OutputNodeConfig | GraphAgentConfig;
@@ -170,6 +170,9 @@ export const useEditorStore = create<EditorState>((set) => ({
         data = { ...defaultGraphAgentData };
       } else {
         data = { ...defaultToolData };
+      }
+      if (initialData) {
+        data = { ...data, ...initialData } as typeof data;
       }
       const newNode: GraphNode = { id: `node-${nextId++}`, type, position, data };
       return {

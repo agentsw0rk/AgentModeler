@@ -43,15 +43,10 @@ export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspa
 
   const handleTemplateSelect = (template: GraphAgentTemplate) => {
     const t = TEMPLATES[template];
-    addNode("graph-agent", { x: 100, y: 100 });
-    const state = useEditorStore.getState();
-    const newNode = state.nodes[state.nodes.length - 1];
-    if (newNode && newNode.type === "graph-agent") {
-      useEditorStore.getState().updateNodeData(newNode.id, {
-        strategyNodes: structuredClone(t.nodes),
-        strategyEdges: structuredClone(t.edges),
-      });
-    }
+    addNode("graph-agent", { x: 100, y: 100 }, undefined, {
+      strategyNodes: structuredClone(t.nodes),
+      strategyEdges: structuredClone(t.edges),
+    });
     setTemplateDialogOpen(false);
   };
 
