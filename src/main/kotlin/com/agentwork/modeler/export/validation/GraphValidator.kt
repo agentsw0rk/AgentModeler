@@ -272,14 +272,20 @@ class GraphValidator {
                         }
                     }
 
+                    val conditionNodeIds = strategyNodes
+                        .filter { (it["type"] as? String) == "node-condition" }
+                        .mapNotNull { it["id"] as? String }
+                        .toSet()
+
                     for (se in strategyEdges) {
                         val edgeType = se["edgeType"] as? String ?: ""
                         if (edgeType.isBlank()) errors.add("[${node.id}] Strategy edge requires an edgeType")
                         if (edgeType == "onCondition") {
                             val source = se["source"] as? String ?: ""
-                            if (source != startId) {
+                            // Only require condition expression for edges from node-condition nodes
+                            if (source in conditionNodeIds) {
                                 val condition = se["condition"] as? String ?: ""
-                                if (condition.isBlank()) errors.add("[${node.id}] onCondition edge requires a condition expression")
+                                if (condition.isBlank()) errors.add("[${node.id}] onCondition edge from condition node requires a condition expression")
                             }
                         }
                     }

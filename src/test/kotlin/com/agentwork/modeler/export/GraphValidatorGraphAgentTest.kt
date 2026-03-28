@@ -3,6 +3,7 @@ package com.agentwork.modeler.export
 import com.agentwork.modeler.export.model.*
 import com.agentwork.modeler.export.validation.GraphValidator
 import org.junit.jupiter.api.Test
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class GraphValidatorGraphAgentTest {
@@ -134,15 +135,31 @@ class GraphValidatorGraphAgentTest {
     }
 
     @Test
-    fun `graph-agent onCondition edge without condition fails`() {
+    fun `graph-agent onCondition edge from condition node without condition fails`() {
+        val nodes = listOf(
+            mapOf("id" to "sn1", "type" to "node-start"),
+            mapOf("id" to "sn2", "type" to "node-condition", "label" to "check", "condition" to "hasResult"),
+            mapOf("id" to "sn3", "type" to "node-finish")
+        )
+        val edges = listOf(
+            mapOf("source" to "sn1", "target" to "sn2", "edgeType" to "onCondition"),
+            mapOf("source" to "sn2", "target" to "sn3", "edgeType" to "onCondition") // missing condition on edge from condition node
+        )
+        val graph = WorkspaceGraph(1, "Test", listOf(graphAgentNode(mapOf("strategyNodes" to nodes, "strategyEdges" to edges))), emptyList())
+        val errors = validator.validate(graph)
+        assertTrue(errors.any { it.contains("onCondition edge from condition node requires a condition") })
+    }
+
+    @Test
+    fun `graph-agent onCondition edge from non-condition node without condition is valid`() {
         val nodes = validStrategyNodes()
         val edges = listOf(
             mapOf("source" to "sn1", "target" to "sn2", "edgeType" to "onCondition"),
-            mapOf("source" to "sn2", "target" to "sn3", "edgeType" to "onCondition")
+            mapOf("source" to "sn2", "target" to "sn3", "edgeType" to "onCondition") // no condition needed from non-condition node
         )
         val graph = WorkspaceGraph(1, "Test", listOf(graphAgentNode(mapOf("strategyEdges" to edges))), emptyList())
         val errors = validator.validate(graph)
-        assertTrue(errors.any { it.contains("onCondition edge requires a condition") })
+        assertFalse(errors.any { it.contains("onCondition edge") })
     }
 
     @Test

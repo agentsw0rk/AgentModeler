@@ -60,12 +60,17 @@ export function validateGraphAgent(node: GraphNode, graph: WorkspaceGraph): Vali
     }
   }
 
+  const conditionNodeIds = new Set(
+    strategyNodes.filter((sn: any) => sn.type === "node-condition").map((sn: any) => sn.id)
+  );
+
   for (const se of strategyEdges) {
     if (!se.edgeType) {
       errors.push({ nodeId, severity: "error", message: "Strategy edge requires an edgeType" });
     }
-    if (se.edgeType === "onCondition" && se.source !== startNode?.id && !se.condition?.trim()) {
-      errors.push({ nodeId, severity: "error", message: "onCondition edge requires a condition expression" });
+    // Only require condition expression for edges from node-condition nodes
+    if (se.edgeType === "onCondition" && conditionNodeIds.has(se.source) && !se.condition?.trim()) {
+      errors.push({ nodeId, severity: "error", message: "onCondition edge from condition node requires a condition expression" });
     }
   }
 
