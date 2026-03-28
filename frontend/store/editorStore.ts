@@ -298,8 +298,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   },
   applyRemoteGraphReset: (graph) => {
     const migratedNodes = graph.nodes.map((n) => {
-      if ((n.type === "input" || n.type === "output") && !Array.isArray((n.data as Record<string, unknown>).fields)) {
-        return { ...n, data: migrateIONodeData(n.data as Record<string, unknown>) };
+      if ((n.type === "input" || n.type === "output") && !Array.isArray((n.data as unknown as Record<string, unknown>).fields)) {
+        return { ...n, data: migrateIONodeData(n.data as unknown as Record<string, unknown>) };
       }
       return n;
     });

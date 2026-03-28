@@ -229,8 +229,13 @@ export function validateGraph(graph: WorkspaceGraph): ValidationError[] {
 
     if (node.type === "input") {
       const data = node.data as InputNodeConfig;
-      if (!data.name?.trim()) {
-        errors.push({ nodeId: node.id, severity: "error", message: "Input requires a name" });
+      if (data.fields.length === 0) {
+        errors.push({ nodeId: node.id, severity: "warning", message: "Input has no fields defined" });
+      }
+      for (const field of data.fields) {
+        if (!field.name?.trim()) {
+          errors.push({ nodeId: node.id, severity: "error", message: "Input field requires a name" });
+        }
       }
       const isConnected = graph.edges.some((e) => e.source === node.id);
       if (!isConnected) {
@@ -244,15 +249,17 @@ export function validateGraph(graph: WorkspaceGraph): ValidationError[] {
       if (connectedAgentCount > 1) {
         errors.push({ nodeId: node.id, severity: "error", message: "Input can only be connected to one Agent" });
       }
-      if (!data.required && !data.defaultValue?.trim()) {
-        errors.push({ nodeId: node.id, severity: "warning", message: "Optional input has no default value" });
-      }
     }
 
     if (node.type === "output") {
       const data = node.data as OutputNodeConfig;
-      if (!data.name?.trim()) {
-        errors.push({ nodeId: node.id, severity: "error", message: "Output requires a name" });
+      if (data.fields.length === 0) {
+        errors.push({ nodeId: node.id, severity: "warning", message: "Output has no fields defined" });
+      }
+      for (const field of data.fields) {
+        if (!field.name?.trim()) {
+          errors.push({ nodeId: node.id, severity: "error", message: "Output field requires a name" });
+        }
       }
       const isConnected = graph.edges.some((e) => e.target === node.id);
       if (!isConnected) {
@@ -276,32 +283,38 @@ export function validateGraph(graph: WorkspaceGraph): ValidationError[] {
     }
   }
 
-  // Duplicate input/output name checks
+  // Duplicate field name checks across input/output nodes connected to the same agent
   const agentTypeNodes = graph.nodes.filter((n) => n.type === "agent" || n.type === "sub-agent" || n.type === "planner-agent");
   for (const agentNode of agentTypeNodes) {
-    const inputNames = new Set<string>();
+    const inputFieldNames = new Set<string>();
     const connectedInputs = graph.edges
       .filter((e) => e.target === agentNode.id)
       .map((e) => graph.nodes.find((n) => n.id === e.source && n.type === "input"))
       .filter(Boolean);
     for (const inputNode of connectedInputs) {
-      const name = (inputNode!.data as InputNodeConfig).name?.trim();
-      if (name && inputNames.has(name)) {
-        errors.push({ nodeId: inputNode!.id, severity: "error", message: `Duplicate input name '${name}'` });
+      const fields = (inputNode!.data as InputNodeConfig).fields ?? [];
+      for (const field of fields) {
+        const name = field.name?.trim();
+        if (name && inputFieldNames.has(name)) {
+          errors.push({ nodeId: inputNode!.id, severity: "error", message: `Duplicate input field name '${name}'` });
+        }
+        if (name) inputFieldNames.add(name);
       }
-      if (name) inputNames.add(name);
     }
-    const outputNames = new Set<string>();
+    const outputFieldNames = new Set<string>();
     const connectedOutputs = graph.edges
       .filter((e) => e.source === agentNode.id)
       .map((e) => graph.nodes.find((n) => n.id === e.target && n.type === "output"))
       .filter(Boolean);
     for (const outputNode of connectedOutputs) {
-      const name = (outputNode!.data as OutputNodeConfig).name?.trim();
-      if (name && outputNames.has(name)) {
-        errors.push({ nodeId: outputNode!.id, severity: "error", message: `Duplicate output name '${name}'` });
+      const fields = (outputNode!.data as OutputNodeConfig).fields ?? [];
+      for (const field of fields) {
+        const name = field.name?.trim();
+        if (name && outputFieldNames.has(name)) {
+          errors.push({ nodeId: outputNode!.id, severity: "error", message: `Duplicate output field name '${name}'` });
+        }
+        if (name) outputFieldNames.add(name);
       }
-      if (name) outputNames.add(name);
     }
   }
 

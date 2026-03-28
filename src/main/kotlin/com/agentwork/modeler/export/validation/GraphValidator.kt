@@ -174,8 +174,13 @@ class GraphValidator {
                     }
                 }
                 "input" -> {
-                    val name = node.data["name"] as? String ?: ""
-                    if (name.isBlank()) errors.add("[${node.id}] Input requires a name")
+                    @Suppress("UNCHECKED_CAST")
+                    val fields = node.data["fields"] as? List<Map<String, Any?>> ?: emptyList()
+                    if (fields.isEmpty()) errors.add("[${node.id}] Input has no fields defined")
+                    for (field in fields) {
+                        val fieldName = field["name"] as? String ?: ""
+                        if (fieldName.isBlank()) errors.add("[${node.id}] Input field requires a name")
+                    }
                     val isConnected = graph.edges.any { it.source == node.id }
                     if (!isConnected) errors.add("[${node.id}] Input must be connected to an Agent")
                     val connectedAgentCount = graph.edges
@@ -187,8 +192,13 @@ class GraphValidator {
                     }
                 }
                 "output" -> {
-                    val name = node.data["name"] as? String ?: ""
-                    if (name.isBlank()) errors.add("[${node.id}] Output requires a name")
+                    @Suppress("UNCHECKED_CAST")
+                    val fields = node.data["fields"] as? List<Map<String, Any?>> ?: emptyList()
+                    if (fields.isEmpty()) errors.add("[${node.id}] Output has no fields defined")
+                    for (field in fields) {
+                        val fieldName = field["name"] as? String ?: ""
+                        if (fieldName.isBlank()) errors.add("[${node.id}] Output field requires a name")
+                    }
                     val isConnected = graph.edges.any { it.target == node.id }
                     if (!isConnected) errors.add("[${node.id}] Output must be connected to an Agent")
                     val connectedAgentCount = graph.edges
@@ -273,27 +283,35 @@ class GraphValidator {
             }
         }
 
-        // Duplicate input/output name checks per agent
+        // Duplicate field name checks across input/output nodes per agent
         val agentTypes = setOf("agent", "sub-agent", "planner-agent", "graph-agent")
         for (agentNode in graph.nodes.filter { it.type in agentTypes }) {
-            val inputNames = mutableSetOf<String>()
+            val inputFieldNames = mutableSetOf<String>()
             val connectedInputs = graph.edges
                 .filter { it.target == agentNode.id }
                 .mapNotNull { edge -> graph.nodes.find { it.id == edge.source && it.type == "input" } }
             for (inputNode in connectedInputs) {
-                val name = inputNode.data["name"] as? String ?: ""
-                if (name.isNotBlank() && !inputNames.add(name)) {
-                    errors.add("[${inputNode.id}] Duplicate input name '${name}' on agent '${agentNode.data["name"]}'")
+                @Suppress("UNCHECKED_CAST")
+                val fields = inputNode.data["fields"] as? List<Map<String, Any?>> ?: emptyList()
+                for (field in fields) {
+                    val fieldName = field["name"] as? String ?: ""
+                    if (fieldName.isNotBlank() && !inputFieldNames.add(fieldName)) {
+                        errors.add("[${inputNode.id}] Duplicate input field name '${fieldName}' on agent '${agentNode.data["name"]}'")
+                    }
                 }
             }
-            val outputNames = mutableSetOf<String>()
+            val outputFieldNames = mutableSetOf<String>()
             val connectedOutputs = graph.edges
                 .filter { it.source == agentNode.id }
                 .mapNotNull { edge -> graph.nodes.find { it.id == edge.target && it.type == "output" } }
             for (outputNode in connectedOutputs) {
-                val name = outputNode.data["name"] as? String ?: ""
-                if (name.isNotBlank() && !outputNames.add(name)) {
-                    errors.add("[${outputNode.id}] Duplicate output name '${name}' on agent '${agentNode.data["name"]}'")
+                @Suppress("UNCHECKED_CAST")
+                val fields = outputNode.data["fields"] as? List<Map<String, Any?>> ?: emptyList()
+                for (field in fields) {
+                    val fieldName = field["name"] as? String ?: ""
+                    if (fieldName.isNotBlank() && !outputFieldNames.add(fieldName)) {
+                        errors.add("[${outputNode.id}] Duplicate output field name '${fieldName}' on agent '${agentNode.data["name"]}'")
+                    }
                 }
             }
         }

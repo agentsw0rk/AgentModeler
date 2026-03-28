@@ -81,8 +81,8 @@ class GraphToKoogAdapterGraphAgentTest {
                         mapOf("source" to "sn1", "target" to "sn2", "edgeType" to "onCondition")
                     )
                 )),
-                GraphNode("i1", "input", Position(-100.0, 0.0), mapOf("name" to "query", "description" to "User query", "dataType" to "string", "required" to true)),
-                GraphNode("o1", "output", Position(300.0, 0.0), mapOf("name" to "result", "description" to "Result", "dataType" to "string"))
+                GraphNode("i1", "input", Position(-100.0, 0.0), mapOf("className" to null, "fields" to listOf(mapOf("name" to "query", "type" to "String", "description" to "User query", "optional" to false)))),
+                GraphNode("o1", "output", Position(300.0, 0.0), mapOf("className" to null, "fields" to listOf(mapOf("name" to "result", "type" to "String", "description" to "Result", "optional" to false))))
             ),
             listOf(
                 GraphEdge("e1", "i1", "ga1"),

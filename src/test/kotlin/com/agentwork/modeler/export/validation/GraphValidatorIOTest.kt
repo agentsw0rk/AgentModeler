@@ -17,11 +17,20 @@ class GraphValidatorIOTest {
     private fun agentNode(id: String = "a1") =
         node(id, "agent", mapOf("name" to "Bot", "systemPrompt" to "Hi"))
 
+    private fun inputData(vararg fields: Map<String, Any?>): Map<String, Any?> =
+        mapOf("className" to null, "fields" to fields.toList())
+
+    private fun outputData(vararg fields: Map<String, Any?>): Map<String, Any?> =
+        mapOf("className" to null, "fields" to fields.toList())
+
+    private fun field(name: String, type: String = "String", description: String = "", optional: Boolean = false) =
+        mapOf("name" to name, "type" to type, "description" to description, "optional" to optional)
+
     @Test
-    fun `input without name is an error`() {
+    fun `input with blank field name is an error`() {
         val graph = WorkspaceGraph(
             version = 1, name = "test",
-            nodes = listOf(agentNode(), node("i1", "input", mapOf("name" to "", "dataType" to "string", "required" to true))),
+            nodes = listOf(agentNode(), node("i1", "input", inputData(field("", "String")))),
             edges = listOf(edge("i1", "a1"))
         )
         val errors = validator.validate(graph)
@@ -29,10 +38,10 @@ class GraphValidatorIOTest {
     }
 
     @Test
-    fun `output without name is an error`() {
+    fun `output with blank field name is an error`() {
         val graph = WorkspaceGraph(
             version = 1, name = "test",
-            nodes = listOf(agentNode(), node("o1", "output", mapOf("name" to "", "dataType" to "string"))),
+            nodes = listOf(agentNode(), node("o1", "output", outputData(field("", "String")))),
             edges = listOf(edge("a1", "o1"))
         )
         val errors = validator.validate(graph)
@@ -43,7 +52,7 @@ class GraphValidatorIOTest {
     fun `input not connected is an error`() {
         val graph = WorkspaceGraph(
             version = 1, name = "test",
-            nodes = listOf(agentNode(), node("i1", "input", mapOf("name" to "query", "dataType" to "string", "required" to true))),
+            nodes = listOf(agentNode(), node("i1", "input", inputData(field("query")))),
             edges = emptyList()
         )
         val errors = validator.validate(graph)
@@ -54,7 +63,7 @@ class GraphValidatorIOTest {
     fun `output not connected is an error`() {
         val graph = WorkspaceGraph(
             version = 1, name = "test",
-            nodes = listOf(agentNode(), node("o1", "output", mapOf("name" to "result", "dataType" to "string"))),
+            nodes = listOf(agentNode(), node("o1", "output", outputData(field("result")))),
             edges = emptyList()
         )
         val errors = validator.validate(graph)
@@ -68,7 +77,7 @@ class GraphValidatorIOTest {
             nodes = listOf(
                 node("a1", "agent", mapOf("name" to "Bot1", "systemPrompt" to "Hi")),
                 node("a2", "agent", mapOf("name" to "Bot2", "systemPrompt" to "Hi")),
-                node("i1", "input", mapOf("name" to "query", "dataType" to "string", "required" to true))
+                node("i1", "input", inputData(field("query")))
             ),
             edges = listOf(edge("i1", "a1"), edge("i1", "a2"))
         )
@@ -77,13 +86,13 @@ class GraphValidatorIOTest {
     }
 
     @Test
-    fun `duplicate input name on same agent is an error`() {
+    fun `duplicate input field name on same agent is an error`() {
         val graph = WorkspaceGraph(
             version = 1, name = "test",
             nodes = listOf(
                 agentNode(),
-                node("i1", "input", mapOf("name" to "query", "dataType" to "string", "required" to true)),
-                node("i2", "input", mapOf("name" to "query", "dataType" to "number", "required" to false))
+                node("i1", "input", inputData(field("query", "String"))),
+                node("i2", "input", inputData(field("query", "Double")))
             ),
             edges = listOf(edge("i1", "a1"), edge("i2", "a1"))
         )
@@ -92,13 +101,13 @@ class GraphValidatorIOTest {
     }
 
     @Test
-    fun `duplicate output name on same agent is an error`() {
+    fun `duplicate output field name on same agent is an error`() {
         val graph = WorkspaceGraph(
             version = 1, name = "test",
             nodes = listOf(
                 agentNode(),
-                node("o1", "output", mapOf("name" to "result", "dataType" to "string")),
-                node("o2", "output", mapOf("name" to "result", "dataType" to "number"))
+                node("o1", "output", outputData(field("result", "String"))),
+                node("o2", "output", outputData(field("result", "Double")))
             ),
             edges = listOf(edge("a1", "o1"), edge("a1", "o2"))
         )
@@ -112,8 +121,8 @@ class GraphValidatorIOTest {
             version = 1, name = "test",
             nodes = listOf(
                 agentNode(),
-                node("i1", "input", mapOf("name" to "query", "dataType" to "string", "required" to true)),
-                node("o1", "output", mapOf("name" to "result", "dataType" to "string"))
+                node("i1", "input", inputData(field("query"))),
+                node("o1", "output", outputData(field("result")))
             ),
             edges = listOf(edge("i1", "a1"), edge("a1", "o1"))
         )

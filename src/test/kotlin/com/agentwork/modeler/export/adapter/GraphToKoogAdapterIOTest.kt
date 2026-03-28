@@ -21,10 +21,12 @@ class GraphToKoogAdapterIOTest {
             version = 1, name = "test",
             nodes = listOf(
                 node("a1", "agent", mapOf("name" to "Bot", "systemPrompt" to "Hi")),
-                node("i1", "input", mapOf("name" to "query", "description" to "Search query", "dataType" to "string", "required" to true, "defaultValue" to null)),
-                node("i2", "input", mapOf("name" to "limit", "description" to "Max results", "dataType" to "number", "required" to false, "defaultValue" to "10"))
+                node("i1", "input", mapOf("className" to null, "fields" to listOf(
+                    mapOf("name" to "query", "type" to "String", "description" to "Search query", "optional" to false),
+                    mapOf("name" to "limit", "type" to "Double", "description" to "Max results", "optional" to true)
+                )))
             ),
-            edges = listOf(edge("i1", "a1"), edge("i2", "a1"))
+            edges = listOf(edge("i1", "a1"))
         )
         val agents = adapter.convert(graph)
         assertEquals(1, agents.size)
@@ -42,7 +44,7 @@ class GraphToKoogAdapterIOTest {
             version = 1, name = "test",
             nodes = listOf(
                 node("a1", "agent", mapOf("name" to "Bot", "systemPrompt" to "Hi")),
-                node("o1", "output", mapOf("name" to "result", "description" to "The result", "dataType" to "string"))
+                node("o1", "output", mapOf("className" to null, "fields" to listOf(mapOf("name" to "result", "type" to "String", "description" to "The result", "optional" to false))))
             ),
             edges = listOf(edge("a1", "o1"))
         )
@@ -72,8 +74,8 @@ class GraphToKoogAdapterIOTest {
             nodes = listOf(
                 node("a1", "agent", mapOf("name" to "Bot", "systemPrompt" to "Hi")),
                 node("sa1", "sub-agent", mapOf("name" to "Research", "description" to "d", "systemPrompt" to "p", "inputDescription" to "i", "delegationMode" to "automatic")),
-                node("i1", "input", mapOf("name" to "topic", "description" to "Research topic", "dataType" to "string", "required" to true)),
-                node("o1", "output", mapOf("name" to "findings", "description" to "Research findings", "dataType" to "string"))
+                node("i1", "input", mapOf("className" to null, "fields" to listOf(mapOf("name" to "topic", "type" to "String", "description" to "Research topic", "optional" to false)))),
+                node("o1", "output", mapOf("className" to null, "fields" to listOf(mapOf("name" to "findings", "type" to "String", "description" to "Research findings", "optional" to false))))
             ),
             edges = listOf(edge("sa1", "a1"), edge("i1", "sa1"), edge("sa1", "o1"))
         )
@@ -97,8 +99,8 @@ class GraphToKoogAdapterIOTest {
                     "goals" to listOf(mapOf("name" to "g1", "conditions" to listOf(mapOf("key" to "done", "operator" to "equals", "value" to true)), "priority" to 0)),
                     "actions" to listOf(mapOf("name" to "a1", "description" to "act", "preconditions" to emptyList<Any>(), "effects" to listOf(mapOf("key" to "done", "value" to true)), "cost" to 1))
                 )),
-                node("i1", "input", mapOf("name" to "goal", "description" to "Goal description", "dataType" to "string", "required" to true)),
-                node("o1", "output", mapOf("name" to "plan", "description" to "Generated plan", "dataType" to "object"))
+                node("i1", "input", mapOf("className" to null, "fields" to listOf(mapOf("name" to "goal", "type" to "String", "description" to "Goal description", "optional" to false)))),
+                node("o1", "output", mapOf("className" to null, "fields" to listOf(mapOf("name" to "plan", "type" to "Map", "description" to "Generated plan", "optional" to false))))
             ),
             edges = listOf(edge("i1", "p1"), edge("p1", "o1"))
         )

@@ -254,8 +254,8 @@ class ExportServiceTest {
         val graph = WorkspaceGraph(1, "TypedAgent",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MyAgent", "systemPrompt" to "Help", "modelProvider" to "openai")),
-                GraphNode("i1", "input", Position(-200.0, 0.0), mapOf("name" to "query", "description" to "Search query", "dataType" to "string", "required" to true)),
-                GraphNode("o1", "output", Position(200.0, 0.0), mapOf("name" to "result", "description" to "The result", "dataType" to "string"))
+                GraphNode("i1", "input", Position(-200.0, 0.0), mapOf("className" to null, "fields" to listOf(mapOf("name" to "query", "type" to "String", "description" to "Search query", "optional" to false)))),
+                GraphNode("o1", "output", Position(200.0, 0.0), mapOf("className" to null, "fields" to listOf(mapOf("name" to "result", "type" to "String", "description" to "The result", "optional" to false))))
             ),
             listOf(
                 GraphEdge("e1", "i1", "a1"),
