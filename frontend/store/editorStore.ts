@@ -6,6 +6,7 @@ import { McpServerConfig } from "@/types/mcp";
 import { PlannerAgentConfig } from "@/types/planner";
 import { A2AAgentConfig } from "@/types/a2a";
 import { InputNodeConfig, OutputNodeConfig } from "@/types/io";
+import { GraphAgentConfig } from "@/types/graph-agent";
 
 export const DEFAULT_WORKSPACE_NAME = "Untitled Workspace";
 
@@ -15,10 +16,10 @@ interface EditorState {
   selectedNodeIds: string[];
   workspaceName: string;
 
-  addNode: (type: NodeType, position: { x: number; y: number }, toolType?: BuiltinToolType) => void;
+  addNode: (type: NodeType, position: { x: number; y: number }, toolType?: BuiltinToolType, initialData?: Record<string, unknown>) => void;
   addNodes: (nodes: GraphNode[], edges: GraphEdge[]) => void;
   removeNode: (id: string) => void;
-  updateNodeData: (id: string, data: Partial<AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | A2AAgentConfig | InputNodeConfig | OutputNodeConfig>) => void;
+  updateNodeData: (id: string, data: Record<string, unknown>) => void;
   updateNodePosition: (id: string, position: { x: number; y: number }) => void;
   commitPosition: () => void;
   addEdge: (source: string, target: string) => void;
@@ -101,6 +102,15 @@ const defaultPlannerAgentData: PlannerAgentConfig = {
   initialState: [],
 };
 
+const defaultGraphAgentData: GraphAgentConfig = {
+  name: "",
+  description: "",
+  systemPrompt: "",
+  modelProvider: "openai",
+  strategyNodes: [],
+  strategyEdges: [],
+};
+
 const builtinToolDefaults: Record<BuiltinToolType, BuiltinToolConfig> = {
   think:       { toolType: "think" },
   shell:       { toolType: "shell" },
@@ -136,10 +146,10 @@ export const useEditorStore = create<EditorState>((set) => ({
   workspaceName: DEFAULT_WORKSPACE_NAME,
   otelConfig: { ...DEFAULT_OTEL_CONFIG },
 
-  addNode(type, position, toolType?) {
+  addNode(type, position, toolType?, initialData?) {
     pushHistory();
     set((state) => {
-      let data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | PlannerAgentConfig | A2AAgentConfig | InputNodeConfig | OutputNodeConfig;
+      let data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | PlannerAgentConfig | A2AAgentConfig | InputNodeConfig | OutputNodeConfig | GraphAgentConfig;
       if (type === "agent") {
         data = { ...defaultAgentData };
       } else if (type === "sub-agent") {
@@ -156,8 +166,13 @@ export const useEditorStore = create<EditorState>((set) => ({
         data = { ...defaultInputData };
       } else if (type === "output") {
         data = { ...defaultOutputData };
+      } else if (type === "graph-agent") {
+        data = { ...defaultGraphAgentData };
       } else {
         data = { ...defaultToolData };
+      }
+      if (initialData) {
+        data = { ...data, ...initialData } as typeof data;
       }
       const newNode: GraphNode = { id: `node-${nextId++}`, type, position, data };
       return {

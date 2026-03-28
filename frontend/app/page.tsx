@@ -153,7 +153,7 @@ export default function EditorPage() {
           <PropertiesPanel />
           <A2AInspectorPanel />
         </div>
-        <div className="flex border-t overflow-hidden" style={{ minHeight: 0 }}>
+        <div className="flex border-t overflow-hidden max-h-[30vh]" style={{ minHeight: 0 }}>
           <div className="flex-1 min-w-0">
             <PreviewPanel />
           </div>

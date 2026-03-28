@@ -305,6 +305,73 @@ class GraphToKoogAdapter {
         }
     }
 
+    fun convertGraphAgents(graph: WorkspaceGraph): List<KoogGraphAgent> {
+        val toolNodes = graph.nodes.filter { it.type == "tool" }
+        val builtinToolNodes = graph.nodes.filter { it.type == "builtin-tool" }
+        val subAgentNodes = graph.nodes.filter { it.type == "sub-agent" }
+        val mcpServerNodes = graph.nodes.filter { it.type == "mcp-server" }
+        val inputNodes = graph.nodes.filter { it.type == "input" }
+        val outputNodes = graph.nodes.filter { it.type == "output" }
+
+        return graph.nodes.filter { it.type == "graph-agent" }.map { gaNode ->
+            val connectedIds = graph.edges
+                .filter { it.target == gaNode.id }
+                .map { it.source }
+
+            val tools = toolNodes.filter { it.id in connectedIds }.map { convertTool(it) }
+            val builtinTools = builtinToolNodes.filter { it.id in connectedIds }.map { convertBuiltinTool(it) }
+            val subAgents = subAgentNodes.filter { it.id in connectedIds }
+                .map { saNode -> convertSubAgent(saNode, graph, toolNodes, builtinToolNodes, inputNodes, outputNodes) }
+            val mcpServers = mcpServerNodes.filter { it.id in connectedIds }.map { convertMcpServer(it) }
+            val inputs = inputNodes.filter { it.id in connectedIds }.map { convertInput(it) }
+
+            val connectedFromGa = graph.edges.filter { it.source == gaNode.id }.map { it.target }
+            val outputs = outputNodes.filter { it.id in connectedFromGa }.map { convertOutput(it) }
+
+            @Suppress("UNCHECKED_CAST")
+            val strategyNodeMaps = gaNode.data["strategyNodes"] as? List<Map<String, Any?>> ?: emptyList()
+            val strategyNodes = strategyNodeMaps.map { snMap ->
+                KoogStrategyNode(
+                    id = snMap["id"] as? String ?: "",
+                    type = snMap["type"] as? String ?: "",
+                    label = snMap["label"] as? String,
+                    toolName = snMap["toolName"] as? String,
+                    condition = snMap["condition"] as? String,
+                    temperature = (snMap["temperature"] as? Number)?.toDouble()
+                )
+            }
+
+            @Suppress("UNCHECKED_CAST")
+            val strategyEdgeMaps = gaNode.data["strategyEdges"] as? List<Map<String, Any?>> ?: emptyList()
+            val strategyEdges = strategyEdgeMaps.map { seMap ->
+                KoogStrategyEdge(
+                    source = seMap["source"] as? String ?: "",
+                    target = seMap["target"] as? String ?: "",
+                    edgeType = seMap["edgeType"] as? String ?: "",
+                    condition = seMap["condition"] as? String,
+                    transformation = seMap["transformation"] as? String
+                )
+            }
+
+            KoogGraphAgent(
+                name = gaNode.data["name"] as? String ?: "",
+                description = gaNode.data["description"] as? String ?: "",
+                systemPrompt = gaNode.data["systemPrompt"] as? String ?: "",
+                modelProvider = parseProvider(gaNode.data["modelProvider"] as? String ?: "openai"),
+                modelId = gaNode.data["modelId"] as? String,
+                temperature = (gaNode.data["temperature"] as? Number)?.toDouble(),
+                strategyNodes = strategyNodes,
+                strategyEdges = strategyEdges,
+                tools = tools,
+                builtinTools = builtinTools,
+                subAgents = subAgents,
+                mcpServers = mcpServers,
+                inputs = inputs,
+                outputs = outputs
+            )
+        }
+    }
+
     private fun parseCondition(map: Map<String, Any?>): StateCondition {
         val operator = when ((map["operator"] as? String)?.lowercase()) {
             "notequals", "not_equals" -> ConditionOperator.NOT_EQUALS

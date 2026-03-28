@@ -13,9 +13,10 @@ import {
   A2AAgentReteNode,
   InputReteNode,
   OutputReteNode,
+  GraphAgentReteNode,
 } from "@/lib/rete-nodes";
 import type { Schemes } from "@/lib/rete-setup";
-import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon, ArrowRightLeftIcon, ArrowDownToLineIcon, ArrowUpFromLineIcon } from "lucide-react";
+import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon, ArrowRightLeftIcon, ArrowDownToLineIcon, ArrowUpFromLineIcon, NetworkIcon } from "lucide-react";
 import { useValidationStore } from "@/store/validationStore";
 
 const nodeIcons: Record<string, React.ReactNode> = {
@@ -28,6 +29,7 @@ const nodeIcons: Record<string, React.ReactNode> = {
   "a2a-agent": <ArrowRightLeftIcon size={10} />,
   "input": <ArrowDownToLineIcon size={10} />,
   "output": <ArrowUpFromLineIcon size={10} />,
+  "graph-agent": <NetworkIcon size={10} />,
 };
 
 const nodeColors: Record<string, { border: string; glow: string; badge: string; badgeText: string }> = {
@@ -60,6 +62,12 @@ const nodeColors: Record<string, { border: string; glow: string; badge: string; 
     badge: "rgba(249, 115, 22, 0.15)",
     badgeText: "#fb923c",
   },
+  "graph-agent": {
+    border: "rgba(99, 102, 241, 0.4)",
+    glow: "rgba(99, 102, 241, 0.12)",
+    badge: "rgba(99, 102, 241, 0.15)",
+    badgeText: "#818cf8",
+  },
 };
 
 const nodeTypeLabels: Record<string, string> = {
@@ -72,6 +80,7 @@ const nodeTypeLabels: Record<string, string> = {
   "a2a-agent": "A2A AGENT",
   "input": "INPUT",
   "output": "OUTPUT",
+  "graph-agent": "GRAPH AGENT",
 };
 
 function getNodeType(data: Schemes["Node"]): string {
@@ -84,6 +93,7 @@ function getNodeType(data: Schemes["Node"]): string {
   if (data instanceof A2AAgentReteNode) return "a2a-agent";
   if (data instanceof InputReteNode) return "input";
   if (data instanceof OutputReteNode) return "output";
+  if (data instanceof GraphAgentReteNode) return "graph-agent";
   return "tool";
 }
 
@@ -151,6 +161,9 @@ export function CustomNode(props: {
         break;
       case "output":
         if (d.dataType) subtitle = d.dataType;
+        break;
+      case "graph-agent":
+        if (d.strategyNodes?.length) subtitle = `${d.strategyNodes.length} nodes`;
         break;
     }
   }

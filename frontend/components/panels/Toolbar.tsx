@@ -14,7 +14,10 @@ import { useEditorStore } from "@/store/editorStore";
 import { useHistoryStore } from "@/store/historyStore";
 import { ToolsMenuDialog } from "@/components/dialogs/ToolsMenuDialog";
 import type { BuiltinToolType } from "@/types/graph";
-import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon, ArrowDownToLineIcon, ArrowUpFromLineIcon } from "lucide-react";
+import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon, ArrowDownToLineIcon, ArrowUpFromLineIcon, NetworkIcon } from "lucide-react";
+import { GraphAgentTemplateDialog } from "@/components/dialogs/GraphAgentTemplateDialog";
+import { TEMPLATES } from "@/components/graph-agent/templates";
+import type { GraphAgentTemplate } from "@/types/graph-agent";
 
 const builtinToolOptions: { type: BuiltinToolType; label: string }[] = [
   { type: "think", label: "Think" },
@@ -35,6 +38,17 @@ export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspa
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+
+  const handleTemplateSelect = (template: GraphAgentTemplate) => {
+    const t = TEMPLATES[template];
+    addNode("graph-agent", { x: 100, y: 100 }, undefined, {
+      strategyNodes: structuredClone(t.nodes),
+      strategyEdges: structuredClone(t.edges),
+    });
+    setTemplateDialogOpen(false);
+  };
 
   return (
     <div className="flex items-center gap-2 p-2 border-b bg-background">
@@ -142,6 +156,24 @@ export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspa
         <ArrowUpFromLineIcon className="h-4 w-4 mr-1 text-orange-400" />
         Output
       </Button>
+
+      <span className="text-border select-none">|</span>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setTemplateDialogOpen(true)}
+        title="Add Graph Agent"
+      >
+        <NetworkIcon className="h-4 w-4 mr-1 text-indigo-400" />
+        Graph Agent
+      </Button>
+
+      <GraphAgentTemplateDialog
+        open={templateDialogOpen}
+        onSelect={handleTemplateSelect}
+        onClose={() => setTemplateDialogOpen(false)}
+      />
 
       <div className="flex-1" />
       <ToolsMenuDialog mcpConnected={mcpConnected} />

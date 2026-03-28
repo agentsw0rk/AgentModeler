@@ -9,17 +9,22 @@ class GraphValidator {
         val errors = mutableListOf<String>()
         val agentCount = graph.nodes.count { it.type == "agent" }
         val plannerCount = graph.nodes.count { it.type == "planner-agent" }
-        if (agentCount == 0 && plannerCount == 0) {
-            errors.add("Workspace must have at least one agent or planner-agent")
+        val graphAgentCount = graph.nodes.count { it.type == "graph-agent" }
+        val totalAgentTypes = listOf(agentCount, plannerCount, graphAgentCount).count { it > 0 }
+        if (agentCount == 0 && plannerCount == 0 && graphAgentCount == 0) {
+            errors.add("Workspace must have at least one agent, planner-agent, or graph-agent")
         }
-        if (agentCount > 0 && plannerCount > 0) {
-            errors.add("Workspace cannot have both a regular agent and a planner-agent")
+        if (totalAgentTypes > 1) {
+            errors.add("Workspace cannot mix different agent types or have both agent and planner-agent (agent, planner-agent, graph-agent)")
         }
         if (agentCount > 1) {
             errors.add("Only single-agent workspaces are supported for export")
         }
         if (plannerCount > 1) {
             errors.add("Workspace can have at most one planner-agent")
+        }
+        if (graphAgentCount > 1) {
+            errors.add("Workspace can have at most one graph-agent")
         }
 
         for (node in graph.nodes) {
@@ -194,11 +199,82 @@ class GraphValidator {
                         errors.add("[${node.id}] Output can only be connected to one Agent")
                     }
                 }
+                "graph-agent" -> {
+                    val name = node.data["name"] as? String ?: ""
+                    val prompt = node.data["systemPrompt"] as? String ?: ""
+                    if (name.isBlank()) errors.add("[${node.id}] Graph agent requires a name")
+                    if (prompt.isBlank()) errors.add("[${node.id}] Graph agent requires a system prompt")
+
+                    @Suppress("UNCHECKED_CAST")
+                    val strategyNodes = node.data["strategyNodes"] as? List<Map<String, Any?>> ?: emptyList()
+                    @Suppress("UNCHECKED_CAST")
+                    val strategyEdges = node.data["strategyEdges"] as? List<Map<String, Any?>> ?: emptyList()
+
+                    val startCount = strategyNodes.count { it["type"] == "node-start" }
+                    val finishCount = strategyNodes.count { it["type"] == "node-finish" }
+                    if (startCount != 1) errors.add("[${node.id}] Graph agent must have exactly one node-start")
+                    if (finishCount != 1) errors.add("[${node.id}] Graph agent must have exactly one node-finish")
+
+                    val startId = strategyNodes.find { it["type"] == "node-start" }?.get("id") as? String
+                    val finishId = strategyNodes.find { it["type"] == "node-finish" }?.get("id") as? String
+
+                    if (startId != null) {
+                        val startOutgoing = strategyEdges.filter { it["source"] == startId }
+                        if (startOutgoing.isEmpty()) errors.add("[${node.id}] node-start must have at least one outgoing edge")
+                    }
+
+                    if (startId != null && finishId != null) {
+                        val adjacency = mutableMapOf<String, MutableList<String>>()
+                        for (se in strategyEdges) {
+                            val src = se["source"] as? String ?: continue
+                            val tgt = se["target"] as? String ?: continue
+                            adjacency.getOrPut(src) { mutableListOf() }.add(tgt)
+                        }
+                        val visited = mutableSetOf<String>()
+                        val queue = ArrayDeque<String>()
+                        queue.add(startId)
+                        while (queue.isNotEmpty()) {
+                            val current = queue.removeFirst()
+                            if (current in visited) continue
+                            visited.add(current)
+                            adjacency[current]?.forEach { queue.add(it) }
+                        }
+                        if (finishId !in visited) {
+                            errors.add("[${node.id}] node-finish must be reachable from node-start")
+                        }
+                    }
+
+                    for (sn in strategyNodes) {
+                        val snType = sn["type"] as? String ?: ""
+                        when (snType) {
+                            "node-execute-tool" -> {
+                                val toolName = sn["toolName"] as? String ?: ""
+                                if (toolName.isBlank()) errors.add("[${node.id}] node-execute-tool requires a toolName")
+                            }
+                            "node-condition" -> {
+                                val condition = sn["condition"] as? String ?: ""
+                                if (condition.isBlank()) errors.add("[${node.id}] node-condition requires a condition expression")
+                            }
+                        }
+                    }
+
+                    for (se in strategyEdges) {
+                        val edgeType = se["edgeType"] as? String ?: ""
+                        if (edgeType.isBlank()) errors.add("[${node.id}] Strategy edge requires an edgeType")
+                        if (edgeType == "onCondition") {
+                            val source = se["source"] as? String ?: ""
+                            if (source != startId) {
+                                val condition = se["condition"] as? String ?: ""
+                                if (condition.isBlank()) errors.add("[${node.id}] onCondition edge requires a condition expression")
+                            }
+                        }
+                    }
+                }
             }
         }
 
         // Duplicate input/output name checks per agent
-        val agentTypes = setOf("agent", "sub-agent", "planner-agent")
+        val agentTypes = setOf("agent", "sub-agent", "planner-agent", "graph-agent")
         for (agentNode in graph.nodes.filter { it.type in agentTypes }) {
             val inputNames = mutableSetOf<String>()
             val connectedInputs = graph.edges
