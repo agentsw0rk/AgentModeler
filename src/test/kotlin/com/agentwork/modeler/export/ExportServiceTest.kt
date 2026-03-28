@@ -249,6 +249,33 @@ class ExportServiceTest {
         assertTrue(!files["src/main/resources/application.properties"]!!.contains("otel."))
     }
 
+    @Test
+    fun `generates typed agent and controller when IO nodes present`() {
+        val graph = WorkspaceGraph(1, "TypedAgent",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MyAgent", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("i1", "input", Position(-200.0, 0.0), mapOf("name" to "query", "description" to "Search query", "dataType" to "string", "required" to true)),
+                GraphNode("o1", "output", Position(200.0, 0.0), mapOf("name" to "result", "description" to "The result", "dataType" to "string"))
+            ),
+            listOf(
+                GraphEdge("e1", "i1", "a1"),
+                GraphEdge("e2", "a1", "o1")
+            )
+        )
+        val (_, files) = service.exportWithFiles(graph)
+
+        val agentCode = files["src/main/kotlin/generated/AgentConfig.kt"]!!
+        assertContains(agentCode, "AIAgent<MyAgentInput, MyAgentOutput>")
+
+        val controllerCode = files["src/main/kotlin/generated/ChatController.kt"]!!
+        assertContains(controllerCode, "AIAgent<MyAgentInput, MyAgentOutput>")
+        assertContains(controllerCode, "MyAgentInput")
+
+        // I/O classes still generated
+        assertTrue(files.containsKey("src/main/kotlin/generated/MyAgentInput.kt"))
+        assertTrue(files.containsKey("src/main/kotlin/generated/MyAgentOutput.kt"))
+    }
+
     private fun readZipEntries(data: ByteArray): List<String> {
         val entries = mutableListOf<String>()
         ZipInputStream(ByteArrayInputStream(data)).use { zis ->

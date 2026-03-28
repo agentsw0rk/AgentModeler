@@ -4,6 +4,8 @@ import com.agentwork.modeler.export.adapter.GraphToKoogAdapter
 import com.agentwork.modeler.export.generator.*
 import com.agentwork.modeler.export.generator.A2AServerGenerator
 import com.agentwork.modeler.export.generator.A2AClientGenerator
+import com.agentwork.modeler.export.model.KoogInput
+import com.agentwork.modeler.export.model.KoogOutput
 import com.agentwork.modeler.export.model.KoogPlannerAgent
 import com.agentwork.modeler.export.model.WorkspaceGraph
 import com.agentwork.modeler.export.validation.GraphValidator
@@ -155,8 +157,9 @@ class ExportService(
             files["src/main/resources/application.properties"] = applicationPropertiesGenerator.generate(infraAgent)
 
             files["$pkg/Application.kt"] = applicationGenerator.generate()
-            files["$pkg/AgentConfig.kt"] = agentGenerator.generate(infraAgent, "create${ga.name.replaceFirstChar { it.uppercase() }}Strategy()")
-            files["$pkg/ChatController.kt"] = controllerGenerator.generate()
+            val (gaInputClassName, gaOutputClassName) = ioClassNames(ga.name, ga.inputs, ga.outputs)
+            files["$pkg/AgentConfig.kt"] = agentGenerator.generate(infraAgent, "create${ga.name.replaceFirstChar { it.uppercase() }}Strategy()", inputClassName = gaInputClassName, outputClassName = gaOutputClassName)
+            files["$pkg/ChatController.kt"] = controllerGenerator.generate(inputClassName = gaInputClassName, outputClassName = gaOutputClassName)
 
             files["$pkg/${ga.name.replaceFirstChar { it.uppercase() }}Strategy.kt"] = graphAgentGenerator.generate(ga)
 
@@ -197,8 +200,9 @@ class ExportService(
 
         // Kotlin sources
         files["$pkg/Application.kt"] = applicationGenerator.generate()
-        files["$pkg/AgentConfig.kt"] = agentGenerator.generate(agent)
-        files["$pkg/ChatController.kt"] = controllerGenerator.generate()
+        val (inputClassName, outputClassName) = ioClassNames(agent.name, agent.inputs, agent.outputs)
+        files["$pkg/AgentConfig.kt"] = agentGenerator.generate(agent, inputClassName = inputClassName, outputClassName = outputClassName)
+        files["$pkg/ChatController.kt"] = controllerGenerator.generate(inputClassName = inputClassName, outputClassName = outputClassName)
 
         // Tools
         for (tool in agent.tools) {
@@ -290,6 +294,12 @@ class ExportService(
         }
 
         return files
+    }
+
+    private fun ioClassNames(name: String, inputs: List<KoogInput>, outputs: List<KoogOutput>): Pair<String?, String?> {
+        val inputClassName = if (inputs.isNotEmpty()) "${name.replaceFirstChar { it.uppercase() }}Input" else null
+        val outputClassName = if (outputs.isNotEmpty()) "${name.replaceFirstChar { it.uppercase() }}Output" else null
+        return Pair(inputClassName, outputClassName)
     }
 
     private fun generatePlannerBuildGradle(): String = buildString {
