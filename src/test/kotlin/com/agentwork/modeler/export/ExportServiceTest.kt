@@ -47,7 +47,7 @@ class ExportServiceTest {
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MyAgent", "systemPrompt" to "Help", "modelProvider" to "openai")),
                 GraphNode("t1", "tool", Position(200.0, 0.0), mapOf("name" to "searchTool", "description" to "Searches",
-                    "parameters" to listOf(mapOf("id" to "p1", "name" to "query", "type" to "String", "description" to "query", "required" to true))))
+                    "functions" to listOf(mapOf("name" to "search", "description" to "Searches", "parameters" to listOf(mapOf("id" to "p1", "name" to "query", "type" to "String", "description" to "query", "required" to true))))))
             ),
             listOf(GraphEdge("e1", "t1", "a1"))
         )
@@ -66,7 +66,7 @@ class ExportServiceTest {
         assertTrue(entries.contains("src/main/kotlin/generated/AgentConfig.kt"))
         assertTrue(entries.contains("src/main/kotlin/generated/ChatController.kt"))
         assertTrue(entries.contains("src/main/kotlin/generated/ToolRegistry.kt"))
-        assertTrue(entries.contains("src/main/kotlin/generated/tools/SearchToolToolSet.kt"))
+        assertTrue(entries.contains("src/main/kotlin/generated/tools/searchTool.kt"))
 
         // Verify content wiring (spot check)
         val settingsContent = readZipFileContent(zip, "settings.gradle.kts")
@@ -158,7 +158,7 @@ class ExportServiceTest {
                 )),
                 GraphNode("t1", "tool", Position(100.0, 200.0), mapOf(
                     "name" to "fetchTool", "description" to "Fetches",
-                    "parameters" to emptyList<Any>()
+                    "functions" to emptyList<Any>()
                 ))
             ),
             listOf(
@@ -173,7 +173,7 @@ class ExportServiceTest {
         assertTrue(entries.contains("src/main/kotlin/generated/ToolRegistry.kt"))
         assertTrue(entries.contains("src/main/kotlin/generated/subagents/ResearchAgentSubAgent.kt"))
         assertTrue(entries.contains("src/main/kotlin/generated/subagents/ResearchAgentToolRegistry.kt"))
-        assertTrue(entries.contains("src/main/kotlin/generated/tools/FetchToolToolSet.kt"))
+        assertTrue(entries.contains("src/main/kotlin/generated/tools/fetchTool.kt"))
 
         val registryContent = readZipFileContent(zip, "src/main/kotlin/generated/ToolRegistry.kt")
         assertContains(registryContent, "createResearchAgent()")

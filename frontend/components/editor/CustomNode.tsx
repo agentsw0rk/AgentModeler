@@ -145,7 +145,7 @@ export function CustomNode(props: {
         if (d.delegationMode) subtitle = d.delegationMode;
         break;
       case "tool":
-        if (d.parameters?.length) subtitle = `${d.parameters.length} parameter${d.parameters.length !== 1 ? "s" : ""}`;
+        if (d.functions?.length) subtitle = `${d.functions.length} function${d.functions.length !== 1 ? "s" : ""}`;
         break;
       case "mcp-server":
         if (d.transportType) subtitle = `${d.transportType.toUpperCase()}${d.url ? " · " + d.url.slice(0, 30) : ""}`;

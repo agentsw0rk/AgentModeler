@@ -56,11 +56,15 @@ class GraphValidator {
                     if (connectedAgentCount > 1) {
                         errors.add("[${node.id}] Tool can only be connected to one Agent or Sub-Agent")
                     }
-                    val params = node.data["parameters"] as? List<*> ?: emptyList<Any>()
-                    for (param in params) {
-                        val map = param as? Map<*, *> ?: continue
-                        val paramName = map["name"] as? String ?: ""
-                        if (paramName.isBlank()) errors.add("[${node.id}] Parameter requires a name")
+                    val functions = node.data["functions"] as? List<*> ?: emptyList<Any>()
+                    for (fn in functions) {
+                        val fnMap = fn as? Map<*, *> ?: continue
+                        val fnParams = fnMap["parameters"] as? List<*> ?: emptyList<Any>()
+                        for (param in fnParams) {
+                            val map = param as? Map<*, *> ?: continue
+                            val paramName = map["name"] as? String ?: ""
+                            if (paramName.isBlank()) errors.add("[${node.id}] Parameter requires a name")
+                        }
                     }
                 }
                 "builtin-tool" -> {

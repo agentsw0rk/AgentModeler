@@ -26,8 +26,10 @@ class GraphToKoogAdapterTest {
                 GraphNode("t1", "tool", Position(200.0, 0.0), mapOf(
                     "name" to "searchTool",
                     "description" to "Searches the web",
-                    "parameters" to listOf(
-                        mapOf("id" to "p1", "name" to "query", "type" to "String", "description" to "Search query", "required" to true)
+                    "functions" to listOf(
+                        mapOf("name" to "search", "description" to "Search the web", "parameters" to listOf(
+                            mapOf("id" to "p1", "name" to "query", "type" to "String", "description" to "Search query", "required" to true)
+                        ))
                     )
                 ))
             ),
@@ -100,7 +102,7 @@ class GraphToKoogAdapterTest {
                 )),
                 GraphNode("t1", "tool", Position(100.0, 200.0), mapOf(
                     "name" to "fetchTool", "description" to "Fetches data",
-                    "parameters" to emptyList<Any>()
+                    "functions" to emptyList<Any>()
                 ))
             ),
             edges = listOf(
@@ -217,11 +219,11 @@ class GraphToKoogAdapterTest {
                 )),
                 GraphNode("t1", "tool", Position(100.0, 200.0), mapOf(
                     "name" to "subTool", "description" to "SubTool",
-                    "parameters" to emptyList<Any>()
+                    "functions" to emptyList<Any>()
                 )),
                 GraphNode("t2", "tool", Position(400.0, 0.0), mapOf(
                     "name" to "mainTool", "description" to "MainTool",
-                    "parameters" to emptyList<Any>()
+                    "functions" to emptyList<Any>()
                 ))
             ),
             edges = listOf(

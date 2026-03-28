@@ -38,7 +38,7 @@ class GraphToKoogAdapterGraphAgentTest {
                 )),
                 GraphNode("t1", "tool", Position(200.0, 0.0), mapOf(
                     "name" to "searchTool", "description" to "Searches the web",
-                    "parameters" to listOf(mapOf("name" to "query", "type" to "String", "description" to "Search query", "required" to true))
+                    "functions" to listOf(mapOf("name" to "search", "description" to "Searches", "parameters" to listOf(mapOf("name" to "query", "type" to "String", "description" to "Search query", "required" to true))))
                 ))
             ),
             listOf(GraphEdge("e1", "t1", "ga1"))

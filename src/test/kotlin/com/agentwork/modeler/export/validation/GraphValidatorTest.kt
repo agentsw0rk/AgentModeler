@@ -13,7 +13,7 @@ class GraphValidatorTest {
         val graph = WorkspaceGraph(1, "Test",
             listOf(
                 GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
-                GraphNode("t1", "tool", Position(200.0, 0.0), mapOf("name" to "Tool1", "description" to "Desc", "parameters" to listOf(mapOf("id" to "p1", "name" to "q", "type" to "String", "description" to "d", "required" to true))))
+                GraphNode("t1", "tool", Position(200.0, 0.0), mapOf("name" to "Tool1", "description" to "Desc", "functions" to listOf(mapOf("name" to "fn", "description" to "fn", "parameters" to listOf(mapOf("id" to "p1", "name" to "q", "type" to "String", "description" to "d", "required" to true))))))
             ),
             listOf(GraphEdge("e1", "t1", "a1"))
         )
@@ -40,7 +40,7 @@ class GraphValidatorTest {
     @Test
     fun `reports tool without name`() {
         val graph = WorkspaceGraph(1, "Test",
-            listOf(GraphNode("t1", "tool", Position(0.0, 0.0), mapOf("name" to "", "description" to "Desc", "parameters" to emptyList<Any>()))),
+            listOf(GraphNode("t1", "tool", Position(0.0, 0.0), mapOf("name" to "", "description" to "Desc", "functions" to emptyList<Any>()))),
             emptyList())
         assertTrue(validator.validate(graph).any { it.contains("name") && it.contains("t1") })
     }
@@ -48,7 +48,7 @@ class GraphValidatorTest {
     @Test
     fun `reports tool without connected agent`() {
         val graph = WorkspaceGraph(1, "Test",
-            listOf(GraphNode("t1", "tool", Position(0.0, 0.0), mapOf("name" to "Tool1", "description" to "Desc", "parameters" to emptyList<Any>()))),
+            listOf(GraphNode("t1", "tool", Position(0.0, 0.0), mapOf("name" to "Tool1", "description" to "Desc", "functions" to emptyList<Any>()))),
             emptyList())
         assertTrue(validator.validate(graph).any { it.contains("connected") })
     }
@@ -57,7 +57,7 @@ class GraphValidatorTest {
     fun `reports parameter without name`() {
         val graph = WorkspaceGraph(1, "Test",
             listOf(GraphNode("t1", "tool", Position(0.0, 0.0), mapOf("name" to "Tool1", "description" to "Desc",
-                "parameters" to listOf(mapOf("id" to "p1", "name" to "", "type" to "String", "description" to "", "required" to true))))),
+                "functions" to listOf(mapOf("name" to "fn", "description" to "fn", "parameters" to listOf(mapOf("id" to "p1", "name" to "", "type" to "String", "description" to "", "required" to true))))))),
             listOf(GraphEdge("e1", "t1", "a1")))
         assertTrue(validator.validate(graph).any { it.contains("Parameter") })
     }

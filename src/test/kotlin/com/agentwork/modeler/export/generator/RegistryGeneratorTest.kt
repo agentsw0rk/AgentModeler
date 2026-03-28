@@ -18,8 +18,8 @@ class RegistryGeneratorTest {
         )
         val code = generator.generate(tools, emptyList())
         assertContains(code, "ToolRegistry")
-        assertContains(code, "SearchToolToolSet")
-        assertContains(code, "CalcToolToolSet")
+        assertContains(code, "searchTool()")
+        assertContains(code, "calcTool()")
     }
 
     @Test
@@ -65,7 +65,7 @@ class RegistryGeneratorTest {
             KoogBuiltinTool(BuiltinToolType.USER_PROMPT)
         )
         val code = generator.generate(tools, builtinTools)
-        assertContains(code, "SearchToolToolSet")
+        assertContains(code, "searchTool()")
         assertContains(code, "ShellToolSet")
         assertContains(code, "tool(AskUser)")
     }
@@ -104,7 +104,7 @@ class RegistryGeneratorTest {
             )
         )
         val code = generator.generate(tools, emptyList(), subAgents)
-        assertContains(code, "WeatherToolToolSet")
+        assertContains(code, "weatherTool()")
         assertContains(code, "createSA()")
     }
 
@@ -153,7 +153,7 @@ class RegistryGeneratorTest {
         )
         val code = generator.generate(tools, emptyList(), emptyList(), mcpServers)
         assertContains(code, "suspend fun createToolRegistry()")
-        assertContains(code, "WeatherToolToolSet")
+        assertContains(code, "weatherTool()")
         assertContains(code, "createMapsRegistry()")
     }
 }

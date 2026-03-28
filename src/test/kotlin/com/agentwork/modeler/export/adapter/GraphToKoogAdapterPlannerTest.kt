@@ -108,7 +108,7 @@ class GraphToKoogAdapterPlannerTest {
                     data = mapOf(
                         "name" to "SearchTool",
                         "description" to "Searches",
-                        "parameters" to emptyList<Any>()
+                        "functions" to emptyList<Any>()
                     )
                 )
             ),

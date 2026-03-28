@@ -81,7 +81,7 @@ class SubAgentGeneratorTest {
         val code = generator.generateRegistry(subAgent)!!
         assertContains(code, "package generated.subagents")
         assertContains(code, "fun createToolAgentToolRegistry()")
-        assertContains(code, "FetchToolToolSet")
+        assertContains(code, "fetchTool()")
     }
 
     @Test

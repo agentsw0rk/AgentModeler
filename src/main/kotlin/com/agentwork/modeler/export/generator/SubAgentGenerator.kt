@@ -93,8 +93,7 @@ class SubAgentGenerator {
             appendLine("    return ToolRegistry {")
 
             for (tool in subAgent.tools) {
-                val className = tool.name.replaceFirstChar { it.uppercase() } + "ToolSet"
-                appendLine("        tools($className())")
+                appendLine("        tools(${tool.name}())")
             }
             for (bt in customBuiltins) {
                 val reg = when (bt.type) {
