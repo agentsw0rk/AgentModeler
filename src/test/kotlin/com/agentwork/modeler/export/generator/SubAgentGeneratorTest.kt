@@ -96,4 +96,35 @@ class SubAgentGeneratorTest {
         val result = generator.generateRegistry(subAgent)
         assert(result == null)
     }
+
+    @Test
+    fun `generates typed sub-agent when inputs and outputs provided`() {
+        val subAgent = KoogSubAgent(
+            name = "Research", description = "Researches",
+            systemPrompt = "Prompt", modelProvider = ModelProvider.OPENAI,
+            modelId = null, temperature = null, delegationMode = "automatic",
+            inputDescription = "Input",
+            tools = emptyList(), builtinTools = emptyList(),
+            inputs = listOf(KoogInput("query", "Query", "string", true, null)),
+            outputs = listOf(KoogOutput("result", "Result", "string"))
+        )
+        val code = generator.generate(subAgent)
+        assertContains(code, "fun createResearch(): AIAgent<ResearchInput, ResearchOutput>")
+        assertContains(code, "import generated.subagents.ResearchInput")
+        assertContains(code, "import generated.subagents.ResearchOutput")
+    }
+
+    @Test
+    fun `generates String String sub-agent when no IO`() {
+        val subAgent = KoogSubAgent(
+            name = "Simple", description = "Desc",
+            systemPrompt = "Prompt", modelProvider = ModelProvider.OPENAI,
+            modelId = null, temperature = null, delegationMode = "automatic",
+            inputDescription = "Input",
+            tools = emptyList(), builtinTools = emptyList()
+        )
+        val code = generator.generate(subAgent)
+        assertContains(code, "fun createSimple() = AIAgent(")
+        assertFalse(code.contains("AIAgent<"))
+    }
 }

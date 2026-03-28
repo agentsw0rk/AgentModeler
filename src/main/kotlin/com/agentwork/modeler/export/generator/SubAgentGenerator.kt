@@ -13,6 +13,10 @@ class SubAgentGenerator {
         val modelRef = subAgent.modelId?.let { mapModelId(subAgent.modelProvider, it) }
             ?: subAgent.modelProvider.defaultModel
         val funcName = "create${subAgent.name.replaceFirstChar { it.uppercase() }}"
+        val hasInputs = subAgent.inputs.isNotEmpty()
+        val hasOutputs = subAgent.outputs.isNotEmpty()
+        val inputType = if (hasInputs) "${subAgent.name.replaceFirstChar { it.uppercase() }}Input" else null
+        val outputType = if (hasOutputs) "${subAgent.name.replaceFirstChar { it.uppercase() }}Output" else null
         val hasTools = subAgent.tools.isNotEmpty() || subAgent.builtinTools.isNotEmpty()
         val registryFuncName = "create${subAgent.name.replaceFirstChar { it.uppercase() }}ToolRegistry"
 
@@ -37,8 +41,20 @@ class SubAgentGenerator {
             }
             appendLine("import ai.koog.prompt.executor.llms.all.${subAgent.modelProvider.executorFactory}")
             appendLine("import $modelImport")
+            if (inputType != null) {
+                appendLine("import generated.subagents.$inputType")
+            }
+            if (outputType != null) {
+                appendLine("import generated.subagents.$outputType")
+            }
             appendLine()
-            appendLine("fun $funcName() = AIAgent(")
+            if (inputType != null || outputType != null) {
+                val i = inputType ?: "String"
+                val o = outputType ?: "String"
+                appendLine("fun $funcName(): AIAgent<$i, $o> = AIAgent(")
+            } else {
+                appendLine("fun $funcName() = AIAgent(")
+            }
             appendLine("        $paramBlock")
             appendLine(")")
         }
