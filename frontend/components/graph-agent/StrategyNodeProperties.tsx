@@ -30,14 +30,20 @@ export function StrategyNodeProperties({
       {node.type === "node-execute-tool" && (
         <div>
           <Label>Tool</Label>
-          <Select value={d.toolName ?? ""} onValueChange={(v) => onUpdate({ toolName: v || undefined })}>
-            <SelectTrigger><SelectValue placeholder="Select tool..." /></SelectTrigger>
-            <SelectContent>
-              {connectedTools.map((t) => (
-                <SelectItem key={t} value={t}>{t}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {connectedTools.length > 0 ? (
+            <Select value={d.toolName ?? ""} onValueChange={(v) => onUpdate({ toolName: v || undefined })}>
+              <SelectTrigger><SelectValue placeholder="Select tool..." /></SelectTrigger>
+              <SelectContent>
+                {connectedTools.map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <p className="text-xs text-muted-foreground mt-1">
+              No tools available. Connect Tool or Built-in Tool nodes to this Graph Agent in the main canvas first.
+            </p>
+          )}
         </div>
       )}
 
