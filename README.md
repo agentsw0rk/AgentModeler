@@ -2,7 +2,7 @@
 
 Visueller Editor zum Modellieren, Konfigurieren und Exportieren von **Koog-basierten AI-Agenten** als **Kotlin-Code**.
 
-## Überblick
+## Überblick.
 
 Der **Koog Agent Editor** ist ein visuelles Tool für Entwickler, die AI-Agenten mit dem JetBrains-Framework **Koog** erstellen möchten.  
 Statt Agenten, Tools, Workflows und Sub-Agents manuell im Code zusammenzubauen, können diese Bausteine in einem graphbasierten Editor modelliert und anschließend als ausführbarer Kotlin-Code exportiert werden.
