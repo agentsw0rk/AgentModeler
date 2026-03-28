@@ -419,22 +419,34 @@ class GraphToKoogAdapter {
         )
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun convertInput(node: GraphNode): KoogInput {
-        return KoogInput(
-            name = node.data["name"] as? String ?: "",
-            description = node.data["description"] as? String ?: "",
-            dataType = node.data["dataType"] as? String ?: "string",
-            required = node.data["required"] as? Boolean ?: true,
-            defaultValue = node.data["defaultValue"] as? String
-        )
+        val className = node.data["className"] as? String
+        val rawFields = node.data["fields"] as? List<Map<String, Any?>> ?: emptyList()
+        val fields = rawFields.map { f ->
+            KoogField(
+                name = f["name"] as? String ?: "",
+                type = f["type"] as? String ?: "String",
+                description = f["description"] as? String ?: "",
+                optional = f["optional"] as? Boolean ?: false
+            )
+        }
+        return KoogInput(className = className, fields = fields)
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun convertOutput(node: GraphNode): KoogOutput {
-        return KoogOutput(
-            name = node.data["name"] as? String ?: "",
-            description = node.data["description"] as? String ?: "",
-            dataType = node.data["dataType"] as? String ?: "string"
-        )
+        val className = node.data["className"] as? String
+        val rawFields = node.data["fields"] as? List<Map<String, Any?>> ?: emptyList()
+        val fields = rawFields.map { f ->
+            KoogField(
+                name = f["name"] as? String ?: "",
+                type = f["type"] as? String ?: "String",
+                description = f["description"] as? String ?: "",
+                optional = f["optional"] as? Boolean ?: false
+            )
+        }
+        return KoogOutput(className = className, fields = fields)
     }
 
     @Suppress("UNCHECKED_CAST")
