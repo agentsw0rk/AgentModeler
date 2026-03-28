@@ -1,15 +1,18 @@
 package com.agentwork.modeler.export.model
 
-data class KoogInput(
+data class KoogField(
     val name: String,
+    val type: String,
     val description: String,
-    val dataType: String,
-    val required: Boolean,
-    val defaultValue: String?
+    val optional: Boolean
+)
+
+data class KoogInput(
+    val className: String?,
+    val fields: List<KoogField>
 )
 
 data class KoogOutput(
-    val name: String,
-    val description: String,
-    val dataType: String
+    val className: String?,
+    val fields: List<KoogField>
 )
