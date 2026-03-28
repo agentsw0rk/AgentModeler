@@ -44,17 +44,22 @@ export function validateGraph(graph: WorkspaceGraph): ValidationError[] {
     if (node.type === "tool") {
       const data = node.data as ToolConfig;
       if (!data.name.trim()) {
-        errors.push({ nodeId: node.id, severity: "error", message: "Tool requires a name" });
+        errors.push({ nodeId: node.id, severity: "error", message: "ToolSet requires a name" });
       }
 
       const isConnected = graph.edges.some((e) => e.source === node.id);
       if (!isConnected) {
-        errors.push({ nodeId: node.id, severity: "error", message: "Tool must be connected to an Agent" });
+        errors.push({ nodeId: node.id, severity: "error", message: "ToolSet must be connected to an Agent" });
       }
 
-      for (const param of data.parameters) {
-        if (!param.name.trim()) {
-          errors.push({ nodeId: node.id, severity: "error", message: "Parameter requires a name" });
+      for (const fn of data.functions ?? []) {
+        if (!fn.name.trim()) {
+          errors.push({ nodeId: node.id, severity: "error", message: "Function requires a name" });
+        }
+        for (const param of fn.parameters) {
+          if (!param.name.trim()) {
+            errors.push({ nodeId: node.id, severity: "error", message: `Parameter in function "${fn.name || "unnamed"}" requires a name` });
+          }
         }
       }
     }
