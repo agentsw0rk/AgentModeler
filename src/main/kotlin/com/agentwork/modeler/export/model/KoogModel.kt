@@ -26,22 +26,31 @@ enum class ModelProvider(val importPackage: String, val executorFactory: String,
 data class KoogTool(
     val name: String,
     val description: String,
-    val parameters: List<KoogToolParameter>,
-    val handlerStubName: String?
+    val functions: List<KoogToolFunction>
+)
+
+data class KoogToolFunction(
+    val name: String,
+    val description: String,
+    val parameters: List<KoogToolParameter>
 )
 
 data class KoogToolParameter(
     val name: String,
     val type: KoogParamType,
     val description: String,
-    val required: Boolean
+    val required: Boolean,
+    val defaultValue: String?
 )
 
 enum class KoogParamType(val kotlinType: String) {
     STRING("String"),
     INT("Int"),
+    DOUBLE("Double"),
     FLOAT("Float"),
-    BOOLEAN("Boolean")
+    BOOLEAN("Boolean"),
+    LIST_STRING("List<String>"),
+    MAP_STRING_STRING("Map<String, String>")
 }
 
 enum class BuiltinToolType {
