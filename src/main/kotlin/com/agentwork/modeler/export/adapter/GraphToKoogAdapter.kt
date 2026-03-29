@@ -354,7 +354,41 @@ class GraphToKoogAdapter {
                     outputSchema = snData["outputSchema"] as? String,
                     inputType = snData["inputType"] as? String,
                     outputType = snData["outputType"] as? String,
-                    body = snData["body"] as? String
+                    body = snData["body"] as? String,
+                    subgraphName = snData["subgraphName"] as? String,
+                    subgraphInputType = snData["subgraphInputType"] as? String,
+                    subgraphOutputType = snData["subgraphOutputType"] as? String,
+                    subgraphToolSelection = snData["subgraphToolSelection"] as? String,
+                    subgraphTools = (snData["subgraphTools"] as? List<*>)?.filterIsInstance<String>(),
+                    subgraphNodes = (snData["subgraphNodes"] as? List<Map<String, Any?>>)?.map { innerSnMap ->
+                        @Suppress("UNCHECKED_CAST")
+                        val innerSnData = innerSnMap["data"] as? Map<String, Any?> ?: emptyMap()
+                        KoogStrategyNode(
+                            id = innerSnMap["id"] as? String ?: "",
+                            type = innerSnMap["type"] as? String ?: "",
+                            label = innerSnData["label"] as? String,
+                            toolName = innerSnData["toolName"] as? String,
+                            condition = innerSnData["condition"] as? String,
+                            temperature = (innerSnData["temperature"] as? Number)?.toDouble(),
+                            compressionStrategy = innerSnData["compressionStrategy"] as? String,
+                            outputSchema = innerSnData["outputSchema"] as? String,
+                            inputType = innerSnData["inputType"] as? String,
+                            outputType = innerSnData["outputType"] as? String,
+                            body = innerSnData["body"] as? String,
+                            subgraphName = null, subgraphInputType = null, subgraphOutputType = null,
+                            subgraphToolSelection = null, subgraphTools = null,
+                            subgraphNodes = null, subgraphEdges = null
+                        )
+                    },
+                    subgraphEdges = (snData["subgraphEdges"] as? List<Map<String, Any?>>)?.map { innerSeMap ->
+                        KoogStrategyEdge(
+                            source = innerSeMap["source"] as? String ?: "",
+                            target = innerSeMap["target"] as? String ?: "",
+                            edgeType = innerSeMap["edgeType"] as? String ?: "",
+                            condition = innerSeMap["condition"] as? String,
+                            transformation = innerSeMap["transformation"] as? String
+                        )
+                    }
                 )
             }
 

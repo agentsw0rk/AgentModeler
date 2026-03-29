@@ -28,7 +28,14 @@ data class KoogStrategyNode(
     val outputSchema: String?,
     val inputType: String?,
     val outputType: String?,
-    val body: String?
+    val body: String?,
+    val subgraphName: String?,
+    val subgraphInputType: String?,
+    val subgraphOutputType: String?,
+    val subgraphToolSelection: String?,
+    val subgraphTools: List<String>?,
+    val subgraphNodes: List<KoogStrategyNode>?,
+    val subgraphEdges: List<KoogStrategyEdge>?
 )
 
 data class KoogStrategyEdge(
