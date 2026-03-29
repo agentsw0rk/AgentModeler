@@ -108,20 +108,22 @@ export function GraphStrategyCanvas(props: Props) {
         return context;
       });
 
-      const handleEdgeDelete = (e: Event) => {
+      const handleEdgeSelect = (e: Event) => {
         const detail = (e as CustomEvent).detail;
         const sourceRete = editor.getNodes().find((n: any) => n.id === detail.source);
         const targetRete = editor.getNodes().find((n: any) => n.id === detail.target);
         if (sourceRete && targetRete && "strategyNodeId" in sourceRete && "strategyNodeId" in targetRete) {
           const srcId = (sourceRete as any).strategyNodeId;
           const tgtId = (targetRete as any).strategyNodeId;
-          const newEdges = propsRef.current.strategyEdges.filter(
-            (se) => !(se.source === srcId && se.target === tgtId)
+          const edge = propsRef.current.strategyEdges.find(
+            (se) => se.source === srcId && se.target === tgtId
           );
-          propsRef.current.onEdgesChanged(newEdges);
+          if (edge) {
+            propsRef.current.onEdgeSelected(edge.id);
+          }
         }
       };
-      window.addEventListener("strategy-edge-delete", handleEdgeDelete);
+      window.addEventListener("strategy-edge-select", handleEdgeSelect);
 
       if (aborted) return;
 
@@ -133,6 +135,7 @@ export function GraphStrategyCanvas(props: Props) {
 
     return () => {
       aborted = true;
+      window.removeEventListener("strategy-edge-select", handleEdgeSelect);
       areaRef.current?.destroy();
       editorRef.current = null;
       areaRef.current = null;
