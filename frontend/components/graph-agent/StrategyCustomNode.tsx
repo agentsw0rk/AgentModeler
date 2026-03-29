@@ -4,12 +4,11 @@ import * as React from "react";
 import { ClassicPreset } from "rete";
 import { Presets } from "rete-react-plugin";
 import {
-  StartReteNode,
-  FinishReteNode,
-  LLMRequestReteNode,
-  ExecuteToolReteNode,
-  SendToolResultReteNode,
-  ConditionReteNode,
+  StartReteNode, FinishReteNode, LLMRequestReteNode,
+  ExecuteToolReteNode, SendToolResultReteNode, ConditionReteNode,
+  ExecuteMultipleToolsReteNode, SendMultipleResultsReteNode,
+  CompressHistoryReteNode, LLMStreamingReteNode,
+  LLMStructuredReteNode, DoNothingReteNode,
 } from "@/lib/strategy-rete-nodes";
 import type { StrategySchemes } from "@/lib/strategy-rete-setup";
 
@@ -20,6 +19,12 @@ const strategyNodeColors: Record<string, { border: string; glow: string; badge: 
   "node-execute-tool":         { border: "rgba(16, 185, 129, 0.5)", glow: "rgba(16, 185, 129, 0.12)", badge: "rgba(16, 185, 129, 0.15)", badgeText: "#34d399" },
   "node-llm-send-tool-result": { border: "rgba(251, 191, 36, 0.5)", glow: "rgba(251, 191, 36, 0.12)", badge: "rgba(251, 191, 36, 0.15)", badgeText: "#fbbf24" },
   "node-condition":            { border: "rgba(168, 85, 247, 0.5)", glow: "rgba(168, 85, 247, 0.12)", badge: "rgba(168, 85, 247, 0.15)", badgeText: "#c084fc" },
+  "node-execute-multiple-tools": { border: "rgba(13, 148, 136, 0.5)", glow: "rgba(13, 148, 136, 0.12)", badge: "rgba(13, 148, 136, 0.15)", badgeText: "#2dd4bf" },
+  "node-send-multiple-results":  { border: "rgba(245, 158, 11, 0.5)", glow: "rgba(245, 158, 11, 0.12)", badge: "rgba(245, 158, 11, 0.15)", badgeText: "#fbbf24" },
+  "node-compress-history":       { border: "rgba(148, 163, 184, 0.5)", glow: "rgba(148, 163, 184, 0.12)", badge: "rgba(148, 163, 184, 0.15)", badgeText: "#94a3b8" },
+  "node-llm-streaming":          { border: "rgba(34, 211, 238, 0.5)", glow: "rgba(34, 211, 238, 0.12)", badge: "rgba(34, 211, 238, 0.15)", badgeText: "#22d3ee" },
+  "node-llm-structured":         { border: "rgba(244, 63, 94, 0.5)", glow: "rgba(244, 63, 94, 0.12)", badge: "rgba(244, 63, 94, 0.15)", badgeText: "#fb7185" },
+  "node-do-nothing":             { border: "rgba(156, 163, 175, 0.5)", glow: "rgba(156, 163, 175, 0.12)", badge: "rgba(156, 163, 175, 0.15)", badgeText: "#9ca3af" },
 };
 
 const strategyNodeLabels: Record<string, string> = {
@@ -29,6 +34,12 @@ const strategyNodeLabels: Record<string, string> = {
   "node-execute-tool": "EXECUTE TOOL",
   "node-llm-send-tool-result": "SEND RESULT",
   "node-condition": "CONDITION",
+  "node-execute-multiple-tools": "EXEC MULTI TOOLS",
+  "node-send-multiple-results": "SEND MULTI RESULTS",
+  "node-compress-history": "COMPRESS HISTORY",
+  "node-llm-streaming": "LLM STREAMING",
+  "node-llm-structured": "LLM STRUCTURED",
+  "node-do-nothing": "DO NOTHING",
 };
 
 function getStrategyNodeType(data: StrategySchemes["Node"]): string {
@@ -38,6 +49,12 @@ function getStrategyNodeType(data: StrategySchemes["Node"]): string {
   if (data instanceof ExecuteToolReteNode) return "node-execute-tool";
   if (data instanceof SendToolResultReteNode) return "node-llm-send-tool-result";
   if (data instanceof ConditionReteNode) return "node-condition";
+  if (data instanceof ExecuteMultipleToolsReteNode) return "node-execute-multiple-tools";
+  if (data instanceof SendMultipleResultsReteNode) return "node-send-multiple-results";
+  if (data instanceof CompressHistoryReteNode) return "node-compress-history";
+  if (data instanceof LLMStreamingReteNode) return "node-llm-streaming";
+  if (data instanceof LLMStructuredReteNode) return "node-llm-structured";
+  if (data instanceof DoNothingReteNode) return "node-do-nothing";
   return "node-start";
 }
 
