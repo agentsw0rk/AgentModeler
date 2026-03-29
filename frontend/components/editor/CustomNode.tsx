@@ -14,9 +14,11 @@ import {
   InputReteNode,
   OutputReteNode,
   GraphAgentReteNode,
+  CodeReteNode,
 } from "@/lib/rete-nodes";
 import type { Schemes } from "@/lib/rete-setup";
-import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon, ArrowRightLeftIcon, ArrowDownToLineIcon, ArrowUpFromLineIcon, NetworkIcon } from "lucide-react";
+import type { CodeNodeConfig } from "@/types/graph";
+import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon, ArrowRightLeftIcon, ArrowDownToLineIcon, ArrowUpFromLineIcon, NetworkIcon, CodeIcon } from "lucide-react";
 import { useValidationStore } from "@/store/validationStore";
 
 const nodeIcons: Record<string, React.ReactNode> = {
@@ -30,6 +32,7 @@ const nodeIcons: Record<string, React.ReactNode> = {
   "input": <ArrowDownToLineIcon size={10} />,
   "output": <ArrowUpFromLineIcon size={10} />,
   "graph-agent": <NetworkIcon size={10} />,
+  code: <CodeIcon size={10} />,
 };
 
 const nodeColors: Record<string, { border: string; glow: string; badge: string; badgeText: string }> = {
@@ -68,6 +71,12 @@ const nodeColors: Record<string, { border: string; glow: string; badge: string; 
     badge: "rgba(99, 102, 241, 0.15)",
     badgeText: "#818cf8",
   },
+  code: {
+    border: "rgba(168, 85, 247, 0.4)",
+    glow: "rgba(168, 85, 247, 0.15)",
+    badge: "rgba(168, 85, 247, 0.2)",
+    badgeText: "rgb(192, 132, 252)",
+  },
 };
 
 const nodeTypeLabels: Record<string, string> = {
@@ -81,6 +90,7 @@ const nodeTypeLabels: Record<string, string> = {
   "input": "INPUT",
   "output": "OUTPUT",
   "graph-agent": "GRAPH AGENT",
+  code: "CODE",
 };
 
 function getNodeType(data: Schemes["Node"]): string {
@@ -94,6 +104,7 @@ function getNodeType(data: Schemes["Node"]): string {
   if (data instanceof InputReteNode) return "input";
   if (data instanceof OutputReteNode) return "output";
   if (data instanceof GraphAgentReteNode) return "graph-agent";
+  if (data instanceof CodeReteNode) return "code";
   return "tool";
 }
 
@@ -165,6 +176,11 @@ export function CustomNode(props: {
       case "graph-agent":
         if (d.strategyNodes?.length) subtitle = `${d.strategyNodes.length} nodes`;
         break;
+      case "code": {
+        const codeData = storeNode?.data as CodeNodeConfig | undefined;
+        subtitle = codeData?.fileName || undefined;
+        break;
+      }
     }
   }
 
