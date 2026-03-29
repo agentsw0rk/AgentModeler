@@ -6,6 +6,8 @@ import type { GraphStrategyNode, GraphStrategyEdge } from "@/types/graph-agent";
 import {
   StartReteNode, FinishReteNode, LLMRequestReteNode,
   ExecuteToolReteNode, SendToolResultReteNode, ConditionReteNode,
+  ExecuteMultipleToolsReteNode, SendMultipleResultsReteNode, CompressHistoryReteNode,
+  LLMStreamingReteNode, LLMStructuredReteNode, DoNothingReteNode,
 } from "@/lib/strategy-rete-nodes";
 import type { StrategySchemes } from "@/lib/strategy-rete-setup";
 import type { NodeEditor } from "rete";
@@ -24,6 +26,7 @@ let syncing = false;
 
 function autoTypeEdge(sourceType: string, targetType: string): GraphStrategyEdge["edgeType"] {
   if (sourceType === "node-llm-request" && targetType === "node-execute-tool") return "onToolCall";
+  if (sourceType === "node-llm-request" && targetType === "node-execute-multiple-tools") return "onMultipleToolCalls";
   if (sourceType === "node-llm-request" && (targetType === "node-finish" || targetType === "node-condition")) return "onAssistantMessage";
   return "onCondition";
 }
@@ -171,6 +174,12 @@ function createReteNode(sn: GraphStrategyNode) {
     case "node-execute-tool": return new ExecuteToolReteNode(sn.id, sn.data.label || "Execute Tool");
     case "node-llm-send-tool-result": return new SendToolResultReteNode(sn.id, sn.data.label || "Send Tool Result");
     case "node-condition": return new ConditionReteNode(sn.id, sn.data.label || "Condition");
+    case "node-execute-multiple-tools": return new ExecuteMultipleToolsReteNode(sn.id, sn.data.label || "Execute Multi Tools");
+    case "node-send-multiple-results": return new SendMultipleResultsReteNode(sn.id, sn.data.label || "Send Multi Results");
+    case "node-compress-history": return new CompressHistoryReteNode(sn.id, sn.data.label || "Compress History");
+    case "node-llm-streaming": return new LLMStreamingReteNode(sn.id, sn.data.label || "LLM Streaming");
+    case "node-llm-structured": return new LLMStructuredReteNode(sn.id, sn.data.label || "LLM Structured");
+    case "node-do-nothing": return new DoNothingReteNode(sn.id, sn.data.label || "Do Nothing");
   }
 }
 
