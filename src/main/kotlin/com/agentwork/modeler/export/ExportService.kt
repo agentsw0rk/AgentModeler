@@ -347,6 +347,7 @@ class ExportService(
             when (node.type) {
                 "tool" -> {
                     val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
+                    fileToNodeId["src/main/kotlin/generated/tools/${name}Tools.kt"] = node.id
                     fileToNodeId["src/main/kotlin/generated/${name}Tools.kt"] = node.id
                 }
                 "code" -> {

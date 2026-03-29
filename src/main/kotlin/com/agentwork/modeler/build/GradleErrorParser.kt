@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component
 @Component
 class GradleErrorParser {
 
-    private val errorPattern = Regex("""^(e|w): file:///project/(.+):(\d+):(\d+): (.+)$""", RegexOption.MULTILINE)
+    private val errorPattern = Regex("""^(e|w): file:///project/(\S+):(\d+):(\d+) (.+)$""", RegexOption.MULTILINE)
 
     fun parse(output: String, fileToNodeMap: Map<String, String>): List<BuildError> {
         return errorPattern.findAll(output).map { match ->
