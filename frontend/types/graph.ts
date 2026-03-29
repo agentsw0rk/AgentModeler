@@ -28,13 +28,18 @@ export interface BuiltinToolConfig {
   path?: string;
 }
 
-export type NodeType = "agent" | "tool" | "builtin-tool" | "sub-agent" | "mcp-server" | "planner-agent" | "a2a-agent" | "input" | "output" | "graph-agent";
+export type NodeType = "agent" | "tool" | "builtin-tool" | "sub-agent" | "mcp-server" | "planner-agent" | "a2a-agent" | "input" | "output" | "graph-agent" | "code";
+
+export interface CodeNodeConfig {
+  fileName: string;
+  code: string;
+}
 
 export interface GraphNode {
   id: string;
   type: NodeType;
   position: { x: number; y: number };
-  data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | PlannerAgentConfig | A2AAgentConfig | InputNodeConfig | OutputNodeConfig | GraphAgentConfig;
+  data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | PlannerAgentConfig | A2AAgentConfig | InputNodeConfig | OutputNodeConfig | GraphAgentConfig | CodeNodeConfig;
 }
 
 export interface GraphEdge {
