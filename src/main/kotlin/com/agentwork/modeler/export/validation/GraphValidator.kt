@@ -295,6 +295,21 @@ class GraphValidator {
             }
         }
 
+        // Validate shared code nodes
+        val codeNodes = graph.nodes.filter { it.type == "code" }
+        for (node in codeNodes) {
+            val data = node.data as Map<*, *>
+            val fileName = data["fileName"] as? String ?: ""
+            if (fileName.isBlank()) {
+                errors.add("Code node '${node.id}' has no file name")
+            }
+        }
+        val codeFileNames = codeNodes.mapNotNull { (it.data as Map<*, *>)["fileName"] as? String }.filter { it.isNotBlank() }
+        val duplicates = codeFileNames.groupBy { it }.filter { it.value.size > 1 }.keys
+        if (duplicates.isNotEmpty()) {
+            errors.add("Duplicate code file names: ${duplicates.joinToString(", ")}")
+        }
+
         // Duplicate field name checks across input/output nodes per agent
         val agentTypes = setOf("agent", "sub-agent", "planner-agent", "graph-agent")
         for (agentNode in graph.nodes.filter { it.type in agentTypes }) {

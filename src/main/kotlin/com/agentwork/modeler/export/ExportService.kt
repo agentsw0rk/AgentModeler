@@ -4,9 +4,11 @@ import com.agentwork.modeler.export.adapter.GraphToKoogAdapter
 import com.agentwork.modeler.export.generator.*
 import com.agentwork.modeler.export.generator.A2AServerGenerator
 import com.agentwork.modeler.export.generator.A2AClientGenerator
+import com.agentwork.modeler.export.generator.SharedCodeGenerator
 import com.agentwork.modeler.export.model.KoogInput
 import com.agentwork.modeler.export.model.KoogOutput
 import com.agentwork.modeler.export.model.KoogPlannerAgent
+import com.agentwork.modeler.export.model.KoogSharedCode
 import com.agentwork.modeler.export.model.WorkspaceGraph
 import com.agentwork.modeler.export.validation.GraphValidator
 import com.agentwork.modeler.export.zip.ZipBuilder
@@ -36,6 +38,7 @@ class ExportService(
     private val a2aClientGenerator: A2AClientGenerator,
     private val inputOutputGenerator: InputOutputGenerator,
     private val graphAgentGenerator: GraphAgentGenerator,
+    private val sharedCodeGenerator: SharedCodeGenerator = SharedCodeGenerator(),
     private val zipBuilder: ZipBuilder
 ) {
     fun export(graph: WorkspaceGraph): ByteArray {
@@ -132,6 +135,14 @@ class ExportService(
                 files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(planner.tools, planner.builtinTools, emptyList(), planner.mcpServers)
             }
 
+            // Generate shared code files
+            val sharedCodes = adapter.convertSharedCode(graph)
+            for (code in sharedCodes) {
+                if (code.name.isNotBlank()) {
+                    files["src/main/kotlin/generated/${code.name}.kt"] = sharedCodeGenerator.generate(code)
+                }
+            }
+
             return files
         }
 
@@ -194,6 +205,14 @@ class ExportService(
 
             if (ga.tools.isNotEmpty() || ga.builtinTools.isNotEmpty() || ga.subAgents.isNotEmpty() || ga.mcpServers.isNotEmpty()) {
                 files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(ga.tools, ga.builtinTools, ga.subAgents, ga.mcpServers)
+            }
+
+            // Generate shared code files
+            val sharedCodes = adapter.convertSharedCode(graph)
+            for (code in sharedCodes) {
+                if (code.name.isNotBlank()) {
+                    files["src/main/kotlin/generated/${code.name}.kt"] = sharedCodeGenerator.generate(code)
+                }
             }
 
             return files
@@ -307,6 +326,14 @@ class ExportService(
 
         if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty() || agent.subAgents.isNotEmpty() || agent.mcpServers.isNotEmpty()) {
             files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(agent.tools, agent.builtinTools, agent.subAgents, agent.mcpServers)
+        }
+
+        // Generate shared code files
+        val sharedCodes = adapter.convertSharedCode(graph)
+        for (code in sharedCodes) {
+            if (code.name.isNotBlank()) {
+                files["src/main/kotlin/generated/${code.name}.kt"] = sharedCodeGenerator.generate(code)
+            }
         }
 
         return files
