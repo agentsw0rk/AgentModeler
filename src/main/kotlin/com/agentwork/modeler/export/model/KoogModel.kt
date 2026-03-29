@@ -86,3 +86,8 @@ data class KoogSubAgent(
     val inputs: List<KoogInput> = emptyList(),
     val outputs: List<KoogOutput> = emptyList()
 )
+
+data class KoogSharedCode(
+    val name: String,
+    val code: String
+)

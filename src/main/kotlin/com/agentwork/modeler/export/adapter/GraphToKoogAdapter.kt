@@ -506,4 +506,16 @@ class GraphToKoogAdapter {
             )
         )
     }
+
+    fun convertSharedCode(graph: WorkspaceGraph): List<KoogSharedCode> {
+        return graph.nodes
+            .filter { it.type == "code" }
+            .map { node ->
+                val data = node.data as Map<*, *>
+                KoogSharedCode(
+                    name = data["fileName"] as? String ?: "",
+                    code = data["code"] as? String ?: ""
+                )
+            }
+    }
 }
