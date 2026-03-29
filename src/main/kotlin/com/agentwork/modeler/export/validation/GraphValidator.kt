@@ -271,6 +271,10 @@ class GraphValidator {
                                 val condition = snData["condition"] as? String ?: ""
                                 if (condition.isBlank()) errors.add("[${node.id}] node-condition requires a condition expression")
                             }
+                            "node-execute-multiple-tools" -> {
+                                val toolName = snData["toolName"] as? String ?: ""
+                                if (toolName.isBlank()) errors.add("[${node.id}] node-execute-multiple-tools requires a toolName")
+                            }
                         }
                     }
 
