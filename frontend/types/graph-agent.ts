@@ -10,7 +10,8 @@ export type GraphStrategyNodeType =
   | "node-compress-history"
   | "node-llm-streaming"
   | "node-llm-structured"
-  | "node-do-nothing";
+  | "node-do-nothing"
+  | "node-custom";
 
 export interface GraphStrategyNode {
   id: string;
@@ -26,6 +27,9 @@ export interface GraphStrategyNodeData {
   temperature?: number;
   compressionStrategy?: string;
   outputSchema?: string;
+  inputType?: string;
+  outputType?: string;
+  body?: string;
 }
 
 export type GraphEdgeType = "onAssistantMessage" | "onToolCall" | "onCondition" | "onMultipleToolCalls";

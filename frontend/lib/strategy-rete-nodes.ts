@@ -127,5 +127,15 @@ export class DoNothingReteNode extends ClassicPreset.Node {
   }
 }
 
-export type StrategyNode = StartReteNode | FinishReteNode | LLMRequestReteNode | ExecuteToolReteNode | SendToolResultReteNode | ConditionReteNode | ExecuteMultipleToolsReteNode | SendMultipleResultsReteNode | CompressHistoryReteNode | LLMStreamingReteNode | LLMStructuredReteNode | DoNothingReteNode;
+export class CustomReteNode extends ClassicPreset.Node {
+  width = 200;
+  height = 80;
+  constructor(public strategyNodeId: string, label: string) {
+    super(label || "Custom");
+    this.addInput("in", new ClassicPreset.Input(strategySocket, "In", true));
+    this.addOutput("out", new ClassicPreset.Output(strategySocket, "Out"));
+  }
+}
+
+export type StrategyNode = StartReteNode | FinishReteNode | LLMRequestReteNode | ExecuteToolReteNode | SendToolResultReteNode | ConditionReteNode | ExecuteMultipleToolsReteNode | SendMultipleResultsReteNode | CompressHistoryReteNode | LLMStreamingReteNode | LLMStructuredReteNode | DoNothingReteNode | CustomReteNode;
 export type StrategyConnection = ClassicPreset.Connection<ClassicPreset.Node, ClassicPreset.Node>;
