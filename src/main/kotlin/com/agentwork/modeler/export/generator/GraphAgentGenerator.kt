@@ -26,7 +26,7 @@ class GraphAgentGenerator {
             if ("node-llm-send-tool-result" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.extension.nodeLLMSendToolResult")
             if ("onAssistantMessage" in edgeTypes) appendLine("import ai.koog.agents.core.dsl.extension.onAssistantMessage")
             if ("onToolCall" in edgeTypes) appendLine("import ai.koog.agents.core.dsl.extension.onToolCall")
-            if ("onCondition" in edgeTypes) appendLine("import ai.koog.agents.core.dsl.extension.onCondition")
+            // onCondition is a member function on AIAgentEdgeBuilderIntermediateBase, no import needed
             appendLine()
             appendLine("fun $funcName() = strategy<String, String>(\"${agent.name}\") {")
 
@@ -82,10 +82,10 @@ class GraphAgentGenerator {
                 } else if (cond != null) {
                     " onCondition { $cond }"
                 } else {
-                    ""
+                    " onCondition { true }"
                 }
             }
-            else -> ""
+            else -> " onCondition { true }"
         }
     }
 }

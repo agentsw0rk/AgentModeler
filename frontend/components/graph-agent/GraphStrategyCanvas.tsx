@@ -84,6 +84,7 @@ export function GraphStrategyCanvas(props: Props) {
 
       editor.addPipe((context) => {
         if (context.type === "connectioncreated") {
+          if (syncing) return context;
           syncing = true;
           const conn = context.data;
           const sourceNode = editor.getNode(conn.source);

@@ -48,11 +48,11 @@ class GraphAgentGeneratorTest {
         assertContains(code, "val llmRequest by nodeLLMRequest()")
         assertContains(code, "val executeTool by nodeExecuteTool()")
         assertContains(code, "val sendResult by nodeLLMSendToolResult()")
-        assertContains(code, "edge(nodeStart forwardTo llmRequest)")
+        assertContains(code, "edge(nodeStart forwardTo llmRequest onCondition { true })")
         assertContains(code, "edge(llmRequest forwardTo executeTool onToolCall { true })")
         assertContains(code, "edge(llmRequest forwardTo nodeFinish onAssistantMessage { true })")
-        assertContains(code, "edge(executeTool forwardTo sendResult)")
-        assertContains(code, "edge(sendResult forwardTo llmRequest)")
+        assertContains(code, "edge(executeTool forwardTo sendResult onCondition { true })")
+        assertContains(code, "edge(sendResult forwardTo llmRequest onCondition { true })")
         assertFalse(code.contains("val nodeStart"))
         assertFalse(code.contains("val nodeFinish"))
         // Verify correct imports
@@ -61,6 +61,8 @@ class GraphAgentGeneratorTest {
         assertContains(code, "import ai.koog.agents.core.dsl.extension.nodeLLMSendToolResult")
         assertContains(code, "import ai.koog.agents.core.dsl.extension.onToolCall")
         assertContains(code, "import ai.koog.agents.core.dsl.extension.onAssistantMessage")
+        // onCondition is a member function, not an extension — must NOT be imported
+        assertFalse(code.contains("import ai.koog.agents.core.dsl.extension.onCondition"))
     }
 
     @Test
@@ -154,7 +156,7 @@ class GraphAgentGeneratorTest {
         // null labels should fall back to sanitized IDs
         assertContains(code, "val sn_2 by nodeLLMRequest()")
         // Edges should use sanitized references
-        assertContains(code, "edge(nodeStart forwardTo sn_2)")
+        assertContains(code, "edge(nodeStart forwardTo sn_2 onCondition { true })")
         assertContains(code, "edge(sn_2 forwardTo nodeFinish onAssistantMessage { true })")
         // No "null" keyword in generated code
         assertFalse(code.contains("val null"))

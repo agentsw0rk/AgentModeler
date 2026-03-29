@@ -20,6 +20,7 @@ import { OutputProperties } from "./OutputProperties";
 import { InputNodeConfig, OutputNodeConfig } from "@/types/io";
 import { GraphAgentProperties } from "./GraphAgentProperties";
 import { GraphAgentConfig } from "@/types/graph-agent";
+import { IOInspection } from "./IOInspection";
 
 export function PropertiesPanel() {
   const selectedNodeIds = useEditorStore((s) => s.selectedNodeIds);
@@ -86,6 +87,7 @@ export function PropertiesPanel() {
         {selectedNode.type === "graph-agent" && (
           <GraphAgentProperties nodeId={selectedNode.id} data={selectedNode.data as GraphAgentConfig} />
         )}
+        <IOInspection nodeId={selectedNode.id} />
       </div>
     </ScrollArea>
   );
