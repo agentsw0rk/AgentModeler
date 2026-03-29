@@ -35,6 +35,7 @@ export function GraphStrategyCanvas(props: Props) {
   const initializedRef = useRef(false);
   const propsRef = useRef(props);
   propsRef.current = props;
+  const handleEdgeSelectRef = useRef<((e: Event) => void) | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -108,7 +109,7 @@ export function GraphStrategyCanvas(props: Props) {
         return context;
       });
 
-      const handleEdgeSelect = (e: Event) => {
+      handleEdgeSelectRef.current = (e: Event) => {
         const detail = (e as CustomEvent).detail;
         const sourceRete = editor.getNodes().find((n: any) => n.id === detail.source);
         const targetRete = editor.getNodes().find((n: any) => n.id === detail.target);
@@ -123,7 +124,7 @@ export function GraphStrategyCanvas(props: Props) {
           }
         }
       };
-      window.addEventListener("strategy-edge-select", handleEdgeSelect);
+      window.addEventListener("strategy-edge-select", handleEdgeSelectRef.current);
 
       if (aborted) return;
 
@@ -135,7 +136,7 @@ export function GraphStrategyCanvas(props: Props) {
 
     return () => {
       aborted = true;
-      window.removeEventListener("strategy-edge-select", handleEdgeSelect);
+      if (handleEdgeSelectRef.current) window.removeEventListener("strategy-edge-select", handleEdgeSelectRef.current);
       areaRef.current?.destroy();
       editorRef.current = null;
       areaRef.current = null;
