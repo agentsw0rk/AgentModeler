@@ -24,6 +24,7 @@ export function StrategyEdgeProperties({
           <SelectContent>
             <SelectItem value="onAssistantMessage">onAssistantMessage</SelectItem>
             <SelectItem value="onToolCall">onToolCall</SelectItem>
+            <SelectItem value="onMultipleToolCalls">onMultipleToolCalls</SelectItem>
             <SelectItem value="onCondition">onCondition</SelectItem>
           </SelectContent>
         </Select>

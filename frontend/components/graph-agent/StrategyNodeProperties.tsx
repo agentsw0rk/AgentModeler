@@ -48,6 +48,26 @@ export function StrategyNodeProperties({
         </div>
       )}
 
+      {node.type === "node-execute-multiple-tools" && (
+        <div>
+          <Label>Tool</Label>
+          {connectedTools.length > 0 ? (
+            <Select value={d.toolName ?? ""} onValueChange={(v) => onUpdate({ toolName: v || undefined })}>
+              <SelectTrigger><SelectValue placeholder="Select tool..." /></SelectTrigger>
+              <SelectContent>
+                {connectedTools.map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <p className="text-xs text-muted-foreground mt-1">
+              No tools available. Connect Tool or Built-in Tool nodes to this Graph Agent in the main canvas first.
+            </p>
+          )}
+        </div>
+      )}
+
       {node.type === "node-condition" && (
         <div>
           <Label>Condition</Label>
@@ -63,6 +83,24 @@ export function StrategyNodeProperties({
         <div>
           <Label>Temperature Override</Label>
           <Input type="number" step="0.1" min="0" max="2" value={d.temperature ?? ""} onChange={(e) => onUpdate({ temperature: e.target.value ? parseFloat(e.target.value) : undefined })} placeholder="Default" />
+        </div>
+      )}
+
+      {node.type === "node-compress-history" && (
+        <div>
+          <Label>Compression Strategy</Label>
+          <Input value={d.compressionStrategy ?? ""} onChange={(e) => onUpdate({ compressionStrategy: e.target.value })} placeholder="summarize" />
+        </div>
+      )}
+
+      {node.type === "node-llm-structured" && (
+        <div>
+          <Label>Output Schema (Type)</Label>
+          <CodeEditor
+            value={d.outputSchema ?? ""}
+            onChange={(v) => onUpdate({ outputSchema: v })}
+            height="80px"
+          />
         </div>
       )}
     </div>
