@@ -76,6 +76,7 @@ export function Canvas() {
           const isMcpSource = sourceNode instanceof McpServerReteNode;
           const isA2ASource = sourceNode instanceof A2AAgentReteNode;
           const isInputSource = sourceNode instanceof InputReteNode;
+          const isCodeSource = sourceNode instanceof CodeReteNode;
           const isAgentSource = sourceNode instanceof AgentReteNode;
           const isPlannerAgentSource = sourceNode instanceof PlannerAgentReteNode;
           const isGraphAgentSource = sourceNode instanceof GraphAgentReteNode;
@@ -84,9 +85,11 @@ export function Canvas() {
           const isPlannerAgentTarget = targetNode instanceof PlannerAgentReteNode;
           const isGraphAgentTarget = targetNode instanceof GraphAgentReteNode;
           const isOutputTarget = targetNode instanceof OutputReteNode;
+          const isToolTarget = targetNode instanceof ToolReteNode || targetNode instanceof BuiltinToolReteNode;
 
           if (
-            ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource || isInputSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget || isGraphAgentTarget)) ||
+            ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource || isInputSource || isCodeSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget || isGraphAgentTarget)) ||
+            (isCodeSource && isToolTarget) ||
             ((isAgentSource || isSubAgentSource || isPlannerAgentSource || isGraphAgentSource) && isOutputTarget)
           ) {
             syncing = true;
@@ -110,6 +113,7 @@ export function Canvas() {
           const isMcpSource = sourceNode instanceof McpServerReteNode;
           const isA2ASource = sourceNode instanceof A2AAgentReteNode;
           const isInputSource = sourceNode instanceof InputReteNode;
+          const isCodeSource = sourceNode instanceof CodeReteNode;
           const isAgentSource = sourceNode instanceof AgentReteNode;
           const isPlannerAgentSource = sourceNode instanceof PlannerAgentReteNode;
           const isGraphAgentSource = sourceNode instanceof GraphAgentReteNode;
@@ -118,9 +122,11 @@ export function Canvas() {
           const isPlannerAgentTarget = targetNode instanceof PlannerAgentReteNode;
           const isGraphAgentTarget = targetNode instanceof GraphAgentReteNode;
           const isOutputTarget = targetNode instanceof OutputReteNode;
+          const isToolTarget = targetNode instanceof ToolReteNode || targetNode instanceof BuiltinToolReteNode;
 
           if (
-            ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource || isInputSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget || isGraphAgentTarget)) ||
+            ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource || isInputSource || isCodeSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget || isGraphAgentTarget)) ||
+            (isCodeSource && isToolTarget) ||
             ((isAgentSource || isSubAgentSource || isPlannerAgentSource || isGraphAgentSource) && isOutputTarget)
           ) {
             syncing = true;
