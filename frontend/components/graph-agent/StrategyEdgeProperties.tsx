@@ -1,5 +1,6 @@
 "use client";
 
+import CodeEditor from "@/components/shared/CodeEditor";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -30,11 +31,19 @@ export function StrategyEdgeProperties({
         <>
           <div>
             <Label>Condition</Label>
-            <Input value={edge.condition ?? ""} onChange={(e) => onUpdate({ condition: e.target.value })} placeholder="true" />
+            <CodeEditor
+              value={edge.condition ?? ""}
+              onChange={(v) => onUpdate({ condition: v })}
+              height="80px"
+            />
           </div>
           <div>
             <Label>Transformation (optional)</Label>
-            <Input value={edge.transformation ?? ""} onChange={(e) => onUpdate({ transformation: e.target.value || undefined })} placeholder="it.uppercase()" />
+            <CodeEditor
+              value={edge.transformation ?? ""}
+              onChange={(v) => onUpdate({ transformation: v || undefined })}
+              height="80px"
+            />
           </div>
         </>
       )}
