@@ -6,8 +6,14 @@ import type { GraphStrategyNodeType } from "@/types/graph-agent";
 const nodeButtons: { type: GraphStrategyNodeType; label: string; color: string }[] = [
   { type: "node-llm-request", label: "LLM Request", color: "text-blue-400" },
   { type: "node-execute-tool", label: "Execute Tool", color: "text-emerald-400" },
-  { type: "node-llm-send-tool-result", label: "Send Tool Result", color: "text-yellow-400" },
+  { type: "node-llm-send-tool-result", label: "Send Result", color: "text-yellow-400" },
   { type: "node-condition", label: "Condition", color: "text-purple-400" },
+  { type: "node-execute-multiple-tools", label: "Exec Multi Tools", color: "text-teal-400" },
+  { type: "node-send-multiple-results", label: "Send Multi Results", color: "text-amber-400" },
+  { type: "node-compress-history", label: "Compress History", color: "text-slate-400" },
+  { type: "node-llm-streaming", label: "LLM Streaming", color: "text-cyan-400" },
+  { type: "node-llm-structured", label: "LLM Structured", color: "text-rose-400" },
+  { type: "node-do-nothing", label: "Do Nothing", color: "text-gray-400" },
 ];
 
 export function GraphStrategyToolbar({ onAddNode }: { onAddNode: (type: GraphStrategyNodeType) => void }) {
