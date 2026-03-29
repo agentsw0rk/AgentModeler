@@ -128,7 +128,7 @@ export function StrategyCustomConnection(props: { data: { id: string; source: st
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const event = new CustomEvent("strategy-edge-delete", {
+    const event = new CustomEvent("strategy-edge-select", {
       detail: { source: props.data.source, target: props.data.target },
     });
     window.dispatchEvent(event);
@@ -137,7 +137,7 @@ export function StrategyCustomConnection(props: { data: { id: string; source: st
   return (
     <svg data-testid="connection" style={{ overflow: "visible", position: "absolute", pointerEvents: "none", width: "100%", height: "100%" }}>
       <path d={path} stroke="transparent" strokeWidth={14} fill="none" style={{ pointerEvents: "stroke", cursor: "pointer" }} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onClick={handleClick} />
-      <path d={path} stroke={hovered ? "rgba(239, 68, 68, 0.8)" : "rgba(99, 102, 241, 0.5)"} strokeWidth={hovered ? 3 : 2} fill="none" style={{ pointerEvents: "none", transition: "stroke 0.15s, stroke-width 0.15s" }} />
+      <path d={path} stroke={hovered ? "rgba(129, 140, 248, 0.9)" : "rgba(99, 102, 241, 0.5)"} strokeWidth={hovered ? 3 : 2} fill="none" style={{ pointerEvents: "none", transition: "stroke 0.15s, stroke-width 0.15s" }} />
     </svg>
   );
 }
