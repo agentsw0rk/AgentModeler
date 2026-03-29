@@ -349,7 +349,9 @@ class GraphToKoogAdapter {
                     label = snData["label"] as? String,
                     toolName = snData["toolName"] as? String,
                     condition = snData["condition"] as? String,
-                    temperature = (snData["temperature"] as? Number)?.toDouble()
+                    temperature = (snData["temperature"] as? Number)?.toDouble(),
+                    compressionStrategy = snData["compressionStrategy"] as? String,
+                    outputSchema = snData["outputSchema"] as? String
                 )
             }
 

@@ -23,7 +23,9 @@ data class KoogStrategyNode(
     val label: String?,
     val toolName: String?,
     val condition: String?,
-    val temperature: Double?
+    val temperature: Double?,
+    val compressionStrategy: String?,
+    val outputSchema: String?
 )
 
 data class KoogStrategyEdge(
