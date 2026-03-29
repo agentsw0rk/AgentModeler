@@ -137,5 +137,15 @@ export class CustomReteNode extends ClassicPreset.Node {
   }
 }
 
-export type StrategyNode = StartReteNode | FinishReteNode | LLMRequestReteNode | ExecuteToolReteNode | SendToolResultReteNode | ConditionReteNode | ExecuteMultipleToolsReteNode | SendMultipleResultsReteNode | CompressHistoryReteNode | LLMStreamingReteNode | LLMStructuredReteNode | DoNothingReteNode | CustomReteNode;
+export class SubgraphReteNode extends ClassicPreset.Node {
+  width = 220;
+  height = 80;
+  constructor(public strategyNodeId: string, label: string) {
+    super(label || "Subgraph");
+    this.addInput("in", new ClassicPreset.Input(strategySocket, "In", true));
+    this.addOutput("out", new ClassicPreset.Output(strategySocket, "Out"));
+  }
+}
+
+export type StrategyNode = StartReteNode | FinishReteNode | LLMRequestReteNode | ExecuteToolReteNode | SendToolResultReteNode | ConditionReteNode | ExecuteMultipleToolsReteNode | SendMultipleResultsReteNode | CompressHistoryReteNode | LLMStreamingReteNode | LLMStructuredReteNode | DoNothingReteNode | CustomReteNode | SubgraphReteNode;
 export type StrategyConnection = ClassicPreset.Connection<ClassicPreset.Node, ClassicPreset.Node>;

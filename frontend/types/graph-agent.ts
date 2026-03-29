@@ -11,7 +11,8 @@ export type GraphStrategyNodeType =
   | "node-llm-streaming"
   | "node-llm-structured"
   | "node-do-nothing"
-  | "node-custom";
+  | "node-custom"
+  | "node-subgraph";
 
 export interface GraphStrategyNode {
   id: string;
@@ -30,6 +31,13 @@ export interface GraphStrategyNodeData {
   inputType?: string;
   outputType?: string;
   body?: string;
+  subgraphName?: string;
+  subgraphInputType?: string;
+  subgraphOutputType?: string;
+  subgraphToolSelection?: "ALL" | "SPECIFIC" | "NONE";
+  subgraphTools?: string[];
+  subgraphNodes?: GraphStrategyNode[];
+  subgraphEdges?: GraphStrategyEdge[];
 }
 
 export type GraphEdgeType = "onAssistantMessage" | "onToolCall" | "onCondition" | "onMultipleToolCalls";
