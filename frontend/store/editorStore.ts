@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { GraphNode, GraphEdge, NodeType, BuiltinToolType, BuiltinToolConfig, WorkspaceGraph, OtelConfig } from "@/types/graph";
+import { GraphNode, GraphEdge, NodeType, BuiltinToolType, BuiltinToolConfig, WorkspaceGraph, OtelConfig, CodeNodeConfig } from "@/types/graph";
 import { AgentConfig, ToolConfig, migrateToolNodeData } from "@/types/koog";
 import { SubAgentConfig } from "@/types/subagent";
 import { McpServerConfig } from "@/types/mcp";
@@ -106,6 +106,11 @@ const defaultGraphAgentData: GraphAgentConfig = {
   strategyEdges: [],
 };
 
+const defaultCodeData: CodeNodeConfig = {
+  fileName: "",
+  code: "",
+};
+
 const builtinToolDefaults: Record<BuiltinToolType, BuiltinToolConfig> = {
   think:       { toolType: "think" },
   shell:       { toolType: "shell" },
@@ -163,6 +168,8 @@ export const useEditorStore = create<EditorState>((set) => ({
         data = { ...defaultOutputData };
       } else if (type === "graph-agent") {
         data = { ...defaultGraphAgentData };
+      } else if (type === "code") {
+        data = { ...defaultCodeData, ...initialData };
       } else {
         data = { ...defaultToolData };
       }

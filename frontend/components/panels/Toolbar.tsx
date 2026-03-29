@@ -14,7 +14,7 @@ import { useEditorStore } from "@/store/editorStore";
 import { useHistoryStore } from "@/store/historyStore";
 import { ToolsMenuDialog } from "@/components/dialogs/ToolsMenuDialog";
 import type { BuiltinToolType } from "@/types/graph";
-import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon, ArrowDownToLineIcon, ArrowUpFromLineIcon, NetworkIcon } from "lucide-react";
+import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon, ArrowDownToLineIcon, ArrowUpFromLineIcon, NetworkIcon, CodeIcon } from "lucide-react";
 import { GraphAgentTemplateDialog } from "@/components/dialogs/GraphAgentTemplateDialog";
 import { TEMPLATES } from "@/components/graph-agent/templates";
 import type { GraphAgentTemplate } from "@/types/graph-agent";
@@ -167,6 +167,16 @@ export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspa
       >
         <NetworkIcon className="h-4 w-4 mr-1 text-indigo-400" />
         Graph Agent
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => addNode("code", { x: 300, y: 200 })}
+        title="Add Code Node"
+      >
+        <CodeIcon className="h-4 w-4 mr-1 text-purple-400" />
+        Code
       </Button>
 
       <GraphAgentTemplateDialog
