@@ -4,7 +4,13 @@ export type GraphStrategyNodeType =
   | "node-llm-request"
   | "node-execute-tool"
   | "node-llm-send-tool-result"
-  | "node-condition";
+  | "node-condition"
+  | "node-execute-multiple-tools"
+  | "node-send-multiple-results"
+  | "node-compress-history"
+  | "node-llm-streaming"
+  | "node-llm-structured"
+  | "node-do-nothing";
 
 export interface GraphStrategyNode {
   id: string;
@@ -18,9 +24,11 @@ export interface GraphStrategyNodeData {
   toolName?: string;
   condition?: string;
   temperature?: number;
+  compressionStrategy?: string;
+  outputSchema?: string;
 }
 
-export type GraphEdgeType = "onAssistantMessage" | "onToolCall" | "onCondition";
+export type GraphEdgeType = "onAssistantMessage" | "onToolCall" | "onCondition" | "onMultipleToolCalls";
 
 export interface GraphStrategyEdge {
   id: string;
