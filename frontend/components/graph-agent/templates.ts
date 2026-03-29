@@ -45,7 +45,8 @@ function createToolCalling(): TemplateDefinition {
       { id: sid(), source: llmId, target: execId, edgeType: "onToolCall" },
       { id: sid(), source: llmId, target: finishId, edgeType: "onAssistantMessage" },
       { id: sid(), source: execId, target: sendId, edgeType: "onCondition" },
-      { id: sid(), source: sendId, target: llmId, edgeType: "onCondition" },
+      { id: sid(), source: sendId, target: execId, edgeType: "onToolCall" },
+      { id: sid(), source: sendId, target: finishId, edgeType: "onAssistantMessage" },
     ],
   };
 }
@@ -74,7 +75,8 @@ function createReactLoop(): TemplateDefinition {
       { id: sid(), source: condId, target: execId, edgeType: "onCondition", condition: "hasToolCall" },
       { id: sid(), source: condId, target: finishId, edgeType: "onCondition", condition: "!hasToolCall" },
       { id: sid(), source: execId, target: sendId, edgeType: "onCondition" },
-      { id: sid(), source: sendId, target: llmId, edgeType: "onCondition" },
+      { id: sid(), source: sendId, target: condId, edgeType: "onAssistantMessage" },
+      { id: sid(), source: sendId, target: execId, edgeType: "onToolCall" },
     ],
   };
 }
@@ -98,9 +100,10 @@ function createToolLoopFinish(): TemplateDefinition {
     edges: [
       { id: sid(), source: startId, target: llmId, edgeType: "onCondition" },
       { id: sid(), source: llmId, target: execId, edgeType: "onToolCall" },
-      { id: sid(), source: execId, target: sendId, edgeType: "onCondition" },
-      { id: sid(), source: sendId, target: llmId, edgeType: "onCondition" },
       { id: sid(), source: llmId, target: finishId, edgeType: "onAssistantMessage" },
+      { id: sid(), source: execId, target: sendId, edgeType: "onCondition" },
+      { id: sid(), source: sendId, target: execId, edgeType: "onToolCall" },
+      { id: sid(), source: sendId, target: finishId, edgeType: "onAssistantMessage" },
     ],
   };
 }

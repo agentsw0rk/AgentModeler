@@ -31,7 +31,8 @@ class GraphAgentGeneratorTest {
                 KoogStrategyEdge("sn2", "sn3", "onToolCall", null, null),
                 KoogStrategyEdge("sn2", "sn5", "onAssistantMessage", null, null),
                 KoogStrategyEdge("sn3", "sn4", "onCondition", null, null),
-                KoogStrategyEdge("sn4", "sn2", "onCondition", null, null)
+                KoogStrategyEdge("sn4", "sn3", "onToolCall", null, null),
+                KoogStrategyEdge("sn4", "sn5", "onAssistantMessage", null, null)
             ),
             tools = emptyList(),
             builtinTools = emptyList(),
@@ -52,7 +53,8 @@ class GraphAgentGeneratorTest {
         assertContains(code, "edge(llmRequest forwardTo executeTool onToolCall { true })")
         assertContains(code, "edge(llmRequest forwardTo nodeFinish onAssistantMessage { true })")
         assertContains(code, "edge(executeTool forwardTo sendResult onCondition { true })")
-        assertContains(code, "edge(sendResult forwardTo llmRequest onCondition { true })")
+        assertContains(code, "edge(sendResult forwardTo executeTool onToolCall { true })")
+        assertContains(code, "edge(sendResult forwardTo nodeFinish onAssistantMessage { true })")
         assertFalse(code.contains("val nodeStart"))
         assertFalse(code.contains("val nodeFinish"))
         // Verify correct imports
