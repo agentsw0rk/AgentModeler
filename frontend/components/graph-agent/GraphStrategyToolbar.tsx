@@ -15,12 +15,13 @@ const nodeButtons: { type: GraphStrategyNodeType; label: string; color: string }
   { type: "node-llm-structured", label: "LLM Structured", color: "text-rose-400" },
   { type: "node-do-nothing", label: "Do Nothing", color: "text-gray-400" },
   { type: "node-custom", label: "Custom", color: "text-indigo-400" },
+  { type: "node-subgraph", label: "Subgraph", color: "text-orange-400" },
 ];
 
-export function GraphStrategyToolbar({ onAddNode }: { onAddNode: (type: GraphStrategyNodeType) => void }) {
+export function GraphStrategyToolbar({ onAddNode, hideSubgraph }: { onAddNode: (type: GraphStrategyNodeType) => void; hideSubgraph?: boolean }) {
   return (
     <div className="flex items-center gap-2 px-4 py-2 border-b border-border">
-      {nodeButtons.map((btn) => (
+      {nodeButtons.filter(btn => !(hideSubgraph && btn.type === "node-subgraph")).map((btn) => (
         <Button key={btn.type} variant="outline" size="sm" onClick={() => onAddNode(btn.type)}>
           <span className={`mr-1 ${btn.color}`}>+</span>
           {btn.label}

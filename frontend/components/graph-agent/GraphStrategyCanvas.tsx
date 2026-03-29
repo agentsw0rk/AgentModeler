@@ -7,7 +7,7 @@ import {
   StartReteNode, FinishReteNode, LLMRequestReteNode,
   ExecuteToolReteNode, SendToolResultReteNode, ConditionReteNode,
   ExecuteMultipleToolsReteNode, SendMultipleResultsReteNode, CompressHistoryReteNode,
-  LLMStreamingReteNode, LLMStructuredReteNode, DoNothingReteNode, CustomReteNode,
+  LLMStreamingReteNode, LLMStructuredReteNode, DoNothingReteNode, CustomReteNode, SubgraphReteNode,
 } from "@/lib/strategy-rete-nodes";
 import type { StrategySchemes } from "@/lib/strategy-rete-setup";
 import type { NodeEditor } from "rete";
@@ -20,6 +20,7 @@ interface Props {
   onEdgeSelected: (edgeId: string | null) => void;
   onNodesChanged: (nodes: GraphStrategyNode[]) => void;
   onEdgesChanged: (edges: GraphStrategyEdge[]) => void;
+  onNodeDoubleClick?: (nodeId: string) => void;
 }
 
 let syncing = false;
@@ -32,6 +33,10 @@ function autoTypeEdge(sourceType: string, targetType: string, targetNodeId?: str
     const targetNode = strategyNodes.find(sn => sn.id === targetNodeId);
     if (targetNode?.data.inputType === "String" || !targetNode?.data.inputType) return "onAssistantMessage";
   }
+  if (sourceType === "node-llm-request" && targetType === "node-subgraph" && targetNodeId && strategyNodes) {
+    const targetNode = strategyNodes.find(sn => sn.id === targetNodeId);
+    if (targetNode?.data.subgraphInputType === "String" || !targetNode?.data.subgraphInputType) return "onAssistantMessage";
+  }
   return "onCondition";
 }
 
@@ -43,6 +48,7 @@ export function GraphStrategyCanvas(props: Props) {
   const propsRef = useRef(props);
   propsRef.current = props;
   const handleEdgeSelectRef = useRef<((e: Event) => void) | null>(null);
+  const handleNodeDblClickRef = useRef<((e: Event) => void) | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -133,6 +139,14 @@ export function GraphStrategyCanvas(props: Props) {
       };
       window.addEventListener("strategy-edge-select", handleEdgeSelectRef.current);
 
+      handleNodeDblClickRef.current = (e: Event) => {
+        const detail = (e as CustomEvent).detail;
+        if (detail?.strategyNodeId) {
+          propsRef.current.onNodeDoubleClick?.(detail.strategyNodeId);
+        }
+      };
+      window.addEventListener("strategy-node-dblclick", handleNodeDblClickRef.current);
+
       if (aborted) return;
 
       await syncToRete(editor, area, propsRef.current.strategyNodes, propsRef.current.strategyEdges);
@@ -144,6 +158,7 @@ export function GraphStrategyCanvas(props: Props) {
     return () => {
       aborted = true;
       if (handleEdgeSelectRef.current) window.removeEventListener("strategy-edge-select", handleEdgeSelectRef.current);
+      if (handleNodeDblClickRef.current) window.removeEventListener("strategy-node-dblclick", handleNodeDblClickRef.current);
       areaRef.current?.destroy();
       editorRef.current = null;
       areaRef.current = null;
@@ -185,6 +200,7 @@ function createReteNode(sn: GraphStrategyNode) {
     case "node-llm-structured": return new LLMStructuredReteNode(sn.id, sn.data.label || "LLM Structured");
     case "node-do-nothing": return new DoNothingReteNode(sn.id, sn.data.label || "Do Nothing");
     case "node-custom": return new CustomReteNode(sn.id, sn.data.label || "Custom");
+    case "node-subgraph": return new SubgraphReteNode(sn.id, sn.data.subgraphName || sn.data.label || "Subgraph");
   }
 }
 
