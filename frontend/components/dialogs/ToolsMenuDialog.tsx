@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { buildWorkspaceGraph } from "@/store/editorStore";
 import { useValidationStore } from "@/store/validationStore";
 import { validateGraph } from "@/lib/validation";
+import { buildProject } from "@/lib/build-client";
 import { SaveLoadDialog } from "./SaveLoadDialog";
 import { WorkspaceSettingsDialog } from "./WorkspaceSettingsDialog";
 import { ExportDialog } from "./ExportDialog";
@@ -24,6 +25,26 @@ export function ToolsMenuDialog({ mcpConnected = false }: { mcpConnected?: boole
   const [menuOpen, setMenuOpen] = useState(false);
   const [subDialog, setSubDialog] = useState<"save" | "settings" | "export" | "keyboard" | null>(null);
   const setErrors = useValidationStore((s) => s.setErrors);
+  const setBuildErrors = useValidationStore((s) => s.setBuildErrors);
+  const setBuildLoading = useValidationStore((s) => s.setBuildLoading);
+
+  const handleBuild = async (platform: "jvm" | "native") => {
+    const graph = buildWorkspaceGraph();
+    setBuildLoading(true);
+    try {
+      const result = await buildProject(graph, platform);
+      const errors = result.errors.map((e) => ({
+        nodeId: e.nodeId || "",
+        severity: e.severity === "error" ? "error" as const : "warning" as const,
+        message: `[${e.file}:${e.line}] ${e.message}`,
+      }));
+      setBuildErrors(errors);
+    } catch (err: any) {
+      setBuildErrors([{ nodeId: "", severity: "error", message: err.message || "Build failed" }]);
+    } finally {
+      setBuildLoading(false);
+    }
+  };
 
   const handleValidate = () => {
     const graph = buildWorkspaceGraph();
@@ -49,9 +70,14 @@ export function ToolsMenuDialog({ mcpConnected = false }: { mcpConnected?: boole
             <DialogTitle>Tools</DialogTitle>
           </DialogHeader>
           <div className="grid gap-1">
-            <Button variant="ghost" className="justify-start gap-3 h-10" onClick={handleValidate}>
-              <CheckCircleIcon className="size-4 text-muted-foreground" />
-              Validate
+            <Button variant="ghost" size="sm" onClick={handleValidate}>
+              Validate (Local)
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => handleBuild("jvm")}>
+              Build (JVM)
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => handleBuild("native")}>
+              Build (Native)
             </Button>
             <div className="border-t my-1" />
             <Button variant="ghost" className="justify-start gap-3 h-10" onClick={() => openSubDialog("save")}>
