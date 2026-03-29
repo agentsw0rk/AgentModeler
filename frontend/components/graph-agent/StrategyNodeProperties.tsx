@@ -168,6 +168,59 @@ export function StrategyNodeProperties({
           </div>
         </>
       )}
+      {node.type === "node-subgraph" && (
+        <>
+          <div>
+            <Label>Subgraph Name</Label>
+            <Input value={d.subgraphName ?? ""} onChange={(e) => onUpdate({ subgraphName: e.target.value })} placeholder="transfer" />
+          </div>
+          <TypeSelect
+            label="Input Type"
+            value={d.subgraphInputType ?? "String"}
+            onChange={(v) => onUpdate({ subgraphInputType: v })}
+          />
+          <TypeSelect
+            label="Output Type"
+            value={d.subgraphOutputType ?? "String"}
+            onChange={(v) => onUpdate({ subgraphOutputType: v })}
+          />
+          <div>
+            <Label>Tool Selection</Label>
+            <Select value={d.subgraphToolSelection ?? "ALL"} onValueChange={(v) => onUpdate({ subgraphToolSelection: v as "ALL" | "SPECIFIC" | "NONE" })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Tools</SelectItem>
+                <SelectItem value="SPECIFIC">Specific Tools</SelectItem>
+                <SelectItem value="NONE">No Tools</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {d.subgraphToolSelection === "SPECIFIC" && connectedTools.length > 0 && (
+            <div>
+              <Label>Tools</Label>
+              <div className="space-y-1 mt-1">
+                {connectedTools.map((tool) => (
+                  <label key={tool} className="flex items-center gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={(d.subgraphTools || []).includes(tool)}
+                      onChange={(e) => {
+                        const current = d.subgraphTools || [];
+                        const updated = e.target.checked
+                          ? [...current, tool]
+                          : current.filter(t => t !== tool);
+                        onUpdate({ subgraphTools: updated });
+                      }}
+                      className="rounded"
+                    />
+                    {tool}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
