@@ -121,7 +121,16 @@ export class GraphAgentReteNode extends ClassicPreset.Node {
   }
 }
 
-export type AppNode = AgentReteNode | ToolReteNode | BuiltinToolReteNode | SubAgentReteNode | McpServerReteNode | PlannerAgentReteNode | A2AAgentReteNode | InputReteNode | OutputReteNode | GraphAgentReteNode;
+export class CodeReteNode extends ClassicPreset.Node {
+  width = 200;
+  height = 80;
+  constructor(public storeNodeId: string, label: string) {
+    super(label || "Code");
+    this.addOutput("agent", new ClassicPreset.Output(toolSocket, "Agent"));
+  }
+}
+
+export type AppNode = AgentReteNode | ToolReteNode | BuiltinToolReteNode | SubAgentReteNode | McpServerReteNode | PlannerAgentReteNode | A2AAgentReteNode | InputReteNode | OutputReteNode | GraphAgentReteNode | CodeReteNode;
 export type AppConnection = ClassicPreset.Connection<
   ClassicPreset.Node,
   ClassicPreset.Node

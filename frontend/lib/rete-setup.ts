@@ -25,6 +25,7 @@ import {
   InputReteNode,
   OutputReteNode,
   GraphAgentReteNode,
+  CodeReteNode,
 } from "./rete-nodes";
 
 export type Schemes = GetSchemes<AppNode, AppConnection>;
@@ -115,6 +116,13 @@ export async function createEditor(container: HTMLElement) {
       const isGraphAgentSource = sourceNode instanceof GraphAgentReteNode;
       if (isGraphAgentSource && isOutputTarget) {
         return context;
+      }
+      // Code -> Agent/Tool
+      if (sourceNode instanceof CodeReteNode) {
+        if (targetNode instanceof AgentReteNode || targetNode instanceof ToolReteNode || targetNode instanceof SubAgentReteNode || targetNode instanceof PlannerAgentReteNode || targetNode instanceof GraphAgentReteNode) {
+          return context;
+        }
+        return undefined;
       }
       // Everything else: blocked
       return undefined;
