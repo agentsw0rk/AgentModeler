@@ -1,32 +1,89 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 import type { GraphStrategyNodeType } from "@/types/graph-agent";
-
-const nodeButtons: { type: GraphStrategyNodeType; label: string; color: string }[] = [
-  { type: "node-llm-request", label: "LLM Request", color: "text-blue-400" },
-  { type: "node-execute-tool", label: "Execute Tool", color: "text-emerald-400" },
-  { type: "node-llm-send-tool-result", label: "Send Result", color: "text-yellow-400" },
-  { type: "node-condition", label: "Condition", color: "text-purple-400" },
-  { type: "node-execute-multiple-tools", label: "Exec Multi Tools", color: "text-teal-400" },
-  { type: "node-send-multiple-results", label: "Send Multi Results", color: "text-amber-400" },
-  { type: "node-compress-history", label: "Compress History", color: "text-slate-400" },
-  { type: "node-llm-streaming", label: "LLM Streaming", color: "text-cyan-400" },
-  { type: "node-llm-structured", label: "LLM Structured", color: "text-rose-400" },
-  { type: "node-do-nothing", label: "Do Nothing", color: "text-gray-400" },
-  { type: "node-custom", label: "Custom", color: "text-indigo-400" },
-  { type: "node-subgraph", label: "Subgraph", color: "text-orange-400" },
-];
 
 export function GraphStrategyToolbar({ onAddNode, hideSubgraph }: { onAddNode: (type: GraphStrategyNodeType) => void; hideSubgraph?: boolean }) {
   return (
     <div className="flex items-center gap-2 px-4 py-2 border-b border-border">
-      {nodeButtons.filter(btn => !(hideSubgraph && btn.type === "node-subgraph")).map((btn) => (
-        <Button key={btn.type} variant="outline" size="sm" onClick={() => onAddNode(btn.type)}>
-          <span className={`mr-1 ${btn.color}`}>+</span>
-          {btn.label}
-        </Button>
-      ))}
+      <NavigationMenu>
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className="gap-2">
+              <span className="text-blue-400">+</span> LLM
+            </NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <div className="w-48">
+                <NavigationMenuLink className="cursor-pointer" onClick={() => onAddNode("node-llm-request")}>
+                  LLM Request
+                </NavigationMenuLink>
+                <NavigationMenuLink className="cursor-pointer" onClick={() => onAddNode("node-llm-streaming")}>
+                  LLM Streaming
+                </NavigationMenuLink>
+                <NavigationMenuLink className="cursor-pointer" onClick={() => onAddNode("node-llm-structured")}>
+                  LLM Structured
+                </NavigationMenuLink>
+              </div>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className="gap-2">
+              <span className="text-emerald-400">+</span> Tools
+            </NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <div className="w-48">
+                <NavigationMenuLink className="cursor-pointer" onClick={() => onAddNode("node-execute-tool")}>
+                  Execute Tool
+                </NavigationMenuLink>
+                <NavigationMenuLink className="cursor-pointer" onClick={() => onAddNode("node-execute-multiple-tools")}>
+                  Execute Multi Tools
+                </NavigationMenuLink>
+                <NavigationMenuLink className="cursor-pointer" onClick={() => onAddNode("node-llm-send-tool-result")}>
+                  Send Result
+                </NavigationMenuLink>
+                <NavigationMenuLink className="cursor-pointer" onClick={() => onAddNode("node-send-multiple-results")}>
+                  Send Multi Results
+                </NavigationMenuLink>
+              </div>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className="gap-2">
+              <span className="text-purple-400">+</span> Flow
+            </NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <div className="w-48">
+                <NavigationMenuLink className="cursor-pointer" onClick={() => onAddNode("node-condition")}>
+                  Condition
+                </NavigationMenuLink>
+                <NavigationMenuLink className="cursor-pointer" onClick={() => onAddNode("node-compress-history")}>
+                  Compress History
+                </NavigationMenuLink>
+                <NavigationMenuLink className="cursor-pointer" onClick={() => onAddNode("node-do-nothing")}>
+                  Do Nothing
+                </NavigationMenuLink>
+                <NavigationMenuLink className="cursor-pointer" onClick={() => onAddNode("node-custom")}>
+                  Custom
+                </NavigationMenuLink>
+                {!hideSubgraph && (
+                  <NavigationMenuLink className="cursor-pointer" onClick={() => onAddNode("node-subgraph")}>
+                    Subgraph
+                  </NavigationMenuLink>
+                )}
+              </div>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
     </div>
   );
 }
