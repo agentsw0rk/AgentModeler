@@ -53,7 +53,6 @@ interface CodeEditorProps {
   language?: string;
   height?: string;
   readOnly?: boolean;
-  placeholder?: string;
 }
 
 export default function CodeEditor({
@@ -62,10 +61,9 @@ export default function CodeEditor({
   language = "kotlin",
   height = "120px",
   readOnly = false,
-  placeholder,
 }: CodeEditorProps) {
   return (
-    <div className="w-full rounded-md border border-border overflow-hidden resize-y min-h-[120px]" style={{ height }}>
+    <div className="w-full rounded-md border border-border overflow-hidden resize-y" style={{ height, minHeight: height }}>
       <MonacoEditor
         value={value}
         onChange={(v) => onChange(v ?? "")}
