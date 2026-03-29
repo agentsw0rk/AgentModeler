@@ -275,6 +275,10 @@ class GraphValidator {
                                 val toolName = snData["toolName"] as? String ?: ""
                                 if (toolName.isBlank()) errors.add("[${node.id}] node-execute-multiple-tools requires a toolName")
                             }
+                            "node-subgraph" -> {
+                                val sgName = snData["subgraphName"] as? String ?: ""
+                                if (sgName.isBlank()) errors.add("[${node.id}] node-subgraph requires a subgraphName")
+                            }
                         }
                     }
 

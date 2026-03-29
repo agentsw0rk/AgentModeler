@@ -64,6 +64,22 @@ export function validateGraphAgent(node: GraphNode, graph: WorkspaceGraph): Vali
     if (sn.type === "node-custom" && !sn.data?.body?.trim()) {
       errors.push({ nodeId, severity: "warning", message: `Custom node "${sn.data?.label || sn.id}" has no body code` });
     }
+    if (sn.type === "node-subgraph") {
+      if (!sn.data?.subgraphName?.trim()) {
+        errors.push({ nodeId, severity: "error", message: `Subgraph node "${sn.data?.label || sn.id}" requires a name` });
+      }
+      const innerNodes = sn.data?.subgraphNodes || [];
+      const innerEdges = sn.data?.subgraphEdges || [];
+      const innerStartCount = innerNodes.filter((n: any) => n.type === "node-start").length;
+      const innerFinishCount = innerNodes.filter((n: any) => n.type === "node-finish").length;
+      if (innerNodes.length > 0) {
+        if (innerStartCount !== 1) errors.push({ nodeId, severity: "error", message: `Subgraph "${sn.data?.subgraphName || sn.id}" must have exactly one node-start` });
+        if (innerFinishCount !== 1) errors.push({ nodeId, severity: "error", message: `Subgraph "${sn.data?.subgraphName || sn.id}" must have exactly one node-finish` });
+      }
+      if (sn.data?.subgraphToolSelection === "SPECIFIC" && (!sn.data?.subgraphTools || sn.data.subgraphTools.length === 0)) {
+        errors.push({ nodeId, severity: "warning", message: `Subgraph "${sn.data?.subgraphName || sn.id}" has SPECIFIC tool selection but no tools selected` });
+      }
+    }
   }
 
   const conditionNodeIds = new Set(
