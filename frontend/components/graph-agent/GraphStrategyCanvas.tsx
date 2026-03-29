@@ -7,7 +7,7 @@ import {
   StartReteNode, FinishReteNode, LLMRequestReteNode,
   ExecuteToolReteNode, SendToolResultReteNode, ConditionReteNode,
   ExecuteMultipleToolsReteNode, SendMultipleResultsReteNode, CompressHistoryReteNode,
-  LLMStreamingReteNode, LLMStructuredReteNode, DoNothingReteNode,
+  LLMStreamingReteNode, LLMStructuredReteNode, DoNothingReteNode, CustomReteNode,
 } from "@/lib/strategy-rete-nodes";
 import type { StrategySchemes } from "@/lib/strategy-rete-setup";
 import type { NodeEditor } from "rete";
@@ -24,10 +24,14 @@ interface Props {
 
 let syncing = false;
 
-function autoTypeEdge(sourceType: string, targetType: string): GraphStrategyEdge["edgeType"] {
+function autoTypeEdge(sourceType: string, targetType: string, targetNodeId?: string, strategyNodes?: GraphStrategyNode[]): GraphStrategyEdge["edgeType"] {
   if (sourceType === "node-llm-request" && targetType === "node-execute-tool") return "onToolCall";
   if (sourceType === "node-llm-request" && targetType === "node-execute-multiple-tools") return "onMultipleToolCalls";
   if (sourceType === "node-llm-request" && (targetType === "node-finish" || targetType === "node-condition")) return "onAssistantMessage";
+  if (sourceType === "node-llm-request" && targetType === "node-custom" && targetNodeId && strategyNodes) {
+    const targetNode = strategyNodes.find(sn => sn.id === targetNodeId);
+    if (targetNode?.data.inputType === "String" || !targetNode?.data.inputType) return "onAssistantMessage";
+  }
   return "onCondition";
 }
 
@@ -98,7 +102,7 @@ export function GraphStrategyCanvas(props: Props) {
             const targetSnId = (targetNode as any).strategyNodeId;
             const sourceSn = propsRef.current.strategyNodes.find((sn) => sn.id === sourceSnId);
             const targetSn = propsRef.current.strategyNodes.find((sn) => sn.id === targetSnId);
-            const edgeType = autoTypeEdge(sourceSn?.type || "", targetSn?.type || "");
+            const edgeType = autoTypeEdge(sourceSn?.type || "", targetSn?.type || "", targetSnId, propsRef.current.strategyNodes);
             const newEdge: GraphStrategyEdge = {
               id: `se-${Date.now()}`,
               source: sourceSnId,
@@ -180,6 +184,7 @@ function createReteNode(sn: GraphStrategyNode) {
     case "node-llm-streaming": return new LLMStreamingReteNode(sn.id, sn.data.label || "LLM Streaming");
     case "node-llm-structured": return new LLMStructuredReteNode(sn.id, sn.data.label || "LLM Structured");
     case "node-do-nothing": return new DoNothingReteNode(sn.id, sn.data.label || "Do Nothing");
+    case "node-custom": return new CustomReteNode(sn.id, sn.data.label || "Custom");
   }
 }
 

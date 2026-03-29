@@ -14,6 +14,7 @@ const nodeButtons: { type: GraphStrategyNodeType; label: string; color: string }
   { type: "node-llm-streaming", label: "LLM Streaming", color: "text-cyan-400" },
   { type: "node-llm-structured", label: "LLM Structured", color: "text-rose-400" },
   { type: "node-do-nothing", label: "Do Nothing", color: "text-gray-400" },
+  { type: "node-custom", label: "Custom", color: "text-indigo-400" },
 ];
 
 export function GraphStrategyToolbar({ onAddNode }: { onAddNode: (type: GraphStrategyNodeType) => void }) {

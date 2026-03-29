@@ -8,7 +8,7 @@ import {
   ExecuteToolReteNode, SendToolResultReteNode, ConditionReteNode,
   ExecuteMultipleToolsReteNode, SendMultipleResultsReteNode,
   CompressHistoryReteNode, LLMStreamingReteNode,
-  LLMStructuredReteNode, DoNothingReteNode,
+  LLMStructuredReteNode, DoNothingReteNode, CustomReteNode,
 } from "@/lib/strategy-rete-nodes";
 import type { StrategySchemes } from "@/lib/strategy-rete-setup";
 
@@ -25,6 +25,7 @@ const strategyNodeColors: Record<string, { border: string; glow: string; badge: 
   "node-llm-streaming":          { border: "rgba(34, 211, 238, 0.5)", glow: "rgba(34, 211, 238, 0.12)", badge: "rgba(34, 211, 238, 0.15)", badgeText: "#22d3ee" },
   "node-llm-structured":         { border: "rgba(244, 63, 94, 0.5)", glow: "rgba(244, 63, 94, 0.12)", badge: "rgba(244, 63, 94, 0.15)", badgeText: "#fb7185" },
   "node-do-nothing":             { border: "rgba(156, 163, 175, 0.5)", glow: "rgba(156, 163, 175, 0.12)", badge: "rgba(156, 163, 175, 0.15)", badgeText: "#9ca3af" },
+  "node-custom": { border: "rgba(99, 102, 241, 0.5)", glow: "rgba(99, 102, 241, 0.12)", badge: "rgba(99, 102, 241, 0.15)", badgeText: "#818cf8" },
 };
 
 const strategyNodeLabels: Record<string, string> = {
@@ -40,6 +41,7 @@ const strategyNodeLabels: Record<string, string> = {
   "node-llm-streaming": "LLM STREAMING",
   "node-llm-structured": "LLM STRUCTURED",
   "node-do-nothing": "DO NOTHING",
+  "node-custom": "CUSTOM",
 };
 
 function getStrategyNodeType(data: StrategySchemes["Node"]): string {
@@ -55,6 +57,7 @@ function getStrategyNodeType(data: StrategySchemes["Node"]): string {
   if (data instanceof LLMStreamingReteNode) return "node-llm-streaming";
   if (data instanceof LLMStructuredReteNode) return "node-llm-structured";
   if (data instanceof DoNothingReteNode) return "node-do-nothing";
+  if (data instanceof CustomReteNode) return "node-custom";
   return "node-start";
 }
 
