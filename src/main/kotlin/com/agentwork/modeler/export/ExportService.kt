@@ -339,6 +339,43 @@ class ExportService(
         return files
     }
 
+    fun generateFilesWithMapping(graph: WorkspaceGraph): Pair<Map<String, String>, Map<String, String>> {
+        val files = generateFiles(graph)
+        val fileToNodeId = mutableMapOf<String, String>()
+
+        for (node in graph.nodes) {
+            when (node.type) {
+                "tool" -> {
+                    val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
+                    fileToNodeId["src/main/kotlin/generated/${name}Tools.kt"] = node.id
+                }
+                "code" -> {
+                    val fileName = node.data["fileName"] as? String ?: continue
+                    fileToNodeId["src/main/kotlin/generated/${fileName}.kt"] = node.id
+                }
+                "agent" -> {
+                    val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
+                    fileToNodeId["src/main/kotlin/generated/${name}Agent.kt"] = node.id
+                }
+                "graph-agent" -> {
+                    val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
+                    fileToNodeId["src/main/kotlin/generated/${name}Strategy.kt"] = node.id
+                    fileToNodeId["src/main/kotlin/generated/${name}Agent.kt"] = node.id
+                }
+                "sub-agent" -> {
+                    val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
+                    fileToNodeId["src/main/kotlin/generated/${name}SubAgent.kt"] = node.id
+                }
+                "mcp-server" -> {
+                    val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
+                    fileToNodeId["src/main/kotlin/generated/${name}McpConfig.kt"] = node.id
+                }
+            }
+        }
+
+        return Pair(files, fileToNodeId)
+    }
+
     private fun mergedInput(inputs: List<KoogInput>): KoogInput {
         val className = inputs.firstNotNullOfOrNull { it.className?.ifBlank { null } }
         val fields = inputs.flatMap { it.fields }
