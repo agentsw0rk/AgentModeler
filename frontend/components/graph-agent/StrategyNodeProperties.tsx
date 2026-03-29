@@ -3,6 +3,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import CodeEditor from "@/components/shared/CodeEditor";
 import type { GraphStrategyNode } from "@/types/graph-agent";
 
 export function StrategyNodeProperties({
@@ -50,7 +51,11 @@ export function StrategyNodeProperties({
       {node.type === "node-condition" && (
         <div>
           <Label>Condition</Label>
-          <Input value={d.condition ?? ""} onChange={(e) => onUpdate({ condition: e.target.value })} placeholder="result.isNotEmpty()" />
+          <CodeEditor
+            value={d.condition ?? ""}
+            onChange={(v) => onUpdate({ condition: v })}
+            height="80px"
+          />
         </div>
       )}
 
