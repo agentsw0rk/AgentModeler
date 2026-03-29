@@ -3,8 +3,8 @@
 import { useEffect, useRef } from "react";
 import { createEditor } from "@/lib/rete-setup";
 import { useEditorStore } from "@/store/editorStore";
-import { AgentReteNode, ToolReteNode, BuiltinToolReteNode, SubAgentReteNode, McpServerReteNode, PlannerAgentReteNode, A2AAgentReteNode, InputReteNode, OutputReteNode, GraphAgentReteNode } from "@/lib/rete-nodes";
-import { BuiltinToolType, BUILTIN_TOOL_LABELS } from "@/types/graph";
+import { AgentReteNode, ToolReteNode, BuiltinToolReteNode, SubAgentReteNode, McpServerReteNode, PlannerAgentReteNode, A2AAgentReteNode, InputReteNode, OutputReteNode, GraphAgentReteNode, CodeReteNode } from "@/lib/rete-nodes";
+import { BuiltinToolType, BUILTIN_TOOL_LABELS, CodeNodeConfig } from "@/types/graph";
 import type { Schemes } from "@/lib/rete-setup";
 import type { NodeEditor } from "rete";
 import type { AreaPlugin } from "rete-area-plugin";
@@ -167,6 +167,9 @@ export function Canvas() {
               reteNode = new OutputReteNode(node.id, (node.data as any).name || "Output");
             } else if (node.type === "graph-agent") {
               reteNode = new GraphAgentReteNode(node.id, (node.data as any).name || "Graph Agent");
+            } else if (node.type === "code") {
+              const d = node.data as CodeNodeConfig;
+              reteNode = new CodeReteNode(node.id, d.fileName || "Code");
             } else {
               reteNode = new ToolReteNode(node.id, (node.data as any).name || "Tool");
             }
@@ -191,6 +194,13 @@ export function Canvas() {
             if (node.type === "builtin-tool") {
               const toolType = (node.data as any).toolType || "tool";
               newLabel = BUILTIN_TOOL_LABELS[toolType as BuiltinToolType] || toolType;
+            } else if (node.type === "code") {
+              const d = node.data as CodeNodeConfig;
+              if (reteNode.label !== (d.fileName || "Code")) {
+                reteNode.label = d.fileName || "Code";
+                areaRef!.update("node", reteNode.id);
+              }
+              continue;
             } else {
               newLabel = (node.data as any).name || node.type.charAt(0).toUpperCase() + node.type.slice(1);
             }
