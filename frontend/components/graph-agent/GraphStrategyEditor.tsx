@@ -94,6 +94,12 @@ export function GraphStrategyEditor({
     if (selectedStrategyNodeId === snId) setSelectedStrategyNodeId(null);
   };
 
+  const handleDeleteEdge = (edgeId: string) => {
+    const updatedEdges = data.strategyEdges.filter((e) => e.id !== edgeId);
+    update({ strategyEdges: updatedEdges });
+    setSelectedStrategyEdgeId(null);
+  };
+
   const selectedNode = data.strategyNodes.find((sn) => sn.id === selectedStrategyNodeId);
   const selectedEdge = data.strategyEdges.find((se) => se.id === selectedStrategyEdgeId);
 
@@ -148,6 +154,7 @@ export function GraphStrategyEditor({
               <StrategyEdgeProperties
                 edge={selectedEdge}
                 onUpdate={(edgeUpdate) => handleUpdateEdge(selectedEdge.id, edgeUpdate)}
+                onDelete={() => handleDeleteEdge(selectedEdge.id)}
               />
             </div>
           )}
