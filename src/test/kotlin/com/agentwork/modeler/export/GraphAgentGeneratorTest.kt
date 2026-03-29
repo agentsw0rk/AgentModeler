@@ -20,11 +20,11 @@ class GraphAgentGeneratorTest {
             modelId = "claude-sonnet-4",
             temperature = 0.7,
             strategyNodes = listOf(
-                KoogStrategyNode("sn1", "node-start", null, null, null, null, null, null),
-                KoogStrategyNode("sn2", "node-llm-request", "llmRequest", null, null, null, null, null),
-                KoogStrategyNode("sn3", "node-execute-tool", "executeTool", "searchTool", null, null, null, null),
-                KoogStrategyNode("sn4", "node-llm-send-tool-result", "sendResult", null, null, null, null, null),
-                KoogStrategyNode("sn5", "node-finish", null, null, null, null, null, null)
+                KoogStrategyNode("sn1", "node-start", null, null, null, null, null, null, null, null, null),
+                KoogStrategyNode("sn2", "node-llm-request", "llmRequest", null, null, null, null, null, null, null, null),
+                KoogStrategyNode("sn3", "node-execute-tool", "executeTool", "searchTool", null, null, null, null, null, null, null),
+                KoogStrategyNode("sn4", "node-llm-send-tool-result", "sendResult", null, null, null, null, null, null, null, null),
+                KoogStrategyNode("sn5", "node-finish", null, null, null, null, null, null, null, null, null)
             ),
             strategyEdges = listOf(
                 KoogStrategyEdge("sn1", "sn2", "onCondition", null, null),
@@ -77,9 +77,9 @@ class GraphAgentGeneratorTest {
             modelId = null,
             temperature = null,
             strategyNodes = listOf(
-                KoogStrategyNode("sn1", "node-start", null, null, null, null, null, null),
-                KoogStrategyNode("sn2", "node-condition", "checkResult", null, "result.isNotEmpty()", null, null, null),
-                KoogStrategyNode("sn3", "node-finish", null, null, null, null, null, null)
+                KoogStrategyNode("sn1", "node-start", null, null, null, null, null, null, null, null, null),
+                KoogStrategyNode("sn2", "node-condition", "checkResult", null, "result.isNotEmpty()", null, null, null, null, null, null),
+                KoogStrategyNode("sn3", "node-finish", null, null, null, null, null, null, null, null, null)
             ),
             strategyEdges = listOf(
                 KoogStrategyEdge("sn1", "sn2", "onCondition", null, null),
@@ -108,9 +108,9 @@ class GraphAgentGeneratorTest {
             modelId = null,
             temperature = null,
             strategyNodes = listOf(
-                KoogStrategyNode("sn1", "node-start", null, null, null, null, null, null),
-                KoogStrategyNode("sn2", "node-llm-request", "llm", null, null, null, null, null),
-                KoogStrategyNode("sn3", "node-finish", null, null, null, null, null, null)
+                KoogStrategyNode("sn1", "node-start", null, null, null, null, null, null, null, null, null),
+                KoogStrategyNode("sn2", "node-llm-request", "llm", null, null, null, null, null, null, null, null),
+                KoogStrategyNode("sn3", "node-finish", null, null, null, null, null, null, null, null, null)
             ),
             strategyEdges = listOf(
                 KoogStrategyEdge("sn1", "sn2", "onCondition", null, null),
@@ -138,9 +138,9 @@ class GraphAgentGeneratorTest {
             modelId = null,
             temperature = null,
             strategyNodes = listOf(
-                KoogStrategyNode("sn-1", "node-start", null, null, null, null, null, null),
-                KoogStrategyNode("sn-2", "node-llm-request", null, null, null, null, null, null),
-                KoogStrategyNode("sn-3", "node-finish", null, null, null, null, null, null)
+                KoogStrategyNode("sn-1", "node-start", null, null, null, null, null, null, null, null, null),
+                KoogStrategyNode("sn-2", "node-llm-request", null, null, null, null, null, null, null, null, null),
+                KoogStrategyNode("sn-3", "node-finish", null, null, null, null, null, null, null, null, null)
             ),
             strategyEdges = listOf(
                 KoogStrategyEdge("sn-1", "sn-2", "onCondition", null, null),

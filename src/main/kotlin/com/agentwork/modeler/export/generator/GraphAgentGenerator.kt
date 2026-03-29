@@ -30,6 +30,7 @@ class GraphAgentGenerator {
             if ("node-llm-streaming" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.extension.nodeLLMRequestStreaming")
             if ("node-llm-structured" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.extension.nodeLLMRequestStructured")
             if ("node-do-nothing" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.extension.nodeDoNothing")
+            if ("node-custom" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.builder.node")
             if ("onAssistantMessage" in edgeTypes) appendLine("import ai.koog.agents.core.dsl.extension.onAssistantMessage")
             if ("onToolCall" in edgeTypes) appendLine("import ai.koog.agents.core.dsl.extension.onToolCall")
             if ("onMultipleToolCalls" in edgeTypes) appendLine("import ai.koog.agents.core.dsl.extension.onMultipleToolCalls")
@@ -65,6 +66,14 @@ class GraphAgentGenerator {
                         }
                     }
                     "node-do-nothing" -> appendLine("    val $varName by nodeDoNothing()")
+                    "node-custom" -> {
+                        val inputT = sn.inputType?.ifBlank { null } ?: "String"
+                        val outputT = sn.outputType?.ifBlank { null } ?: "String"
+                        val body = sn.body ?: ""
+                        appendLine("    val $varName by node<$inputT, $outputT> { input ->")
+                        appendLine("        $body")
+                        appendLine("    }")
+                    }
                 }
             }
 
