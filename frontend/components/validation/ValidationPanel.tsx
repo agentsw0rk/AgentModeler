@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 
 export function ValidationPanel() {
   const errors = useValidationStore((s) => s.errors);
+  const buildErrors = useValidationStore((s) => s.buildErrors);
+  const buildLoading = useValidationStore((s) => s.buildLoading);
 
   const errorCount = errors.filter((e) => e.severity === "error").length;
   const warningCount = errors.filter((e) => e.severity === "warning").length;
@@ -39,6 +41,24 @@ export function ValidationPanel() {
               </div>
             </div>
           ))
+        )}
+        {buildLoading && (
+          <div className="px-3 py-2 text-xs text-muted-foreground animate-pulse">Building...</div>
+        )}
+        {buildErrors.length > 0 && (
+          <>
+            <div className="px-3 py-1 text-[10px] font-semibold uppercase text-muted-foreground border-t mt-2 pt-2">
+              Build Errors ({buildErrors.filter(e => e.severity === "error").length}E / {buildErrors.filter(e => e.severity === "warning").length}W)
+            </div>
+            {buildErrors.map((err, i) => (
+              <div key={`build-${i}`} className="px-3 py-1 text-xs border-b border-border/50 flex items-start gap-2">
+                <span className={`shrink-0 text-[10px] font-bold px-1 rounded ${err.severity === "error" ? "bg-red-500/20 text-red-400" : "bg-yellow-500/20 text-yellow-400"}`}>
+                  {err.severity === "error" ? "E" : "W"}
+                </span>
+                <span className="text-muted-foreground">{err.message}</span>
+              </div>
+            ))}
+          </>
         )}
       </div>
     </div>
