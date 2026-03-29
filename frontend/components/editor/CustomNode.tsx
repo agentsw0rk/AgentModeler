@@ -178,7 +178,7 @@ export function CustomNode(props: {
         break;
       case "code": {
         const codeData = storeNode?.data as CodeNodeConfig | undefined;
-        subtitle = codeData?.fileName || undefined;
+        subtitle = codeData?.fileName || "";
         break;
       }
     }
