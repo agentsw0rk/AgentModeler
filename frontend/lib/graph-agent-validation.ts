@@ -61,6 +61,9 @@ export function validateGraphAgent(node: GraphNode, graph: WorkspaceGraph): Vali
     if (sn.type === "node-execute-multiple-tools" && !sn.data?.toolName?.trim()) {
       errors.push({ nodeId, severity: "error", message: `node-execute-multiple-tools "${sn.data?.label || sn.id}" requires a toolName` });
     }
+    if (sn.type === "node-custom" && !sn.data?.body?.trim()) {
+      errors.push({ nodeId, severity: "warning", message: `Custom node "${sn.data?.label || sn.id}" has no body code` });
+    }
   }
 
   const conditionNodeIds = new Set(

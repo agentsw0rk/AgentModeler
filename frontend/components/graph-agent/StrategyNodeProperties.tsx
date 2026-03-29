@@ -24,7 +24,7 @@ function TypeSelect({ label, value, onChange }: { label: string; value: string; 
             onChange("");
           } else {
             setShowCustom(false);
-            onChange(v);
+            onChange(v ?? "");
           }
         }}
       >
