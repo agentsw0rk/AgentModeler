@@ -67,5 +67,65 @@ export class ConditionReteNode extends ClassicPreset.Node {
   }
 }
 
-export type StrategyNode = StartReteNode | FinishReteNode | LLMRequestReteNode | ExecuteToolReteNode | SendToolResultReteNode | ConditionReteNode;
+export class ExecuteMultipleToolsReteNode extends ClassicPreset.Node {
+  width = 220;
+  height = 80;
+  constructor(public strategyNodeId: string, label: string) {
+    super(label || "Execute Multi Tools");
+    this.addInput("in", new ClassicPreset.Input(strategySocket, "In", true));
+    this.addOutput("out", new ClassicPreset.Output(strategySocket, "Out"));
+  }
+}
+
+export class SendMultipleResultsReteNode extends ClassicPreset.Node {
+  width = 220;
+  height = 80;
+  constructor(public strategyNodeId: string, label: string) {
+    super(label || "Send Multi Results");
+    this.addInput("in", new ClassicPreset.Input(strategySocket, "In", true));
+    this.addOutput("out", new ClassicPreset.Output(strategySocket, "Out"));
+  }
+}
+
+export class CompressHistoryReteNode extends ClassicPreset.Node {
+  width = 200;
+  height = 80;
+  constructor(public strategyNodeId: string, label: string) {
+    super(label || "Compress History");
+    this.addInput("in", new ClassicPreset.Input(strategySocket, "In", true));
+    this.addOutput("out", new ClassicPreset.Output(strategySocket, "Out"));
+  }
+}
+
+export class LLMStreamingReteNode extends ClassicPreset.Node {
+  width = 200;
+  height = 80;
+  constructor(public strategyNodeId: string, label: string) {
+    super(label || "LLM Streaming");
+    this.addInput("in", new ClassicPreset.Input(strategySocket, "In", true));
+    this.addOutput("out", new ClassicPreset.Output(strategySocket, "Out"));
+  }
+}
+
+export class LLMStructuredReteNode extends ClassicPreset.Node {
+  width = 200;
+  height = 80;
+  constructor(public strategyNodeId: string, label: string) {
+    super(label || "LLM Structured");
+    this.addInput("in", new ClassicPreset.Input(strategySocket, "In", true));
+    this.addOutput("out", new ClassicPreset.Output(strategySocket, "Out"));
+  }
+}
+
+export class DoNothingReteNode extends ClassicPreset.Node {
+  width = 160;
+  height = 80;
+  constructor(public strategyNodeId: string, label: string) {
+    super(label || "Do Nothing");
+    this.addInput("in", new ClassicPreset.Input(strategySocket, "In", true));
+    this.addOutput("out", new ClassicPreset.Output(strategySocket, "Out"));
+  }
+}
+
+export type StrategyNode = StartReteNode | FinishReteNode | LLMRequestReteNode | ExecuteToolReteNode | SendToolResultReteNode | ConditionReteNode | ExecuteMultipleToolsReteNode | SendMultipleResultsReteNode | CompressHistoryReteNode | LLMStreamingReteNode | LLMStructuredReteNode | DoNothingReteNode;
 export type StrategyConnection = ClassicPreset.Connection<ClassicPreset.Node, ClassicPreset.Node>;
