@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import CodeEditor from "@/components/shared/CodeEditor";
 import { useEditorStore } from "@/store/editorStore";
 import type { ToolConfig, ToolFunction, ToolParameter, ToolParamType } from "@/types/koog";
 import { TOOL_PARAM_TYPES, TOOL_PARAM_TYPE_LABELS } from "@/types/koog";
@@ -293,12 +294,10 @@ export function ToolProperties({ nodeId, data }: { nodeId: string; data: ToolCon
                     {/* Function Body */}
                     <div>
                       <Label className="text-xs">Function Body</Label>
-                      <textarea
+                      <CodeEditor
                         value={fn.body || ""}
-                        onChange={(e) => updateFunction(fn.id, { body: e.target.value })}
-                        rows={6}
-                        placeholder={fn.returnType === "Unit" ? "// Implementation code" : 'return "Not implemented"'}
-                        className="w-full rounded-md border bg-background px-3 py-2 text-xs font-mono resize-y min-h-[80px] focus:outline-none focus:ring-2 focus:ring-ring"
+                        onChange={(v) => updateFunction(fn.id, { body: v })}
+                        height="160px"
                       />
                     </div>
                   </div>
