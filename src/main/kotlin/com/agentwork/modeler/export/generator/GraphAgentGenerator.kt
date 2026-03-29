@@ -13,8 +13,14 @@ class GraphAgentGenerator {
         val nodeMap = agent.strategyNodes.associateBy { it.id }
 
         // Collect which edge types and node types are used for imports
-        val edgeTypes = agent.strategyEdges.map { it.edgeType }.toSet()
-        val nodeTypes = agent.strategyNodes.map { it.type }.toSet()
+        val innerEdgeTypes = agent.strategyNodes
+            .filter { it.type == "node-subgraph" }
+            .flatMap { it.subgraphEdges?.map { se -> se.edgeType } ?: emptyList() }
+        val edgeTypes = (agent.strategyEdges.map { it.edgeType } + innerEdgeTypes).toSet()
+        val innerNodeTypes = agent.strategyNodes
+            .filter { it.type == "node-subgraph" }
+            .flatMap { it.subgraphNodes?.map { sn -> sn.type } ?: emptyList() }
+        val nodeTypes = (agent.strategyNodes.map { it.type } + innerNodeTypes).toSet()
 
         return buildString {
             appendLine("package generated")
@@ -31,6 +37,7 @@ class GraphAgentGenerator {
             if ("node-llm-structured" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.extension.nodeLLMRequestStructured")
             if ("node-do-nothing" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.extension.nodeDoNothing")
             if ("node-custom" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.builder.node")
+            if ("node-subgraph" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.builder.subgraph")
             if ("onAssistantMessage" in edgeTypes) appendLine("import ai.koog.agents.core.dsl.extension.onAssistantMessage")
             if ("onToolCall" in edgeTypes) appendLine("import ai.koog.agents.core.dsl.extension.onToolCall")
             if ("onMultipleToolCalls" in edgeTypes) appendLine("import ai.koog.agents.core.dsl.extension.onMultipleToolCalls")
@@ -72,6 +79,55 @@ class GraphAgentGenerator {
                         val body = sn.body ?: ""
                         appendLine("    val $varName by node<$inputT, $outputT> { input ->")
                         appendLine("        $body")
+                        appendLine("    }")
+                    }
+                    "node-subgraph" -> {
+                        val sgName = sn.subgraphName?.ifBlank { null } ?: "subgraph"
+                        val inputT = sn.subgraphInputType?.ifBlank { null } ?: "String"
+                        val outputT = sn.subgraphOutputType?.ifBlank { null } ?: "String"
+                        val toolStrategy = when (sn.subgraphToolSelection) {
+                            "NONE" -> ",\n        toolSelectionStrategy = ToolSelectionStrategy.None"
+                            "SPECIFIC" -> {
+                                val toolDescriptors = (sn.subgraphTools ?: emptyList()).joinToString(", ") { "${sanitizeIdentifier(it)}.descriptor" }
+                                ",\n        toolSelectionStrategy = ToolSelectionStrategy.Tools(listOf($toolDescriptors))"
+                            }
+                            else -> ""
+                        }
+                        appendLine("    val $varName by subgraph<$inputT, $outputT>(")
+                        appendLine("        name = \"$sgName\"$toolStrategy")
+                        appendLine("    ) {")
+                        val innerNodeMap = (sn.subgraphNodes ?: emptyList()).associateBy { it.id }
+                        for (innerSn in sn.subgraphNodes ?: emptyList()) {
+                            val innerVarName = sanitizeIdentifier(innerSn.label ?: innerSn.id)
+                            when (innerSn.type) {
+                                "node-start", "node-finish" -> {}
+                                "node-llm-request" -> appendLine("        val $innerVarName by nodeLLMRequest()")
+                                "node-execute-tool" -> appendLine("        val $innerVarName by nodeExecuteTool()")
+                                "node-llm-send-tool-result" -> appendLine("        val $innerVarName by nodeLLMSendToolResult()")
+                                "node-condition" -> appendLine("        val $innerVarName by nodeCondition(\"${innerSn.condition}\")")
+                                "node-execute-multiple-tools" -> appendLine("        val $innerVarName by nodeExecuteMultipleTools()")
+                                "node-send-multiple-results" -> appendLine("        val $innerVarName by nodeLLMSendMultipleToolResults()")
+                                "node-compress-history" -> appendLine("        val $innerVarName by nodeLLMCompressHistory()")
+                                "node-llm-streaming" -> appendLine("        val $innerVarName by nodeLLMRequestStreaming()")
+                                "node-llm-structured" -> appendLine("        val $innerVarName by nodeLLMRequestStructured<String>()")
+                                "node-do-nothing" -> appendLine("        val $innerVarName by nodeDoNothing()")
+                                "node-custom" -> {
+                                    val iT = innerSn.inputType?.ifBlank { null } ?: "String"
+                                    val oT = innerSn.outputType?.ifBlank { null } ?: "String"
+                                    val b = innerSn.body ?: ""
+                                    appendLine("        val $innerVarName by node<$iT, $oT> { input ->")
+                                    appendLine("            $b")
+                                    appendLine("        }")
+                                }
+                            }
+                        }
+                        appendLine()
+                        for (innerSe in sn.subgraphEdges ?: emptyList()) {
+                            val srcRef = resolveNodeRef(innerSe.source, innerNodeMap)
+                            val tgtRef = resolveNodeRef(innerSe.target, innerNodeMap)
+                            val suffix = formatEdgeSuffix(innerSe)
+                            appendLine("        edge($srcRef forwardTo $tgtRef$suffix)")
+                        }
                         appendLine("    }")
                     }
                 }
