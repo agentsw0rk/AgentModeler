@@ -14,7 +14,7 @@ import { useEditorStore } from "@/store/editorStore";
 import { useHistoryStore } from "@/store/historyStore";
 import { ToolsMenuDialog } from "@/components/dialogs/ToolsMenuDialog";
 import type { BuiltinToolType } from "@/types/graph";
-import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon, ArrowDownToLineIcon, ArrowUpFromLineIcon, NetworkIcon, CodeIcon } from "lucide-react";
+import { BotIcon, WrenchIcon, ServerIcon } from "lucide-react";
 import { GraphAgentTemplateDialog } from "@/components/dialogs/GraphAgentTemplateDialog";
 import { TEMPLATES } from "@/components/graph-agent/templates";
 import type { GraphAgentTemplate } from "@/types/graph-agent";
@@ -67,18 +67,41 @@ export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspa
       <NavigationMenu>
         <NavigationMenuList className="whitespace-nowrap">
           <NavigationMenuItem>
-            <NavigationMenuLink
-              className="cursor-pointer gap-2"
-              onClick={() => addNode("agent", { x: 100, y: 100 })}
-            >
-              <BotIcon className="size-4 text-blue-400" /> Agent
-            </NavigationMenuLink>
+            <NavigationMenuTrigger className="gap-2"><BotIcon className="size-4 text-blue-400" /> Agents</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <div className="w-48">
+                <NavigationMenuLink
+                  className="cursor-pointer"
+                  onClick={() => addNode("agent", { x: 100, y: 100 })}
+                >
+                  Agent
+                </NavigationMenuLink>
+                <NavigationMenuLink
+                  className="cursor-pointer"
+                  onClick={() => addNode("sub-agent", { x: 200, y: 200 })}
+                >
+                  Sub-Agent
+                </NavigationMenuLink>
+                <NavigationMenuLink
+                  className="cursor-pointer"
+                  onClick={() => addNode("planner-agent", { x: 100, y: 400 })}
+                >
+                  Planner Agent
+                </NavigationMenuLink>
+                <NavigationMenuLink
+                  className="cursor-pointer"
+                  onClick={() => setTemplateDialogOpen(true)}
+                >
+                  Graph Agent
+                </NavigationMenuLink>
+              </div>
+            </NavigationMenuContent>
           </NavigationMenuItem>
 
           <span className="text-border select-none">|</span>
 
           <NavigationMenuItem>
-            <NavigationMenuTrigger className="gap-2"><WrenchIcon className="size-4 text-green-400" /> Tool</NavigationMenuTrigger>
+            <NavigationMenuTrigger className="gap-2"><WrenchIcon className="size-4 text-green-400" /> Tools</NavigationMenuTrigger>
             <NavigationMenuContent>
               <div className="w-48">
                 <NavigationMenuLink
@@ -104,80 +127,38 @@ export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspa
           <span className="text-border select-none">|</span>
 
           <NavigationMenuItem>
-            <NavigationMenuLink
-              className="cursor-pointer gap-2"
-              onClick={() => addNode("sub-agent", { x: 200, y: 200 })}
-            >
-              <UsersIcon className="size-4 shrink-0 text-yellow-400" /> Sub-Agent
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-
-          <span className="text-border select-none">|</span>
-
-          <NavigationMenuItem>
-            <NavigationMenuLink
-              className="cursor-pointer gap-2"
-              onClick={() => addNode("mcp-server", { x: 100, y: 300 })}
-            >
-              <ServerIcon className="size-4 shrink-0 text-purple-400" /> MCP Server
-            </NavigationMenuLink>
+            <NavigationMenuTrigger className="gap-2"><ServerIcon className="size-4 text-purple-400" /> Resources</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <div className="w-48">
+                <NavigationMenuLink
+                  className="cursor-pointer"
+                  onClick={() => addNode("mcp-server", { x: 100, y: 300 })}
+                >
+                  MCP Server
+                </NavigationMenuLink>
+                <NavigationMenuLink
+                  className="cursor-pointer"
+                  onClick={() => addNode("input", { x: 100, y: 100 })}
+                >
+                  Input
+                </NavigationMenuLink>
+                <NavigationMenuLink
+                  className="cursor-pointer"
+                  onClick={() => addNode("output", { x: 100, y: 200 })}
+                >
+                  Output
+                </NavigationMenuLink>
+                <NavigationMenuLink
+                  className="cursor-pointer"
+                  onClick={() => addNode("code", { x: 300, y: 200 })}
+                >
+                  Code
+                </NavigationMenuLink>
+              </div>
+            </NavigationMenuContent>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
-
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => addNode("planner-agent", { x: 100, y: 400 })}
-        title="Add Planner Agent"
-      >
-        <ClipboardListIcon className="h-4 w-4 mr-1 text-pink-400" />
-        Agent Planner
-      </Button>
-
-      <span className="text-border select-none">|</span>
-
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => addNode("input", { x: 100, y: 100 })}
-        title="Add Input"
-      >
-        <ArrowDownToLineIcon className="h-4 w-4 mr-1 text-cyan-400" />
-        Input
-      </Button>
-
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => addNode("output", { x: 100, y: 200 })}
-        title="Add Output"
-      >
-        <ArrowUpFromLineIcon className="h-4 w-4 mr-1 text-orange-400" />
-        Output
-      </Button>
-
-      <span className="text-border select-none">|</span>
-
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setTemplateDialogOpen(true)}
-        title="Add Graph Agent"
-      >
-        <NetworkIcon className="h-4 w-4 mr-1 text-indigo-400" />
-        Graph Agent
-      </Button>
-
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => addNode("code", { x: 300, y: 200 })}
-        title="Add Code Node"
-      >
-        <CodeIcon className="h-4 w-4 mr-1 text-purple-400" />
-        Code
-      </Button>
 
       <GraphAgentTemplateDialog
         open={templateDialogOpen}
