@@ -6,7 +6,6 @@ import { ToolProperties } from "./ToolProperties";
 import { AgentConfig, ToolConfig } from "@/types/koog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BuiltinToolProperties } from "./BuiltinToolProperties";
-import { BuiltinToolConfig } from "@/types/graph";
 import { SubAgentProperties } from "./SubAgentProperties";
 import { SubAgentConfig } from "@/types/subagent";
 import { McpServerProperties } from "./McpServerProperties";
@@ -21,6 +20,8 @@ import { InputNodeConfig, OutputNodeConfig } from "@/types/io";
 import { GraphAgentProperties } from "./GraphAgentProperties";
 import { GraphAgentConfig } from "@/types/graph-agent";
 import { IOInspection } from "./IOInspection";
+import CodeProperties from "@/components/panels/CodeProperties";
+import { BuiltinToolConfig, CodeNodeConfig } from "@/types/graph";
 
 export function PropertiesPanel() {
   const selectedNodeIds = useEditorStore((s) => s.selectedNodeIds);
@@ -55,6 +56,7 @@ export function PropertiesPanel() {
            selectedNode.type === "input" ? "Input" :
            selectedNode.type === "output" ? "Output" :
            selectedNode.type === "graph-agent" ? "Graph Agent" :
+           selectedNode.type === "code" ? "Code" :
            selectedNode.type} Properties
         </h3>
         {selectedNode.type === "agent" && (
@@ -86,6 +88,9 @@ export function PropertiesPanel() {
         )}
         {selectedNode.type === "graph-agent" && (
           <GraphAgentProperties nodeId={selectedNode.id} data={selectedNode.data as GraphAgentConfig} />
+        )}
+        {selectedNode.type === "code" && (
+          <CodeProperties nodeId={selectedNode.id} data={selectedNode.data as CodeNodeConfig} />
         )}
         <IOInspection nodeId={selectedNode.id} />
       </div>
