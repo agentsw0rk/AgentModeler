@@ -39,13 +39,13 @@ class BuildService(
                 .start()
 
             val output = process.inputStream.bufferedReader().readText()
-            val completed = process.waitFor(120, TimeUnit.SECONDS)
+            val completed = process.waitFor(240, TimeUnit.SECONDS)
 
             if (!completed) {
                 process.destroyForcibly()
                 return BuildResult(
                     success = false,
-                    errors = listOf(BuildError("", 0, 0, "Build timed out after 120 seconds", "error", null)),
+                    errors = listOf(BuildError("", 0, 0, "Build timed out after 240 seconds", "error", null)),
                     log = output
                 )
             }

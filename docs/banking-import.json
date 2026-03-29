@@ -1,0 +1,363 @@
+{
+  "version": 1,
+  "name": "Banking Assistant",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "code",
+      "position": { "x": 50, "y": 50 },
+      "data": {
+        "fileName": "Domain",
+        "code": "import kotlinx.serialization.Serializable\n\n@Serializable\ndata class Contact(\n    val id: Int,\n    val name: String,\n    val surname: String? = null,\n    val phoneNumber: String\n)\n\nval contactList = listOf(\n    Contact(100, \"Alice\", \"Smith\", \"+1 415 555 1234\"),\n    Contact(101, \"Bob\", \"Johnson\", \"+49 151 23456789\"),\n    Contact(102, \"Charlie\", \"Williams\", \"+36 20 123 4567\"),\n    Contact(103, \"Daniel\", \"Anderson\", \"+46 70 123 45 67\"),\n    Contact(104, \"Daniel\", \"Garcia\", \"+34 612 345 678\")\n)\n\nval contactById = contactList.associateBy(Contact::id)"
+      }
+    },
+    {
+      "id": "node-2",
+      "type": "tool",
+      "position": { "x": 50, "y": 250 },
+      "data": {
+        "name": "MoneyTransferTools",
+        "description": "Tools for money transfer operations.",
+        "functions": [
+          {
+            "id": "func-1",
+            "name": "getContacts",
+            "description": "Returns the list of contacts for the given user. The user in this demo is always userId=123.",
+            "parameters": [
+              {
+                "id": "p-1",
+                "name": "userId",
+                "type": "Int",
+                "description": "The unique identifier of the user whose contact list is requested.",
+                "required": true
+              }
+            ],
+            "returnType": "String",
+            "body": "return buildString {\n    contactList.forEach { c ->\n        appendLine(\"${c.id}: ${c.name} ${c.surname ?: \"\"} (${c.phoneNumber})\")\n    }\n}.trimEnd()"
+          },
+          {
+            "id": "func-2",
+            "name": "getBalance",
+            "description": "Returns the current balance (demo value).",
+            "parameters": [
+              {
+                "id": "p-2",
+                "name": "userId",
+                "type": "Int",
+                "description": "The unique identifier of the user.",
+                "required": true
+              }
+            ],
+            "returnType": "String",
+            "body": "return \"Balance: 200.00 EUR\""
+          },
+          {
+            "id": "func-3",
+            "name": "getDefaultCurrency",
+            "description": "Returns the default user currency (demo value).",
+            "parameters": [
+              {
+                "id": "p-3",
+                "name": "userId",
+                "type": "Int",
+                "description": "The unique identifier of the user.",
+                "required": true
+              }
+            ],
+            "returnType": "String",
+            "body": "return \"EUR\""
+          },
+          {
+            "id": "func-4",
+            "name": "getExchangeRate",
+            "description": "Returns a demo FX rate between two ISO currencies (e.g. EUR→USD).",
+            "parameters": [
+              {
+                "id": "p-4a",
+                "name": "from",
+                "type": "String",
+                "description": "Base currency (e.g., EUR).",
+                "required": true
+              },
+              {
+                "id": "p-4b",
+                "name": "to",
+                "type": "String",
+                "description": "Target currency (e.g., USD).",
+                "required": true
+              }
+            ],
+            "returnType": "String",
+            "body": "return when (from.uppercase() to to.uppercase()) {\n    \"EUR\" to \"USD\" -> \"1.10\"\n    \"EUR\" to \"GBP\" -> \"0.86\"\n    \"GBP\" to \"EUR\" -> \"1.16\"\n    \"USD\" to \"EUR\" -> \"0.90\"\n    else -> \"No information about exchange rate available.\"\n}"
+          },
+          {
+            "id": "func-5",
+            "name": "chooseRecipient",
+            "description": "Returns a ranked list of possible recipients for an ambiguous name. The agent should ask the user to pick one and then use the selected contact id.",
+            "parameters": [
+              {
+                "id": "p-5",
+                "name": "confusingRecipientName",
+                "type": "String",
+                "description": "An ambiguous or partial contact name.",
+                "required": true
+              }
+            ],
+            "returnType": "String",
+            "body": "val matches = contactList.filter { c ->\n    c.name.contains(confusingRecipientName, ignoreCase = true) ||\n        (c.surname?.contains(confusingRecipientName, ignoreCase = true) ?: false)\n}\nif (matches.isEmpty()) {\n    return \"No candidates found for '$confusingRecipientName'. Use getContacts and ask the user to choose.\"\n}\nreturn matches.mapIndexed { idx, c ->\n    \"${idx + 1}. ${c.id}: ${c.name} ${c.surname ?: \"\"} (${c.phoneNumber})\"\n}.joinToString(\"\\n\")"
+          },
+          {
+            "id": "func-6",
+            "name": "sendMoney",
+            "description": "Sends money from the user to a contact. If confirmed=false, return REQUIRES_CONFIRMATION with a human-readable summary. The agent should confirm with the user before retrying with confirmed=true.",
+            "parameters": [
+              {
+                "id": "p-6a",
+                "name": "senderId",
+                "type": "Int",
+                "description": "Sender user id.",
+                "required": true
+              },
+              {
+                "id": "p-6b",
+                "name": "amount",
+                "type": "Double",
+                "description": "Amount in sender's default currency.",
+                "required": true
+              },
+              {
+                "id": "p-6c",
+                "name": "recipientId",
+                "type": "Int",
+                "description": "Recipient contact id.",
+                "required": true
+              },
+              {
+                "id": "p-6d",
+                "name": "purpose",
+                "type": "String",
+                "description": "Short purpose/description.",
+                "required": true
+              },
+              {
+                "id": "p-6e",
+                "name": "confirmed",
+                "type": "Boolean",
+                "description": "Whether the user already confirmed this transfer.",
+                "required": false,
+                "defaultValue": "false"
+              }
+            ],
+            "returnType": "String",
+            "body": "val recipient = contactById[recipientId] ?: return \"Invalid recipient.\"\nval summary = \"Transfer €%.2f to %s %s (%s) for \\\"%s\\\".\"\n    .format(amount, recipient.name, recipient.surname ?: \"\", recipient.phoneNumber, purpose)\n\nif (!confirmed) {\n    return \"REQUIRES_CONFIRMATION: $summary\"\n}\n\nreturn \"Money was sent. $summary\""
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "tool",
+      "position": { "x": 50, "y": 500 },
+      "data": {
+        "name": "AnalyticsTools",
+        "description": "Tools for transaction analytics.",
+        "functions": [
+          {
+            "id": "func-7",
+            "name": "getTransactionHistory",
+            "description": "Returns the transaction history for the given user.",
+            "parameters": [
+              {
+                "id": "p-7",
+                "name": "userId",
+                "type": "Int",
+                "description": "The unique identifier of the user.",
+                "required": true
+              }
+            ],
+            "returnType": "String",
+            "body": "return listOf(\n    \"2024-01-15: -50.00 EUR (Restaurant)\",\n    \"2024-01-14: +1200.00 EUR (Salary)\",\n    \"2024-01-13: -25.00 EUR (Groceries)\",\n    \"2024-01-12: -80.00 EUR (Electricity bill)\",\n    \"2024-01-10: -15.00 EUR (Coffee shop)\"\n).joinToString(\"\\n\")"
+          },
+          {
+            "id": "func-8",
+            "name": "getSpendingSummary",
+            "description": "Returns a summary of spending by category for the given user.",
+            "parameters": [
+              {
+                "id": "p-8",
+                "name": "userId",
+                "type": "Int",
+                "description": "The unique identifier of the user.",
+                "required": true
+              }
+            ],
+            "returnType": "String",
+            "body": "return listOf(\n    \"Food & Dining: 75.00 EUR\",\n    \"Bills & Utilities: 80.00 EUR\",\n    \"Coffee: 15.00 EUR\",\n    \"Total spending: 170.00 EUR\"\n).joinToString(\"\\n\")"
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "builtin-tool",
+      "position": { "x": 50, "y": 700 },
+      "data": {
+        "toolType": "user_prompt"
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "graph-agent",
+      "position": { "x": 450, "y": 250 },
+      "data": {
+        "name": "BankingAssistant",
+        "description": "AI Banking Assistant with intent routing via graph strategy",
+        "systemPrompt": "You are a banking assistant interacting with a user (userId=123).\nYour goal is to understand the user's request and determine whether it can be fulfilled using the available tools.\n\nIf the task can be accomplished with the provided tools, proceed accordingly,\nat the end of the conversation respond with: \"Task completed successfully.\"\nIf the task cannot be performed with the tools available, respond with: \"Can't perform the task.\"",
+        "modelProvider": "openai",
+        "temperature": 0.0,
+        "strategyNodes": [
+          {
+            "id": "sn-start",
+            "type": "node-start",
+            "position": { "x": 50, "y": 250 },
+            "data": {}
+          },
+          {
+            "id": "sn-finish",
+            "type": "node-finish",
+            "position": { "x": 900, "y": 250 },
+            "data": {}
+          },
+          {
+            "id": "sn-classify",
+            "type": "node-custom",
+            "position": { "x": 250, "y": 250 },
+            "data": {
+              "label": "classifyIntent",
+              "inputType": "String",
+              "outputType": "String",
+              "body": "val intent = llm.writeSession {\n    appendPrompt { user(\"Classify the following request into one of: transfer, analytics, unknown. Request: $input\") }\n    requestLLM()\n}\nintent.content ?: \"unknown\""
+            }
+          },
+          {
+            "id": "sn-transfer",
+            "type": "node-subgraph",
+            "position": { "x": 550, "y": 100 },
+            "data": {
+              "label": "transferSubgraph",
+              "subgraphName": "transfer",
+              "subgraphInputType": "String",
+              "subgraphOutputType": "String",
+              "subgraphToolSelection": "SPECIFIC",
+              "subgraphTools": ["MoneyTransferTools"],
+              "subgraphNodes": [
+                {
+                  "id": "sg1-start",
+                  "type": "node-start",
+                  "position": { "x": 50, "y": 200 },
+                  "data": {}
+                },
+                {
+                  "id": "sg1-finish",
+                  "type": "node-finish",
+                  "position": { "x": 700, "y": 200 },
+                  "data": {}
+                },
+                {
+                  "id": "sg1-llm",
+                  "type": "node-llm-request",
+                  "position": { "x": 200, "y": 200 },
+                  "data": { "label": "llm" }
+                },
+                {
+                  "id": "sg1-exec",
+                  "type": "node-execute-tool",
+                  "position": { "x": 350, "y": 100 },
+                  "data": { "label": "exec", "toolName": "MoneyTransferTools" }
+                },
+                {
+                  "id": "sg1-send",
+                  "type": "node-llm-send-tool-result",
+                  "position": { "x": 500, "y": 100 },
+                  "data": { "label": "send" }
+                }
+              ],
+              "subgraphEdges": [
+                { "id": "sg1-e1", "source": "sg1-start", "target": "sg1-llm", "edgeType": "onCondition" },
+                { "id": "sg1-e2", "source": "sg1-llm", "target": "sg1-exec", "edgeType": "onToolCall" },
+                { "id": "sg1-e3", "source": "sg1-llm", "target": "sg1-finish", "edgeType": "onAssistantMessage" },
+                { "id": "sg1-e4", "source": "sg1-exec", "target": "sg1-send", "edgeType": "onCondition" },
+                { "id": "sg1-e5", "source": "sg1-send", "target": "sg1-llm", "edgeType": "onCondition" }
+              ]
+            }
+          },
+          {
+            "id": "sn-analytics",
+            "type": "node-subgraph",
+            "position": { "x": 550, "y": 400 },
+            "data": {
+              "label": "analyticsSubgraph",
+              "subgraphName": "analytics",
+              "subgraphInputType": "String",
+              "subgraphOutputType": "String",
+              "subgraphToolSelection": "SPECIFIC",
+              "subgraphTools": ["AnalyticsTools"],
+              "subgraphNodes": [
+                {
+                  "id": "sg2-start",
+                  "type": "node-start",
+                  "position": { "x": 50, "y": 200 },
+                  "data": {}
+                },
+                {
+                  "id": "sg2-finish",
+                  "type": "node-finish",
+                  "position": { "x": 700, "y": 200 },
+                  "data": {}
+                },
+                {
+                  "id": "sg2-llm",
+                  "type": "node-llm-request",
+                  "position": { "x": 200, "y": 200 },
+                  "data": { "label": "llm" }
+                },
+                {
+                  "id": "sg2-exec",
+                  "type": "node-execute-tool",
+                  "position": { "x": 350, "y": 100 },
+                  "data": { "label": "exec", "toolName": "AnalyticsTools" }
+                },
+                {
+                  "id": "sg2-send",
+                  "type": "node-llm-send-tool-result",
+                  "position": { "x": 500, "y": 100 },
+                  "data": { "label": "send" }
+                }
+              ],
+              "subgraphEdges": [
+                { "id": "sg2-e1", "source": "sg2-start", "target": "sg2-llm", "edgeType": "onCondition" },
+                { "id": "sg2-e2", "source": "sg2-llm", "target": "sg2-exec", "edgeType": "onToolCall" },
+                { "id": "sg2-e3", "source": "sg2-llm", "target": "sg2-finish", "edgeType": "onAssistantMessage" },
+                { "id": "sg2-e4", "source": "sg2-exec", "target": "sg2-send", "edgeType": "onCondition" },
+                { "id": "sg2-e5", "source": "sg2-send", "target": "sg2-llm", "edgeType": "onCondition" }
+              ]
+            }
+          }
+        ],
+        "strategyEdges": [
+          { "id": "se-1", "source": "sn-start", "target": "sn-classify", "edgeType": "onCondition" },
+          { "id": "se-2", "source": "sn-classify", "target": "sn-transfer", "edgeType": "onCondition", "condition": "it == \"transfer\"" },
+          { "id": "se-3", "source": "sn-classify", "target": "sn-analytics", "edgeType": "onCondition", "condition": "it == \"analytics\"" },
+          { "id": "se-4", "source": "sn-transfer", "target": "sn-finish", "edgeType": "onCondition" },
+          { "id": "se-5", "source": "sn-analytics", "target": "sn-finish", "edgeType": "onCondition" }
+        ]
+      }
+    }
+  ],
+  "edges": [
+    { "id": "edge-1", "source": "node-1", "target": "node-5" },
+    { "id": "edge-2", "source": "node-2", "target": "node-5" },
+    { "id": "edge-3", "source": "node-3", "target": "node-5" },
+    { "id": "edge-4", "source": "node-4", "target": "node-5" }
+  ]
+}
