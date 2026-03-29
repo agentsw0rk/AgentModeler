@@ -24,8 +24,15 @@ class GraphAgentGenerator {
             if ("node-llm-request" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.extension.nodeLLMRequest")
             if ("node-execute-tool" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.extension.nodeExecuteTool")
             if ("node-llm-send-tool-result" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.extension.nodeLLMSendToolResult")
+            if ("node-execute-multiple-tools" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.extension.nodeExecuteMultipleTools")
+            if ("node-send-multiple-results" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.extension.nodeLLMSendMultipleToolResults")
+            if ("node-compress-history" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.extension.nodeLLMCompressHistory")
+            if ("node-llm-streaming" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.extension.nodeLLMRequestStreaming")
+            if ("node-llm-structured" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.extension.nodeLLMRequestStructured")
+            if ("node-do-nothing" in nodeTypes) appendLine("import ai.koog.agents.core.dsl.extension.nodeDoNothing")
             if ("onAssistantMessage" in edgeTypes) appendLine("import ai.koog.agents.core.dsl.extension.onAssistantMessage")
             if ("onToolCall" in edgeTypes) appendLine("import ai.koog.agents.core.dsl.extension.onToolCall")
+            if ("onMultipleToolCalls" in edgeTypes) appendLine("import ai.koog.agents.core.dsl.extension.onMultipleToolCalls")
             // onCondition is a member function on AIAgentEdgeBuilderIntermediateBase, no import needed
             appendLine()
             appendLine("fun $funcName() = strategy<String, String>(\"${agent.name}\") {")
@@ -38,6 +45,26 @@ class GraphAgentGenerator {
                     "node-execute-tool" -> appendLine("    val $varName by nodeExecuteTool()")
                     "node-llm-send-tool-result" -> appendLine("    val $varName by nodeLLMSendToolResult()")
                     "node-condition" -> appendLine("    val $varName by nodeCondition(\"${sn.condition}\")")
+                    "node-execute-multiple-tools" -> appendLine("    val $varName by nodeExecuteMultipleTools()")
+                    "node-send-multiple-results" -> appendLine("    val $varName by nodeLLMSendMultipleToolResults()")
+                    "node-compress-history" -> {
+                        val strategy = sn.compressionStrategy
+                        if (strategy != null && strategy.isNotBlank()) {
+                            appendLine("    val $varName by nodeLLMCompressHistory(\"$strategy\")")
+                        } else {
+                            appendLine("    val $varName by nodeLLMCompressHistory()")
+                        }
+                    }
+                    "node-llm-streaming" -> appendLine("    val $varName by nodeLLMRequestStreaming()")
+                    "node-llm-structured" -> {
+                        val schema = sn.outputSchema
+                        if (schema != null && schema.isNotBlank()) {
+                            appendLine("    val $varName by nodeLLMRequestStructured<$schema>()")
+                        } else {
+                            appendLine("    val $varName by nodeLLMRequestStructured<String>()")
+                        }
+                    }
+                    "node-do-nothing" -> appendLine("    val $varName by nodeDoNothing()")
                 }
             }
 
@@ -73,6 +100,7 @@ class GraphAgentGenerator {
     private fun formatEdgeSuffix(edge: KoogStrategyEdge): String {
         return when (edge.edgeType) {
             "onToolCall" -> " onToolCall { true }"
+            "onMultipleToolCalls" -> " onMultipleToolCalls { true }"
             "onAssistantMessage" -> " onAssistantMessage { true }"
             "onCondition" -> {
                 val cond = edge.condition
