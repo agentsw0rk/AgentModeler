@@ -15,6 +15,7 @@ class ToolGenerator {
         appendLine("import ai.koog.agents.core.tools.annotations.Tool")
         appendLine("import ai.koog.agents.core.tools.annotations.LLMDescription")
         appendLine("import ai.koog.agents.core.tools.reflect.ToolSet")
+        appendLine("import generated.*")
         appendLine()
         if (tool.description.isNotBlank()) {
             appendLine("""@LLMDescription("${tool.description}")""")

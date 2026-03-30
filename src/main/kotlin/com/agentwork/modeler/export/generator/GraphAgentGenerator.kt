@@ -11,6 +11,7 @@ class GraphAgentGenerator {
     fun generate(agent: KoogGraphAgent): String {
         val funcName = "create${agent.name.replaceFirstChar { it.uppercase() }}Strategy"
         val nodeMap = agent.strategyNodes.associateBy { it.id }
+        val toolByName = agent.tools.associateBy { it.name }
 
         // Collect which edge types and node types are used for imports
         val innerEdgeTypes = agent.strategyNodes
@@ -21,6 +22,17 @@ class GraphAgentGenerator {
             .filter { it.type == "node-subgraph" }
             .flatMap { it.subgraphNodes?.map { sn -> sn.type } ?: emptyList() }
         val nodeTypes = (agent.strategyNodes.map { it.type } + innerNodeTypes).toSet()
+
+        // Collect tool names referenced in subgraph toolSelectionStrategy
+        val referencedToolNames = agent.strategyNodes
+            .filter { it.type == "node-subgraph" && it.subgraphToolSelection == "SPECIFIC" }
+            .flatMap { it.subgraphTools ?: emptyList() }
+            .toSet()
+
+        // Check if any subgraph uses ToolSelectionStrategy (NONE or SPECIFIC)
+        val usesToolSelectionStrategy = agent.strategyNodes.any {
+            it.type == "node-subgraph" && it.subgraphToolSelection in listOf("NONE", "SPECIFIC")
+        }
 
         return buildString {
             appendLine("package generated")
@@ -41,6 +53,10 @@ class GraphAgentGenerator {
             if ("onAssistantMessage" in edgeTypes) appendLine("import ai.koog.agents.core.dsl.extension.onAssistantMessage")
             if ("onToolCall" in edgeTypes) appendLine("import ai.koog.agents.core.dsl.extension.onToolCall")
             if ("onMultipleToolCalls" in edgeTypes) appendLine("import ai.koog.agents.core.dsl.extension.onMultipleToolCalls")
+            if (usesToolSelectionStrategy) {
+                appendLine("import ai.koog.agents.core.agent.entity.ToolSelectionStrategy")
+                appendLine("import ai.koog.agents.core.tools.ToolDescriptor")
+            }
             // onCondition is a member function on AIAgentEdgeBuilderIntermediateBase, no import needed
             appendLine()
             appendLine("fun $funcName() = strategy<String, String>(\"${agent.name}\") {")
@@ -86,10 +102,18 @@ class GraphAgentGenerator {
                         val inputT = sn.subgraphInputType?.ifBlank { null } ?: "String"
                         val outputT = sn.subgraphOutputType?.ifBlank { null } ?: "String"
                         val toolStrategy = when (sn.subgraphToolSelection) {
-                            "NONE" -> ",\n        toolSelectionStrategy = ToolSelectionStrategy.None"
+                            "NONE" -> ",\n        toolSelectionStrategy = ToolSelectionStrategy.NONE"
                             "SPECIFIC" -> {
-                                val toolDescriptors = (sn.subgraphTools ?: emptyList()).joinToString(", ") { "${sanitizeIdentifier(it)}.descriptor" }
-                                ",\n        toolSelectionStrategy = ToolSelectionStrategy.Tools(listOf($toolDescriptors))"
+                                val descriptors = (sn.subgraphTools ?: emptyList()).flatMap { toolName ->
+                                    val tool = toolByName[toolName]
+                                    tool?.functions?.map { fn ->
+                                        val escaped = fn.description.replace("\"", "\\\"")
+                                        "ToolDescriptor(\"${fn.name}\", \"$escaped\")"
+                                    } ?: emptyList()
+                                }
+                                if (descriptors.isNotEmpty()) {
+                                    ",\n        toolSelectionStrategy = ToolSelectionStrategy.Tools(listOf(\n            ${descriptors.joinToString(",\n            ")}\n        ))"
+                                } else ""
                             }
                             else -> ""
                         }
@@ -122,7 +146,27 @@ class GraphAgentGenerator {
                             }
                         }
                         appendLine()
-                        for (innerSe in sn.subgraphEdges ?: emptyList()) {
+                        val innerEdges = sn.subgraphEdges ?: emptyList()
+                        for (innerSe in innerEdges) {
+                            val srcNode = innerNodeMap[innerSe.source]
+                            val tgtNode = innerNodeMap[innerSe.target]
+                            // Fix type-incompatible edge: nodeLLMSendToolResult → nodeLLMRequest via onCondition
+                            // send outputs Message.Response, llm expects String — replace with
+                            // onToolCall → exec and onAssistantMessage → nodeFinish
+                            if (srcNode?.type == "node-llm-send-tool-result" &&
+                                tgtNode?.type == "node-llm-request" &&
+                                innerSe.edgeType == "onCondition"
+                            ) {
+                                // Find the edges from the target llm node to replicate routing
+                                val llmEdges = innerEdges.filter { it.source == innerSe.target }
+                                for (llmEdge in llmEdges) {
+                                    val srcRef = resolveNodeRef(innerSe.source, innerNodeMap)
+                                    val reTgtRef = resolveNodeRef(llmEdge.target, innerNodeMap)
+                                    val reSuffix = formatEdgeSuffix(llmEdge)
+                                    appendLine("        edge($srcRef forwardTo $reTgtRef$reSuffix)")
+                                }
+                                continue
+                            }
                             val srcRef = resolveNodeRef(innerSe.source, innerNodeMap)
                             val tgtRef = resolveNodeRef(innerSe.target, innerNodeMap)
                             val suffix = formatEdgeSuffix(innerSe)
