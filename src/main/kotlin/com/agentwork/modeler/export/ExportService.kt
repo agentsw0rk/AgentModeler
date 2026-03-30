@@ -2,9 +2,10 @@ package com.agentwork.modeler.export
 
 import com.agentwork.modeler.export.adapter.GraphToKoogAdapter
 import com.agentwork.modeler.export.generator.*
-import com.agentwork.modeler.export.generator.A2AServerGenerator
 import com.agentwork.modeler.export.generator.A2AClientGenerator
 import com.agentwork.modeler.export.generator.SharedCodeGenerator
+import com.agentwork.modeler.export.model.KoogAgent
+import com.agentwork.modeler.export.model.KoogGraphAgent
 import com.agentwork.modeler.export.model.KoogInput
 import com.agentwork.modeler.export.model.KoogOutput
 import com.agentwork.modeler.export.model.KoogPlannerAgent
@@ -20,218 +21,105 @@ class ExportValidationException(val errors: List<String>) : RuntimeException("Va
 class ExportService(
     private val validator: GraphValidator,
     private val adapter: GraphToKoogAdapter,
-    private val agentGenerator: AgentGenerator,
     private val toolGenerator: ToolGenerator,
     private val registryGenerator: RegistryGenerator,
-    private val applicationGenerator: ApplicationGenerator,
-    private val buildGradleGenerator: BuildGradleGenerator,
-    private val settingsGradleGenerator: SettingsGradleGenerator,
-    private val gradlePropertiesGenerator: GradlePropertiesGenerator,
-    private val applicationPropertiesGenerator: ApplicationPropertiesGenerator,
-    private val dockerfileGenerator: DockerfileGenerator,
-    private val controllerGenerator: ControllerGenerator,
     private val builtinToolGenerator: BuiltinToolGenerator,
     private val subAgentGenerator: SubAgentGenerator,
     private val mcpServerGenerator: McpServerGenerator,
-    private val plannerAgentGenerator: PlannerAgentGenerator,
-    private val a2aServerGenerator: A2AServerGenerator,
     private val a2aClientGenerator: A2AClientGenerator,
     private val inputOutputGenerator: InputOutputGenerator,
     private val graphAgentGenerator: GraphAgentGenerator,
     private val sharedCodeGenerator: SharedCodeGenerator = SharedCodeGenerator(),
-    private val zipBuilder: ZipBuilder
+    private val zipBuilder: ZipBuilder,
+    private val backends: List<GeneratorBackend>
 ) {
-    fun export(graph: WorkspaceGraph): ByteArray {
-        val files = generateFiles(graph)
+    fun export(graph: WorkspaceGraph, backendId: String = "spring-boot"): ByteArray {
+        val files = generateFiles(graph, backendId)
         return zipBuilder.buildZip(files)
     }
 
-    fun exportWithFiles(graph: WorkspaceGraph): Pair<ByteArray, Map<String, String>> {
-        val files = generateFiles(graph)
+    fun exportWithFiles(graph: WorkspaceGraph, backendId: String = "spring-boot"): Pair<ByteArray, Map<String, String>> {
+        val files = generateFiles(graph, backendId)
         val zip = zipBuilder.buildZip(files)
         return Pair(zip, files)
     }
 
-    fun generateFiles(graph: WorkspaceGraph): Map<String, String> {
+    fun generateFiles(graph: WorkspaceGraph, backendId: String = "spring-boot"): Map<String, String> {
         val validationErrors = validator.validate(graph)
         if (validationErrors.isNotEmpty()) {
             throw ExportValidationException(validationErrors)
         }
 
+        val backend = backends.first { it.id == backendId }
         val agents = adapter.convert(graph)
         val plannerAgents = adapter.convertPlannerAgents(graph)
+        val graphAgents = adapter.convertGraphAgents(graph)
+        val sharedCodes = adapter.convertSharedCode(graph)
         val pkg = "src/main/kotlin/generated"
-        val files = mutableMapOf<String, String>()
 
         if (plannerAgents.isNotEmpty()) {
             val planner = plannerAgents.first()
-            val agentForInfra = agents.firstOrNull()
-
-            // Infrastructure (still generated for planner agents)
-            files["settings.gradle.kts"] = settingsGradleGenerator.generate(graph.name)
-            files["gradle.properties"] = gradlePropertiesGenerator.generate()
-            files["Dockerfile"] = dockerfileGenerator.generate()
-            if (agentForInfra != null) {
-                files["build.gradle.kts"] = buildGradleGenerator.generate(agentForInfra)
-                files["src/main/resources/application.properties"] = applicationPropertiesGenerator.generate(agentForInfra)
-            } else {
-                files["build.gradle.kts"] = generatePlannerBuildGradle()
-                files["src/main/resources/application.properties"] = generatePlannerApplicationProperties(planner)
-            }
-
-            // Kotlin sources
-            files["$pkg/Application.kt"] = applicationGenerator.generate()
-
-            // Planner-specific files
-            val plannerFiles = plannerAgentGenerator.generate(planner)
-            files["$pkg/planner/PlannerGoals.kt"] = plannerFiles["PlannerGoals.kt"] ?: ""
-            files["$pkg/planner/PlannerActions.kt"] = plannerFiles["PlannerActions.kt"] ?: ""
-            files["$pkg/PlannerAgent.kt"] = plannerFiles["PlannerAgent.kt"] ?: ""
-
-            // PlanController instead of ChatController
-            files["$pkg/PlanController.kt"] = generatePlanController()
-
-            // Tools connected to planner
-            for (tool in planner.tools) {
-                files["$pkg/tools/${tool.name}.kt"] = toolGenerator.generate(tool)
-            }
-
-            // MCP servers connected to planner
-            for (mcpServer in planner.mcpServers) {
-                val fileName = "${mcpServer.name.replace(" ", "")}Mcp"
-                files["$pkg/mcp/$fileName.kt"] = mcpServerGenerator.generate(mcpServer)
-            }
-
-            // A2A Server (if planner has A2A config)
-            val a2aConfig = planner.a2aConfig
-            if (a2aConfig != null && a2aConfig.enabled) {
-                val a2aFiles = a2aServerGenerator.generate(a2aConfig)
-                for ((fileName, content) in a2aFiles) {
-                    files["$pkg/a2a/$fileName"] = content
-                }
-            }
-
-            // A2A Clients
-            for (a2aAgent in planner.a2aAgents) {
-                val className = "${a2aAgent.name.replace(" ", "").replaceFirstChar { it.uppercase() }}A2AClient"
-                files["$pkg/a2a/${className}.kt"] = a2aClientGenerator.generate(a2aAgent)
-            }
-
-            // Input/Output classes
-            val mergedIn = mergedInput(planner.inputs)
-            val inputCode = inputOutputGenerator.generateInputClass(planner.name, mergedIn)
-            if (inputCode != null) {
-                val inName = mergedIn.className?.ifBlank { null } ?: "${planner.name.replaceFirstChar { it.uppercase() }}Input"
-                files["$pkg/$inName.kt"] = inputCode
-            }
-            val mergedOut = mergedOutput(planner.outputs)
-            val outputCode = inputOutputGenerator.generateOutputClass(planner.name, mergedOut)
-            if (outputCode != null) {
-                val outName = mergedOut.className?.ifBlank { null } ?: "${planner.name.replaceFirstChar { it.uppercase() }}Output"
-                files["$pkg/$outName.kt"] = outputCode
-            }
-
-            if (planner.tools.isNotEmpty() || planner.builtinTools.isNotEmpty() || planner.mcpServers.isNotEmpty()) {
-                files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(planner.tools, planner.builtinTools, emptyList(), planner.mcpServers)
-            }
-
-            // Generate shared code files
-            val sharedCodes = adapter.convertSharedCode(graph)
-            for (code in sharedCodes) {
-                if (code.name.isNotBlank()) {
-                    files["src/main/kotlin/generated/${code.name}.kt"] = sharedCodeGenerator.generate(code)
-                }
-            }
-
-            return files
+            val sharedFiles = generatePlannerSharedFiles(planner, sharedCodes, pkg)
+            val infraFiles = backend.generatePlannerAgentFiles(planner, graph.name, sharedFiles)
+            return sharedFiles + infraFiles
         }
 
-        val graphAgents = adapter.convertGraphAgents(graph)
         if (graphAgents.isNotEmpty()) {
             val ga = graphAgents.first()
-
-            files["settings.gradle.kts"] = settingsGradleGenerator.generate(graph.name)
-            files["gradle.properties"] = gradlePropertiesGenerator.generate()
-            files["Dockerfile"] = dockerfileGenerator.generate()
-
-            val infraAgent = com.agentwork.modeler.export.model.KoogAgent(
-                name = ga.name,
-                systemPrompt = ga.systemPrompt,
-                modelProvider = ga.modelProvider,
-                modelId = ga.modelId,
-                temperature = ga.temperature,
-                tools = ga.tools,
-                builtinTools = ga.builtinTools,
-                subAgents = ga.subAgents,
-                mcpServers = ga.mcpServers,
-                inputs = ga.inputs,
-                outputs = ga.outputs
-            )
-            files["build.gradle.kts"] = buildGradleGenerator.generate(infraAgent)
-            files["src/main/resources/application.properties"] = applicationPropertiesGenerator.generate(infraAgent)
-
-            files["$pkg/Application.kt"] = applicationGenerator.generate()
-            val (gaInputClassName, gaOutputClassName) = ioClassNames(ga.name, ga.inputs, ga.outputs)
-            files["$pkg/AgentConfig.kt"] = agentGenerator.generate(infraAgent, "create${ga.name.replaceFirstChar { it.uppercase() }}Strategy()", inputClassName = gaInputClassName, outputClassName = gaOutputClassName)
-            files["$pkg/ChatController.kt"] = controllerGenerator.generate(inputClassName = gaInputClassName, outputClassName = gaOutputClassName)
-
-            files["$pkg/${ga.name.replaceFirstChar { it.uppercase() }}Strategy.kt"] = graphAgentGenerator.generate(ga)
-
-            for (tool in ga.tools) {
-                files["$pkg/tools/${tool.name}.kt"] = toolGenerator.generate(tool)
-            }
-            for (builtinTool in ga.builtinTools) {
-                val code = builtinToolGenerator.generate(builtinTool)
-                val fileName = builtinTool.type.toFileName()
-                if (code != null && fileName != null) files["$pkg/tools/$fileName"] = code
-            }
-            for (mcpServer in ga.mcpServers) {
-                val fileName = "${mcpServer.name.replace(" ", "")}Mcp"
-                files["$pkg/mcp/$fileName.kt"] = mcpServerGenerator.generate(mcpServer)
-            }
-
-            val gaIn = mergedInput(ga.inputs)
-            val gaInputCode = inputOutputGenerator.generateInputClass(ga.name, gaIn)
-            if (gaInputCode != null) {
-                val inName = gaIn.className?.ifBlank { null } ?: "${ga.name.replaceFirstChar { it.uppercase() }}Input"
-                files["$pkg/$inName.kt"] = gaInputCode
-            }
-            val gaOut = mergedOutput(ga.outputs)
-            val gaOutputCode = inputOutputGenerator.generateOutputClass(ga.name, gaOut)
-            if (gaOutputCode != null) {
-                val outName = gaOut.className?.ifBlank { null } ?: "${ga.name.replaceFirstChar { it.uppercase() }}Output"
-                files["$pkg/$outName.kt"] = gaOutputCode
-            }
-
-            if (ga.tools.isNotEmpty() || ga.builtinTools.isNotEmpty() || ga.subAgents.isNotEmpty() || ga.mcpServers.isNotEmpty()) {
-                files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(ga.tools, ga.builtinTools, ga.subAgents, ga.mcpServers)
-            }
-
-            // Generate shared code files
-            val sharedCodes = adapter.convertSharedCode(graph)
-            for (code in sharedCodes) {
-                if (code.name.isNotBlank()) {
-                    files["src/main/kotlin/generated/${code.name}.kt"] = sharedCodeGenerator.generate(code)
-                }
-            }
-
-            return files
+            val (inputClassName, outputClassName) = ioClassNames(ga.name, ga.inputs, ga.outputs)
+            val strategyCall = "create${ga.name.replaceFirstChar { it.uppercase() }}Strategy()"
+            val sharedFiles = generateGraphAgentSharedFiles(ga, sharedCodes, pkg)
+            val infraFiles = backend.generateGraphAgentFiles(ga, graph.name, sharedFiles, strategyCall, inputClassName, outputClassName)
+            return sharedFiles + infraFiles
         }
 
         val agent = agents.first()
-
-        // Infrastructure
-        files["build.gradle.kts"] = buildGradleGenerator.generate(agent)
-        files["settings.gradle.kts"] = settingsGradleGenerator.generate(graph.name)
-        files["gradle.properties"] = gradlePropertiesGenerator.generate()
-        files["Dockerfile"] = dockerfileGenerator.generate()
-        files["src/main/resources/application.properties"] = applicationPropertiesGenerator.generate(agent)
-
-        // Kotlin sources
-        files["$pkg/Application.kt"] = applicationGenerator.generate()
         val (inputClassName, outputClassName) = ioClassNames(agent.name, agent.inputs, agent.outputs)
-        files["$pkg/AgentConfig.kt"] = agentGenerator.generate(agent, inputClassName = inputClassName, outputClassName = outputClassName)
-        files["$pkg/ChatController.kt"] = controllerGenerator.generate(inputClassName = inputClassName, outputClassName = outputClassName)
+        val sharedFiles = generateAgentSharedFiles(agent, sharedCodes, pkg)
+        val infraFiles = backend.generateAgentFiles(agent, graph.name, sharedFiles, inputClassName, outputClassName)
+        return sharedFiles + infraFiles
+    }
+
+    fun generateFilesWithMapping(graph: WorkspaceGraph, backendId: String = "spring-boot"): Pair<Map<String, String>, Map<String, String>> {
+        val files = generateFiles(graph, backendId)
+        val fileToNodeId = mutableMapOf<String, String>()
+
+        for (node in graph.nodes) {
+            when (node.type) {
+                "tool" -> {
+                    val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
+                    fileToNodeId["src/main/kotlin/generated/tools/${name}Tools.kt"] = node.id
+                    fileToNodeId["src/main/kotlin/generated/${name}Tools.kt"] = node.id
+                }
+                "code" -> {
+                    val fileName = node.data["fileName"] as? String ?: continue
+                    fileToNodeId["src/main/kotlin/generated/${fileName}.kt"] = node.id
+                }
+                "agent" -> {
+                    val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
+                    fileToNodeId["src/main/kotlin/generated/${name}Agent.kt"] = node.id
+                }
+                "graph-agent" -> {
+                    val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
+                    fileToNodeId["src/main/kotlin/generated/${name}Strategy.kt"] = node.id
+                    fileToNodeId["src/main/kotlin/generated/${name}Agent.kt"] = node.id
+                }
+                "sub-agent" -> {
+                    val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
+                    fileToNodeId["src/main/kotlin/generated/${name}SubAgent.kt"] = node.id
+                }
+                "mcp-server" -> {
+                    val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
+                    fileToNodeId["src/main/kotlin/generated/${name}McpConfig.kt"] = node.id
+                }
+            }
+        }
+
+        return Pair(files, fileToNodeId)
+    }
+
+    private fun generateAgentSharedFiles(agent: KoogAgent, sharedCodes: List<KoogSharedCode>, pkg: String): Map<String, String> {
+        val files = mutableMapOf<String, String>()
 
         // Tools
         for (tool in agent.tools) {
@@ -295,16 +183,7 @@ class ExportService(
             files["$pkg/mcp/$fileName.kt"] = mcpServerGenerator.generate(mcpServer)
         }
 
-        // A2A Server (if agent has A2A config)
-        val a2aConfig = agent.a2aConfig
-        if (a2aConfig != null && a2aConfig.enabled) {
-            val a2aFiles = a2aServerGenerator.generate(a2aConfig)
-            for ((fileName, content) in a2aFiles) {
-                files["$pkg/a2a/$fileName"] = content
-            }
-        }
-
-        // A2A Clients (for connected a2a-agent nodes)
+        // A2A Clients
         for (a2aAgent in agent.a2aAgents) {
             val className = "${a2aAgent.name.replace(" ", "").replaceFirstChar { it.uppercase() }}A2AClient"
             files["$pkg/a2a/${className}.kt"] = a2aClientGenerator.generate(a2aAgent)
@@ -324,12 +203,12 @@ class ExportService(
             files["$pkg/$outName.kt"] = outputCode
         }
 
+        // Tool registry
         if (agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty() || agent.subAgents.isNotEmpty() || agent.mcpServers.isNotEmpty()) {
             files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(agent.tools, agent.builtinTools, agent.subAgents, agent.mcpServers)
         }
 
-        // Generate shared code files
-        val sharedCodes = adapter.convertSharedCode(graph)
+        // Shared code
         for (code in sharedCodes) {
             if (code.name.isNotBlank()) {
                 files["src/main/kotlin/generated/${code.name}.kt"] = sharedCodeGenerator.generate(code)
@@ -339,42 +218,106 @@ class ExportService(
         return files
     }
 
-    fun generateFilesWithMapping(graph: WorkspaceGraph): Pair<Map<String, String>, Map<String, String>> {
-        val files = generateFiles(graph)
-        val fileToNodeId = mutableMapOf<String, String>()
+    private fun generateGraphAgentSharedFiles(ga: KoogGraphAgent, sharedCodes: List<KoogSharedCode>, pkg: String): Map<String, String> {
+        val files = mutableMapOf<String, String>()
 
-        for (node in graph.nodes) {
-            when (node.type) {
-                "tool" -> {
-                    val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
-                    fileToNodeId["src/main/kotlin/generated/tools/${name}Tools.kt"] = node.id
-                    fileToNodeId["src/main/kotlin/generated/${name}Tools.kt"] = node.id
-                }
-                "code" -> {
-                    val fileName = node.data["fileName"] as? String ?: continue
-                    fileToNodeId["src/main/kotlin/generated/${fileName}.kt"] = node.id
-                }
-                "agent" -> {
-                    val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
-                    fileToNodeId["src/main/kotlin/generated/${name}Agent.kt"] = node.id
-                }
-                "graph-agent" -> {
-                    val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
-                    fileToNodeId["src/main/kotlin/generated/${name}Strategy.kt"] = node.id
-                    fileToNodeId["src/main/kotlin/generated/${name}Agent.kt"] = node.id
-                }
-                "sub-agent" -> {
-                    val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
-                    fileToNodeId["src/main/kotlin/generated/${name}SubAgent.kt"] = node.id
-                }
-                "mcp-server" -> {
-                    val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
-                    fileToNodeId["src/main/kotlin/generated/${name}McpConfig.kt"] = node.id
-                }
+        // Graph agent strategy
+        files["$pkg/${ga.name.replaceFirstChar { it.uppercase() }}Strategy.kt"] = graphAgentGenerator.generate(ga)
+
+        // Tools
+        for (tool in ga.tools) {
+            files["$pkg/tools/${tool.name}.kt"] = toolGenerator.generate(tool)
+        }
+
+        // Built-in tools
+        for (builtinTool in ga.builtinTools) {
+            val code = builtinToolGenerator.generate(builtinTool)
+            val fileName = builtinTool.type.toFileName()
+            if (code != null && fileName != null) files["$pkg/tools/$fileName"] = code
+        }
+
+        // MCP servers
+        for (mcpServer in ga.mcpServers) {
+            val fileName = "${mcpServer.name.replace(" ", "")}Mcp"
+            files["$pkg/mcp/$fileName.kt"] = mcpServerGenerator.generate(mcpServer)
+        }
+
+        // Input/Output classes
+        val gaIn = mergedInput(ga.inputs)
+        val gaInputCode = inputOutputGenerator.generateInputClass(ga.name, gaIn)
+        if (gaInputCode != null) {
+            val inName = gaIn.className?.ifBlank { null } ?: "${ga.name.replaceFirstChar { it.uppercase() }}Input"
+            files["$pkg/$inName.kt"] = gaInputCode
+        }
+        val gaOut = mergedOutput(ga.outputs)
+        val gaOutputCode = inputOutputGenerator.generateOutputClass(ga.name, gaOut)
+        if (gaOutputCode != null) {
+            val outName = gaOut.className?.ifBlank { null } ?: "${ga.name.replaceFirstChar { it.uppercase() }}Output"
+            files["$pkg/$outName.kt"] = gaOutputCode
+        }
+
+        // Tool registry
+        if (ga.tools.isNotEmpty() || ga.builtinTools.isNotEmpty() || ga.subAgents.isNotEmpty() || ga.mcpServers.isNotEmpty()) {
+            files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(ga.tools, ga.builtinTools, ga.subAgents, ga.mcpServers)
+        }
+
+        // Shared code
+        for (code in sharedCodes) {
+            if (code.name.isNotBlank()) {
+                files["src/main/kotlin/generated/${code.name}.kt"] = sharedCodeGenerator.generate(code)
             }
         }
 
-        return Pair(files, fileToNodeId)
+        return files
+    }
+
+    private fun generatePlannerSharedFiles(planner: KoogPlannerAgent, sharedCodes: List<KoogSharedCode>, pkg: String): Map<String, String> {
+        val files = mutableMapOf<String, String>()
+
+        // Tools
+        for (tool in planner.tools) {
+            files["$pkg/tools/${tool.name}.kt"] = toolGenerator.generate(tool)
+        }
+
+        // MCP servers
+        for (mcpServer in planner.mcpServers) {
+            val fileName = "${mcpServer.name.replace(" ", "")}Mcp"
+            files["$pkg/mcp/$fileName.kt"] = mcpServerGenerator.generate(mcpServer)
+        }
+
+        // A2A Clients
+        for (a2aAgent in planner.a2aAgents) {
+            val className = "${a2aAgent.name.replace(" ", "").replaceFirstChar { it.uppercase() }}A2AClient"
+            files["$pkg/a2a/${className}.kt"] = a2aClientGenerator.generate(a2aAgent)
+        }
+
+        // Input/Output classes
+        val mergedIn = mergedInput(planner.inputs)
+        val inputCode = inputOutputGenerator.generateInputClass(planner.name, mergedIn)
+        if (inputCode != null) {
+            val inName = mergedIn.className?.ifBlank { null } ?: "${planner.name.replaceFirstChar { it.uppercase() }}Input"
+            files["$pkg/$inName.kt"] = inputCode
+        }
+        val mergedOut = mergedOutput(planner.outputs)
+        val outputCode = inputOutputGenerator.generateOutputClass(planner.name, mergedOut)
+        if (outputCode != null) {
+            val outName = mergedOut.className?.ifBlank { null } ?: "${planner.name.replaceFirstChar { it.uppercase() }}Output"
+            files["$pkg/$outName.kt"] = outputCode
+        }
+
+        // Tool registry
+        if (planner.tools.isNotEmpty() || planner.builtinTools.isNotEmpty() || planner.mcpServers.isNotEmpty()) {
+            files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(planner.tools, planner.builtinTools, emptyList(), planner.mcpServers)
+        }
+
+        // Shared code
+        for (code in sharedCodes) {
+            if (code.name.isNotBlank()) {
+                files["src/main/kotlin/generated/${code.name}.kt"] = sharedCodeGenerator.generate(code)
+            }
+        }
+
+        return files
     }
 
     private fun mergedInput(inputs: List<KoogInput>): KoogInput {
@@ -399,65 +342,5 @@ class ExportService(
             mergedOut.className?.ifBlank { null } ?: "${name.replaceFirstChar { c -> c.uppercase() }}Output"
         } else null
         return Pair(inputClassName, outputClassName)
-    }
-
-    private fun generatePlannerBuildGradle(): String = buildString {
-        val koogVersion = BuildGradleGenerator.KOOG_VERSION
-        val kotlinVersion = BuildGradleGenerator.KOTLIN_VERSION
-        val springBootVersion = BuildGradleGenerator.SPRING_BOOT_VERSION
-        val depMgmtVersion = BuildGradleGenerator.DEPENDENCY_MANAGEMENT_VERSION
-        appendLine("""plugins {""")
-        appendLine("""    kotlin("jvm") version "$kotlinVersion"""")
-        appendLine("""    kotlin("plugin.spring") version "$kotlinVersion"""")
-        appendLine("""    id("org.springframework.boot") version "$springBootVersion"""")
-        appendLine("""    id("io.spring.dependency-management") version "$depMgmtVersion"""")
-        appendLine("""}""")
-        appendLine()
-        appendLine("""java {""")
-        appendLine("""    toolchain {""")
-        appendLine("""        languageVersion = JavaLanguageVersion.of(21)""")
-        appendLine("""    }""")
-        appendLine("""}""")
-        appendLine()
-        appendLine("""repositories {""")
-        appendLine("""    mavenCentral()""")
-        appendLine("""    maven("https://packages.jetbrains.team/maven/p/grazi/grazie-platform-public")""")
-        appendLine("""}""")
-        appendLine()
-        appendLine("""dependencies {""")
-        appendLine("""    implementation("org.springframework.boot:spring-boot-starter-webflux")""")
-        appendLine("""    implementation("org.jetbrains.kotlin:kotlin-reflect")""")
-        appendLine("""    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")""")
-        appendLine("""    implementation("ai.koog:koog-spring-boot-starter:$koogVersion")""")
-        appendLine("""    implementation("ai.koog:koog-agents:$koogVersion")""")
-        appendLine("""}""")
-    }
-
-    private fun generatePlannerApplicationProperties(planner: KoogPlannerAgent): String = buildString {
-        appendLine("server.port=\${SERVER_PORT:8080}")
-        if (planner.modelProvider != null) {
-            val providerKey = planner.modelProvider.name.lowercase()
-            appendLine("${providerKey}.api-key=\${${planner.modelProvider.name}_API_KEY:}")
-        }
-    }
-
-    private fun generatePlanController(): String = buildString {
-        appendLine("package generated")
-        appendLine()
-        appendLine("import org.springframework.web.bind.annotation.*")
-        appendLine()
-        appendLine("@RestController")
-        appendLine("@RequestMapping(\"/api\")")
-        appendLine("class PlanController {")
-        appendLine()
-        appendLine("    @PostMapping(\"/plan\")")
-        appendLine("    fun executePlan(@RequestBody request: PlanRequest): PlanResponse {")
-        appendLine("        // TODO: Integrate with planner agent bean")
-        appendLine("        return PlanResponse(status = \"planned\", steps = emptyList())")
-        appendLine("    }")
-        appendLine("}")
-        appendLine()
-        appendLine("data class PlanRequest(val goalName: String, val state: Map<String, Any> = emptyMap())")
-        appendLine("data class PlanResponse(val status: String, val steps: List<String>)")
     }
 }

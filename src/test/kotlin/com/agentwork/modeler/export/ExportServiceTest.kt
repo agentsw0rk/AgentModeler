@@ -1,6 +1,7 @@
 package com.agentwork.modeler.export
 
 import com.agentwork.modeler.export.adapter.GraphToKoogAdapter
+import com.agentwork.modeler.export.backend.SpringBootBackend
 import com.agentwork.modeler.export.generator.*
 import com.agentwork.modeler.export.generator.GraphAgentGenerator
 import com.agentwork.modeler.export.generator.McpServerGenerator
@@ -17,28 +18,33 @@ import kotlin.test.assertContains
 
 class ExportServiceTest {
 
+    private val springBootBackend = SpringBootBackend(
+        agentGenerator = AgentGenerator(),
+        controllerGenerator = ControllerGenerator(),
+        registryGenerator = RegistryGenerator(),
+        buildGradleGenerator = BuildGradleGenerator(),
+        applicationGenerator = ApplicationGenerator(),
+        applicationPropertiesGenerator = ApplicationPropertiesGenerator(),
+        dockerfileGenerator = DockerfileGenerator(),
+        settingsGradleGenerator = SettingsGradleGenerator(),
+        gradlePropertiesGenerator = GradlePropertiesGenerator(),
+        plannerAgentGenerator = PlannerAgentGenerator(),
+        a2aServerGenerator = A2AServerGenerator()
+    )
+
     private val service = ExportService(
         validator = GraphValidator(),
         adapter = GraphToKoogAdapter(),
-        agentGenerator = AgentGenerator(),
         toolGenerator = ToolGenerator(),
         registryGenerator = RegistryGenerator(),
-        applicationGenerator = ApplicationGenerator(),
-        buildGradleGenerator = BuildGradleGenerator(),
-        settingsGradleGenerator = SettingsGradleGenerator(),
-        gradlePropertiesGenerator = GradlePropertiesGenerator(),
-        applicationPropertiesGenerator = ApplicationPropertiesGenerator(),
-        dockerfileGenerator = DockerfileGenerator(),
-        controllerGenerator = ControllerGenerator(),
         builtinToolGenerator = BuiltinToolGenerator(),
         subAgentGenerator = SubAgentGenerator(),
         mcpServerGenerator = McpServerGenerator(),
-        plannerAgentGenerator = PlannerAgentGenerator(),
-        a2aServerGenerator = A2AServerGenerator(),
         a2aClientGenerator = A2AClientGenerator(),
         inputOutputGenerator = InputOutputGenerator(),
         graphAgentGenerator = GraphAgentGenerator(),
-        zipBuilder = ZipBuilder()
+        zipBuilder = ZipBuilder(),
+        backends = listOf(springBootBackend)
     )
 
     @Test
