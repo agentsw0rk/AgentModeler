@@ -16,7 +16,8 @@ export function useCodeGeneration() {
         state.nodes !== prev.nodes ||
         state.edges !== prev.edges ||
         state.workspaceName !== prev.workspaceName ||
-        state.otelConfig !== prev.otelConfig;
+        state.otelConfig !== prev.otelConfig ||
+        state.activeBackend !== prev.activeBackend;
 
       if (!changed) return;
 
@@ -70,10 +71,10 @@ async function triggerGeneration(
   store.setStatus("generating");
 
   const graph = buildWorkspaceGraph();
-  const workspaceName = useEditorStore.getState().workspaceName;
+  const { workspaceName, activeBackend } = useEditorStore.getState();
 
   try {
-    const result = await generateCode(workspaceName, graph, signal);
+    const result = await generateCode(workspaceName, graph, signal, activeBackend);
 
     if (result.status === GenerationStatus.INVALID) {
       useCodeExplorerStore.getState().setStatus("invalid");

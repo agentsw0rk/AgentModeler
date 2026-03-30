@@ -15,7 +15,9 @@ interface EditorState {
   edges: GraphEdge[];
   selectedNodeIds: string[];
   workspaceName: string;
+  activeBackend: string;
 
+  setActiveBackend: (id: string) => void;
   addNode: (type: NodeType, position: { x: number; y: number }, toolType?: BuiltinToolType, initialData?: Record<string, unknown>) => void;
   addNodes: (nodes: GraphNode[], edges: GraphEdge[]) => void;
   removeNode: (id: string) => void;
@@ -144,7 +146,12 @@ export const useEditorStore = create<EditorState>((set) => ({
   edges: [],
   selectedNodeIds: [],
   workspaceName: DEFAULT_WORKSPACE_NAME,
+  activeBackend: "spring-boot",
   otelConfig: { ...DEFAULT_OTEL_CONFIG },
+
+  setActiveBackend(id) {
+    set({ activeBackend: id });
+  },
 
   addNode(type, position, toolType?, initialData?) {
     pushHistory();
