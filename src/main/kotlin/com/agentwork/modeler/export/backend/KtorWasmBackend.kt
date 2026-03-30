@@ -13,7 +13,8 @@ class KtorWasmBackend(
     private val wasmDockerfileGenerator: WasmDockerfileGenerator,
     private val ktorMainGenerator: KtorMainGenerator,
     private val ktorControllerGenerator: KtorControllerGenerator,
-    private val ktorRegistryGenerator: KtorRegistryGenerator
+    private val ktorRegistryGenerator: KtorRegistryGenerator,
+    private val wasmToolGenerator: WasmToolGenerator
 ) : GeneratorBackend {
 
     override val id = "ktor-wasm"
@@ -25,13 +26,50 @@ class KtorWasmBackend(
     private val wasmPrefix = "src/wasmJsMain/kotlin/generated/"
 
     private fun remapSharedFiles(sharedFiles: Map<String, String>): Map<String, String> =
-        sharedFiles.mapKeys { (path, _) ->
-            if (path.startsWith(jvmPrefix)) {
-                wasmPrefix + path.removePrefix(jvmPrefix)
-            } else {
-                path
+        sharedFiles
+            .filterKeys { path ->
+                // Exclude JVM ToolSet-based tool files and Spring ToolRegistry — we generate Wasm versions
+                !path.matches(Regex(".*/tools/[^/]+\\.kt$")) && !path.endsWith("ToolRegistry.kt")
             }
+            .mapKeys { (path, _) ->
+                if (path.startsWith(jvmPrefix)) {
+                    wasmPrefix + path.removePrefix(jvmPrefix)
+                } else {
+                    path
+                }
+            }
+
+    /** Generate Wasm-compatible tool files using SimpleTool instead of ToolSet */
+    private fun generateWasmToolFiles(tools: List<KoogTool>): Map<String, String> {
+        val files = mutableMapOf<String, String>()
+        for (tool in tools) {
+            files["${wasmPrefix}tools/${tool.name}.kt"] = wasmToolGenerator.generate(tool)
         }
+        // Add wasmFormat utility for String.format() replacement
+        if (tools.any { tool -> tool.functions.any { it.body.contains(".format(") } }) {
+            files["${wasmPrefix}tools/WasmFormat.kt"] = generateWasmFormat()
+        }
+        return files
+    }
+
+    private fun generateWasmFormat(): String = buildString {
+        appendLine("package generated.tools")
+        appendLine()
+        appendLine("/** WasmJS-compatible replacement for String.format() */")
+        appendLine("fun String.wasmFormat(vararg args: Any?): String {")
+        appendLine("    var result = this")
+        appendLine("    for (arg in args) {")
+        appendLine("        val replacement = when (arg) {")
+        appendLine("            is Double -> arg.toString()")
+        appendLine("            is Float -> arg.toString()")
+        appendLine("            null -> \"\"")
+        appendLine("            else -> arg.toString()")
+        appendLine("        }")
+        appendLine("        result = result.replaceFirst(Regex(\"\"\"%[\\\\d.]*[sdfb]\"\"\"), replacement)")
+        appendLine("    }")
+        appendLine("    return result")
+        appendLine("}")
+    }
 
     override fun generateAgentFiles(
         agent: KoogAgent,
@@ -63,8 +101,11 @@ class KtorWasmBackend(
             )
         }
 
-        // Remapped shared files
+        // Remapped shared files (excluding JVM tool files)
         files.putAll(remapSharedFiles(sharedFiles))
+
+        // Wasm-compatible tool files (override shared ToolSet-based ones)
+        files.putAll(generateWasmToolFiles(agent.tools))
 
         return files
     }
@@ -115,8 +156,11 @@ class KtorWasmBackend(
             )
         }
 
-        // Remapped shared files
+        // Remapped shared files (excluding JVM tool files)
         files.putAll(remapSharedFiles(sharedFiles))
+
+        // Wasm-compatible tool files
+        files.putAll(generateWasmToolFiles(agent.tools))
 
         return files
     }

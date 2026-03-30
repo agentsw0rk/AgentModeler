@@ -84,33 +84,40 @@ class ExportService(
         val files = generateFiles(graph, backendId)
         val fileToNodeId = mutableMapOf<String, String>()
 
+        // Register mappings for both JVM and WasmJS source paths
+        val prefixes = listOf("src/main/kotlin/generated", "src/wasmJsMain/kotlin/generated")
+
         for (node in graph.nodes) {
             when (node.type) {
                 "tool" -> {
                     val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
-                    fileToNodeId["src/main/kotlin/generated/tools/${name}Tools.kt"] = node.id
-                    fileToNodeId["src/main/kotlin/generated/${name}Tools.kt"] = node.id
+                    for (p in prefixes) {
+                        fileToNodeId["$p/tools/${name}Tools.kt"] = node.id
+                        fileToNodeId["$p/${name}Tools.kt"] = node.id
+                    }
                 }
                 "code" -> {
                     val fileName = node.data["fileName"] as? String ?: continue
-                    fileToNodeId["src/main/kotlin/generated/${fileName}.kt"] = node.id
+                    for (p in prefixes) fileToNodeId["$p/${fileName}.kt"] = node.id
                 }
                 "agent" -> {
                     val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
-                    fileToNodeId["src/main/kotlin/generated/${name}Agent.kt"] = node.id
+                    for (p in prefixes) fileToNodeId["$p/${name}Agent.kt"] = node.id
                 }
                 "graph-agent" -> {
                     val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
-                    fileToNodeId["src/main/kotlin/generated/${name}Strategy.kt"] = node.id
-                    fileToNodeId["src/main/kotlin/generated/${name}Agent.kt"] = node.id
+                    for (p in prefixes) {
+                        fileToNodeId["$p/${name}Strategy.kt"] = node.id
+                        fileToNodeId["$p/${name}Agent.kt"] = node.id
+                    }
                 }
                 "sub-agent" -> {
                     val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
-                    fileToNodeId["src/main/kotlin/generated/${name}SubAgent.kt"] = node.id
+                    for (p in prefixes) fileToNodeId["$p/${name}SubAgent.kt"] = node.id
                 }
                 "mcp-server" -> {
                     val name = (node.data["name"] as? String)?.replaceFirstChar { it.uppercase() } ?: continue
-                    fileToNodeId["src/main/kotlin/generated/${name}McpConfig.kt"] = node.id
+                    for (p in prefixes) fileToNodeId["$p/${name}McpConfig.kt"] = node.id
                 }
             }
         }

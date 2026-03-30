@@ -18,6 +18,7 @@ class WasmBuildGradleGenerator {
         appendLine("""    kotlin("plugin.serialization") version "$KOTLIN_VERSION"""")
         appendLine("""}""")
         appendLine()
+        appendLine("""@OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)""")
         appendLine("""kotlin {""")
         appendLine("""    wasmJs {""")
         appendLine("""        nodejs()""")

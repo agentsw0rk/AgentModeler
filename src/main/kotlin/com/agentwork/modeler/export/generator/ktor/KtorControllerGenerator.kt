@@ -22,11 +22,11 @@ class KtorControllerGenerator {
             }
             appendLine("import io.ktor.server.request.*")
             appendLine("import io.ktor.server.response.*")
-            appendLine("import kotlinx.coroutines.runBlocking")
             if (!hasCustomInput || !hasCustomOutput) {
                 appendLine("import kotlinx.serialization.Serializable")
             }
             appendLine()
+            // Ktor route handlers are already suspend — no runBlocking needed
             appendLine("fun Application.configureChatRoutes(agent: AIAgent<$inputType, $outputType>) {")
 
             if (hasCustomInput || hasCustomOutput) {
@@ -41,10 +41,10 @@ class KtorControllerGenerator {
 
             if (hasCustomInput) {
                 appendLine("            val request = call.receive<$inputType>()")
-                appendLine("            val result = runBlocking { agent.run(request) }")
+                appendLine("            val result = agent.run(request)")
             } else {
                 appendLine("            val request = call.receive<ChatRequest>()")
-                appendLine("            val result = runBlocking { agent.run(request.message) }")
+                appendLine("            val result = agent.run(request.message)")
             }
 
             if (hasCustomOutput) {

@@ -26,6 +26,7 @@ class BuildService(
 
             val gradleTask = when (platform) {
                 "native" -> "compileKotlinNative"
+                "wasm" -> "compileKotlinWasmJs"
                 else -> "compileKotlin"
             }
 

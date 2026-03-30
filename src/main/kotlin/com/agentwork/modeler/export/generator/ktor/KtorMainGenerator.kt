@@ -30,12 +30,17 @@ class KtorMainGenerator {
             }
             appendLine("import io.ktor.server.engine.*")
             appendLine("import io.ktor.server.cio.*")
-            appendLine("import kotlinx.coroutines.runBlocking")
+            appendLine("import kotlin.js.JsString")
+            appendLine()
+            // WasmJS: use @JsFun for JS interop (js() has strict restrictions in Wasm)
+            appendLine("""@JsFun("() => { try { return process.env.$envVarName || '' } catch(e) { return '' } }")""")
+            appendLine("""private external fun readApiKey(): JsString""")
+            appendLine()
+            appendLine("""private val envApiKey: String = readApiKey().toString().also {""")
+            appendLine("""    require(it.isNotEmpty()) { "$envVarName environment variable must be set" }""")
+            appendLine("""}""")
             appendLine()
             appendLine("fun main() {")
-            appendLine("""    val apiKey = js("process.env.$envVarName").unsafeCast<String?>()""")
-            appendLine("""        ?: error("$envVarName environment variable must be set")""")
-            appendLine()
 
             val escapedPrompt = effectivePrompt
                 .replace("\\", "\\\\")
@@ -44,7 +49,7 @@ class KtorMainGenerator {
                 .replace("\r", "")
 
             val params = mutableListOf<String>()
-            params.add("""promptExecutor = ${agent.modelProvider.executorFactory}(apiKey)""")
+            params.add("""promptExecutor = ${agent.modelProvider.executorFactory}(envApiKey)""")
             params.add("""systemPrompt = "$escapedPrompt"""")
             params.add("llmModel = $modelRef")
             agent.temperature?.let { params.add("temperature = $it") }
@@ -57,17 +62,9 @@ class KtorMainGenerator {
 
             val paramBlock = params.joinToString(",\n            ")
 
-            if (agent.mcpServers.isNotEmpty()) {
-                appendLine("    val agent = runBlocking {")
-                appendLine("        AIAgent(")
-                appendLine("            $paramBlock")
-                appendLine("        )")
-                appendLine("    }")
-            } else {
-                appendLine("    val agent = AIAgent(")
-                appendLine("        $paramBlock")
-                appendLine("    )")
-            }
+            appendLine("    val agent = AIAgent(")
+            appendLine("        $paramBlock")
+            appendLine("    )")
 
             appendLine()
             appendLine("    embeddedServer(CIO, port = 8080) {")
