@@ -14,6 +14,7 @@ import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 import {
   MenuIcon,
   CheckCircleIcon,
+  HammerIcon,
   SaveIcon,
   SettingsIcon,
   PackageIcon,
@@ -70,13 +71,16 @@ export function ToolsMenuDialog({ mcpConnected = false }: { mcpConnected?: boole
             <DialogTitle>Tools</DialogTitle>
           </DialogHeader>
           <div className="grid gap-1">
-            <Button variant="ghost" size="sm" onClick={handleValidate}>
+            <Button variant="ghost" className="justify-start gap-3 h-10" onClick={handleValidate}>
+              <CheckCircleIcon className="size-4 text-muted-foreground" />
               Validate (Local)
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => handleBuild("jvm")}>
+            <Button variant="ghost" className="justify-start gap-3 h-10" onClick={() => handleBuild("jvm")}>
+              <HammerIcon className="size-4 text-muted-foreground" />
               Build (JVM)
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => handleBuild("native")}>
+            <Button variant="ghost" className="justify-start gap-3 h-10" onClick={() => handleBuild("native")}>
+              <HammerIcon className="size-4 text-muted-foreground" />
               Build (Native)
             </Button>
             <div className="border-t my-1" />

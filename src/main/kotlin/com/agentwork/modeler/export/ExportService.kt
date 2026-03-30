@@ -61,7 +61,7 @@ class ExportService(
             val planner = plannerAgents.first()
             val sharedFiles = generatePlannerSharedFiles(planner, sharedCodes, pkg)
             val infraFiles = backend.generatePlannerAgentFiles(planner, graph.name, sharedFiles)
-            return sharedFiles + infraFiles
+            return if (backend.remapsSharedFiles) infraFiles else sharedFiles + infraFiles
         }
 
         if (graphAgents.isNotEmpty()) {
@@ -70,14 +70,14 @@ class ExportService(
             val strategyCall = "create${ga.name.replaceFirstChar { it.uppercase() }}Strategy()"
             val sharedFiles = generateGraphAgentSharedFiles(ga, sharedCodes, pkg)
             val infraFiles = backend.generateGraphAgentFiles(ga, graph.name, sharedFiles, strategyCall, inputClassName, outputClassName)
-            return sharedFiles + infraFiles
+            return if (backend.remapsSharedFiles) infraFiles else sharedFiles + infraFiles
         }
 
         val agent = agents.first()
         val (inputClassName, outputClassName) = ioClassNames(agent.name, agent.inputs, agent.outputs)
         val sharedFiles = generateAgentSharedFiles(agent, sharedCodes, pkg)
         val infraFiles = backend.generateAgentFiles(agent, graph.name, sharedFiles, inputClassName, outputClassName)
-        return sharedFiles + infraFiles
+        return if (backend.remapsSharedFiles) infraFiles else sharedFiles + infraFiles
     }
 
     fun generateFilesWithMapping(graph: WorkspaceGraph, backendId: String = "spring-boot"): Pair<Map<String, String>, Map<String, String>> {

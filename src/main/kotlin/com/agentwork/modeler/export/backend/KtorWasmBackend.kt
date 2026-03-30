@@ -19,6 +19,7 @@ class KtorWasmBackend(
     override val id = "ktor-wasm"
     override val displayName = "Ktor (WasmJS)"
     override val supportedPlatforms = listOf("wasm")
+    override val remapsSharedFiles = true
 
     private val jvmPrefix = "src/main/kotlin/generated/"
     private val wasmPrefix = "src/wasmJsMain/kotlin/generated/"

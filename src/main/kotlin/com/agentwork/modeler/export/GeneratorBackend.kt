@@ -9,6 +9,9 @@ interface GeneratorBackend {
     val displayName: String
     val supportedPlatforms: List<String>
 
+    /** If true, the backend remaps shared files to its own source layout and includes them in its output. */
+    val remapsSharedFiles: Boolean get() = false
+
     fun generateAgentFiles(
         agent: KoogAgent,
         graphName: String,
