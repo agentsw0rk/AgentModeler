@@ -13,8 +13,8 @@ class BuildService(
     private val errorParser: GradleErrorParser
 ) {
 
-    fun build(graph: WorkspaceGraph, platform: String): BuildResult {
-        val (files, fileToNodeMap) = exportService.generateFilesWithMapping(graph)
+    fun build(graph: WorkspaceGraph, platform: String, backendId: String = "spring-boot"): BuildResult {
+        val (files, fileToNodeMap) = exportService.generateFilesWithMapping(graph, backendId)
 
         val tempDir = Files.createTempDirectory("modeler-build-").toFile()
         try {

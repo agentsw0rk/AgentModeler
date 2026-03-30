@@ -4,7 +4,8 @@ import com.agentwork.modeler.export.model.WorkspaceGraph
 
 data class BuildRequest(
     val graph: WorkspaceGraph,
-    val platform: String = "jvm"
+    val platform: String = "jvm",
+    val backend: String = "spring-boot"
 )
 
 data class BuildResult(

@@ -1,5 +1,7 @@
 package com.agentwork.modeler.vfs
 
+import com.agentwork.modeler.export.model.GraphEdge
+import com.agentwork.modeler.export.model.GraphNode
 import com.agentwork.modeler.export.model.WorkspaceGraph
 import com.agentwork.modeler.vfs.model.GenerationResult
 import org.springframework.http.ResponseEntity
@@ -15,9 +17,9 @@ class VirtualFileSystemController(
     @PostMapping("/{projectName}/generate")
     fun generate(
         @PathVariable projectName: String,
-        @RequestBody graph: WorkspaceGraph
+        @RequestBody request: GenerateRequest
     ): GenerationResult {
-        return codeGenerationService.generateForProject(projectName, graph)
+        return codeGenerationService.generateForProject(projectName, request.resolveGraph(), request.backend)
     }
 
     @GetMapping("/{projectName}/tree")
@@ -50,4 +52,20 @@ class VirtualFileSystemController(
     @ExceptionHandler(InvalidPathException::class)
     fun handleInvalidPath(e: InvalidPathException) =
         ResponseEntity.badRequest().build<Void>()
+}
+
+data class GenerateRequest(
+    val graph: WorkspaceGraph? = null,
+    val backend: String = "spring-boot",
+    val version: Int? = null,
+    val name: String? = null,
+    val nodes: List<GraphNode>? = null,
+    val edges: List<GraphEdge>? = null
+) {
+    fun resolveGraph(): WorkspaceGraph = graph ?: WorkspaceGraph(
+        version = version ?: 1,
+        name = name ?: "project",
+        nodes = nodes ?: emptyList(),
+        edges = edges ?: emptyList()
+    )
 }
