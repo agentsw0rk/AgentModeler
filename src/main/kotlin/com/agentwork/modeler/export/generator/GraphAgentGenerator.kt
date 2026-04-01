@@ -53,7 +53,9 @@ class GraphAgentGenerator {
 
         strategyBody.endControlFlow()
 
+        val strategyReturnType = ClassName("ai.koog.agents.core.dsl.builder", "AIAgentGraphStrategy")
         val strategyFun = FunSpec.builder(funcName)
+            .returns(strategyReturnType)
             .addCode(strategyBody.build())
             .build()
 

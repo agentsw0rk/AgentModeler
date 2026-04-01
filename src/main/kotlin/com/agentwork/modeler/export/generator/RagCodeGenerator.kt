@@ -97,8 +97,9 @@ class RagCodeGenerator {
                 embeddingBasedStorage, inMemoryVectorStorage
             )
         }
+        val storageType = embeddingBasedStorage.parameterizedBy(pathClass)
         objectBuilder.addProperty(
-            PropertySpec.builder("storage", embeddingBasedStorage)
+            PropertySpec.builder("storage", storageType)
                 .initializer(storageInitializer)
                 .build()
         )
