@@ -188,7 +188,8 @@ export function Canvas() {
           }
         }
 
-        for (const reteNode of editorRef!.getNodes()) {
+        const reteNodes = [...editorRef!.getNodes()];
+        for (const reteNode of reteNodes) {
           if ("storeNodeId" in reteNode) {
             const storeId = (reteNode as any).storeNodeId;
             if (!state.nodes.find((n) => n.id === storeId)) {
