@@ -37,7 +37,7 @@
       "data": {
         "name": "ProductDocs",
         "embedderProvider": "OpenAI",
-        "embedderModel": "TextEmbeddingAda3Large",
+        "embedderModel": "TextEmbedding3Large",
         "apiKeyVariable": "OPENAI_API_KEY",
         "storageType": "InMemory",
         "storagePath": "./vector-storage",

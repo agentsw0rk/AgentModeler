@@ -3,7 +3,7 @@ import type { RagNodeConfig } from "@/types/rag";
 export const defaultRagData: RagNodeConfig = {
   name: "",
   embedderProvider: "OpenAI",
-  embedderModel: "TextEmbeddingAda3Large",
+  embedderModel: "TextEmbedding3Large",
   apiKeyVariable: "OPENAI_API_KEY",
   storageType: "InMemory",
   storagePath: "./vector-storage",
@@ -18,8 +18,9 @@ export const defaultRagData: RagNodeConfig = {
 };
 
 export const OPENAI_EMBEDDING_MODELS = [
-  { value: "TextEmbeddingAda3Large", label: "text-embedding-3-large" },
-  { value: "TextEmbeddingAda3Small", label: "text-embedding-3-small" },
+  { value: "TextEmbedding3Large", label: "text-embedding-3-large" },
+  { value: "TextEmbedding3Small", label: "text-embedding-3-small" },
+  { value: "TextEmbeddingAda002", label: "text-embedding-ada-002" },
 ];
 
 export const OLLAMA_EMBEDDING_MODELS = [

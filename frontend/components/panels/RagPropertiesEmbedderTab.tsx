@@ -17,7 +17,7 @@ export function RagPropertiesEmbedderTab({ data, onUpdate }: { data: RagNodeConf
           value={data.embedderProvider}
           onValueChange={(v) => {
             const provider = v as RagEmbedderProvider;
-            const defaultModel = provider === "OpenAI" ? "TextEmbeddingAda3Large" : "NOMIC_EMBED_TEXT";
+            const defaultModel = provider === "OpenAI" ? "TextEmbedding3Large" : "NOMIC_EMBED_TEXT";
             onUpdate({ embedderProvider: provider, embedderModel: defaultModel });
           }}
         >
