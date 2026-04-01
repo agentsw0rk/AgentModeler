@@ -140,4 +140,105 @@ class RagCodeGenerator {
             }
         }
     }
+
+    /**
+     * Generates a WasmJS-compatible RAG file. Key differences from JVM:
+     * - No java.nio.file.Path — uses String paths
+     * - No System.getenv — uses js() interop or hardcoded env var name
+     * - No JVMTextDocumentEmbedder — uses TextDocumentEmbedder
+     * - No JVMFileVectorStorage — only InMemory or Custom
+     * - Search tool as SimpleTool instead of ToolSet (no reflection on Wasm)
+     */
+    fun generateWasmRagFile(rag: KoogRagNode): String {
+        val className = sanitizeClassName(rag.name) + "Rag"
+        val safeName = sanitizeClassName(rag.name)
+
+        return buildString {
+            appendLine("package generated.rag")
+            appendLine()
+            appendLine("import ai.koog.prompt.embedding.LLMEmbedder")
+            appendLine("import ai.koog.rag.vectorstore.EmbeddingBasedDocumentStorage")
+            appendLine("import ai.koog.rag.vectorstore.InMemoryVectorStorage")
+            when (rag.embedderProvider.uppercase()) {
+                "OPENAI" -> {
+                    appendLine("import ai.koog.prompt.executor.clients.openai.OpenAILLMClient")
+                    appendLine("import ai.koog.prompt.executor.model.OpenAIModels")
+                }
+                "OLLAMA" -> {
+                    appendLine("import ai.koog.prompt.executor.clients.ollama.OllamaClient")
+                    appendLine("import ai.koog.prompt.executor.model.OllamaModels")
+                }
+            }
+            if (rag.provideAsTool) {
+                appendLine("import ai.koog.agents.core.tools.SimpleTool")
+                appendLine("import kotlinx.serialization.Serializable")
+            }
+            appendLine()
+
+            // Env var helper for WasmJS
+            appendLine("private fun getEnv(key: String): String = js(\"process.env[key] || ''\")")
+            appendLine()
+
+            // Object
+            appendLine("object $className {")
+            appendLine()
+
+            val clientExpr = when (rag.embedderProvider.uppercase()) {
+                "OPENAI" -> """OpenAILLMClient(getEnv("${rag.apiKeyVariable}"))"""
+                "OLLAMA" -> "OllamaClient()"
+                else -> """OpenAILLMClient(getEnv("${rag.apiKeyVariable}"))"""
+            }
+            val modelRef = when (rag.embedderProvider.uppercase()) {
+                "OPENAI" -> "OpenAIModels.Embeddings.${rag.embedderModel}"
+                "OLLAMA" -> "OllamaModels.Embeddings.${rag.embedderModel}"
+                else -> "\"${rag.embedderModel}\""
+            }
+            appendLine("    private val embedder = LLMEmbedder($clientExpr, $modelRef)")
+            appendLine("    val storage = EmbeddingBasedDocumentStorage(embedder, InMemoryVectorStorage())")
+            appendLine()
+
+            // Initialize — no file system access on Wasm, document paths are placeholders
+            appendLine("    suspend fun initialize() {")
+            appendLine("        // Note: File system access is limited on WasmJS.")
+            appendLine("        // Documents should be loaded via HTTP or embedded at build time.")
+            for (url in rag.urlSources) {
+                appendLine("""        // TODO: Fetch and store document from: $url""")
+            }
+            for (filePath in rag.filePaths) {
+                appendLine("""        // TODO: Load document: $filePath""")
+            }
+            appendLine("    }")
+
+            // Context injection helper
+            if (rag.injectAsContext) {
+                appendLine()
+                appendLine("    suspend fun getRelevantContext(query: String): List<String> {")
+                appendLine("        return storage.mostRelevantDocuments(query, count = ${rag.maxDocuments}, similarityThreshold = ${rag.similarityThreshold}).toList().map { it.toString() }")
+                appendLine("    }")
+            }
+
+            appendLine("}")
+
+            // Search Tool as SimpleTool (Wasm — no reflection)
+            if (rag.provideAsTool) {
+                val toolDesc = rag.toolDescription?.replace("\"", "\\\"")
+                    ?: "Search for relevant documents in ${rag.name}"
+                appendLine()
+                appendLine("@Serializable")
+                appendLine("data class Search${safeName}Args(val query: String, val count: Int = ${rag.maxDocuments})")
+                appendLine()
+                appendLine("val search${safeName}Tool = SimpleTool(")
+                appendLine("    name = \"search$safeName\",")
+                appendLine("    description = \"$toolDesc\",")
+                appendLine("    argsSerializer = Search${safeName}Args.serializer()")
+                appendLine(") { args ->")
+                appendLine("    val docs = $className.storage.mostRelevantDocuments(args.query, count = args.count, similarityThreshold = ${rag.similarityThreshold}).toList()")
+                appendLine("    if (docs.isEmpty()) \"No relevant documents found for: \${args.query}\"")
+                appendLine("    else docs.mapIndexed { i, doc -> \"Document \${i + 1}: \$doc\" }.joinToString(\"\\n\")")
+                appendLine("}")
+                appendLine()
+                appendLine("val ${sanitizeVarPrefix(rag.name)}RagTools = listOf(search${safeName}Tool)")
+            }
+        }
+    }
 }

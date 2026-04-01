@@ -1,6 +1,7 @@
 package com.agentwork.modeler.export.backend
 
 import com.agentwork.modeler.export.GeneratorBackend
+import com.agentwork.modeler.export.generator.RagCodeGenerator
 import com.agentwork.modeler.export.generator.ktor.*
 import com.agentwork.modeler.export.model.*
 import org.springframework.stereotype.Component
@@ -14,7 +15,8 @@ class KtorWasmBackend(
     private val ktorMainGenerator: KtorMainGenerator,
     private val ktorControllerGenerator: KtorControllerGenerator,
     private val ktorRegistryGenerator: KtorRegistryGenerator,
-    private val wasmToolGenerator: WasmToolGenerator
+    private val wasmToolGenerator: WasmToolGenerator,
+    private val ragCodeGenerator: RagCodeGenerator
 ) : GeneratorBackend {
 
     override val id = "ktor-wasm"
@@ -28,8 +30,8 @@ class KtorWasmBackend(
     private fun remapSharedFiles(sharedFiles: Map<String, String>): Map<String, String> =
         sharedFiles
             .filterKeys { path ->
-                // Exclude JVM ToolSet-based tool files and Spring ToolRegistry — we generate Wasm versions
-                !path.matches(Regex(".*/tools/[^/]+\\.kt$")) && !path.endsWith("ToolRegistry.kt")
+                // Exclude JVM ToolSet-based tool files, Spring ToolRegistry, and JVM RAG files — we generate Wasm versions
+                !path.matches(Regex(".*/tools/[^/]+\\.kt$")) && !path.endsWith("ToolRegistry.kt") && !path.contains("/rag/")
             }
             .mapKeys { (path, _) ->
                 if (path.startsWith(jvmPrefix)) {
@@ -136,7 +138,15 @@ class KtorWasmBackend(
         )
 
         // Infrastructure
-        files["build.gradle.kts"] = wasmBuildGradleGenerator.generate(infraAgent)
+        var buildGradle = wasmBuildGradleGenerator.generate(infraAgent)
+        if (agent.ragNodes.isNotEmpty()) {
+            buildGradle = buildGradle.replace(
+                """implementation("ai.koog:koog-agents:${WasmBuildGradleGenerator.KOOG_VERSION}")""",
+                """implementation("ai.koog:koog-agents:${WasmBuildGradleGenerator.KOOG_VERSION}")""" +
+                    "\n" + """            implementation("ai.koog:koog-rag:${WasmBuildGradleGenerator.KOOG_VERSION}")"""
+            )
+        }
+        files["build.gradle.kts"] = buildGradle
         files["settings.gradle.kts"] = wasmSettingsGradleGenerator.generate(graphName)
         files["gradle.properties"] = wasmGradlePropertiesGenerator.generate()
         files["Dockerfile"] = wasmDockerfileGenerator.generate()
@@ -147,20 +157,42 @@ class KtorWasmBackend(
             inputClassName = inputClassName,
             outputClassName = outputClassName
         )
-        if (infraAgent.tools.isNotEmpty() || infraAgent.builtinTools.isNotEmpty() || infraAgent.subAgents.isNotEmpty() || infraAgent.mcpServers.isNotEmpty()) {
-            files["${wasmPrefix}ToolRegistry.kt"] = ktorRegistryGenerator.generate(
+
+        // Tool registry (including RAG tools)
+        val hasRagTools = agent.ragNodes.any { it.provideAsTool }
+        if (infraAgent.tools.isNotEmpty() || infraAgent.builtinTools.isNotEmpty() || infraAgent.subAgents.isNotEmpty() || infraAgent.mcpServers.isNotEmpty() || hasRagTools) {
+            var registry = ktorRegistryGenerator.generate(
                 tools = infraAgent.tools,
                 builtinTools = infraAgent.builtinTools,
                 subAgents = infraAgent.subAgents,
                 mcpServers = infraAgent.mcpServers
             )
+            if (hasRagTools) {
+                // Add RAG tool imports and registrations
+                registry = registry.replace(
+                    "import ai.koog.agents.core.tools.ToolRegistry",
+                    "import ai.koog.agents.core.tools.ToolRegistry\nimport generated.rag.*"
+                )
+                val ragToolLines = agent.ragNodes.filter { it.provideAsTool }.joinToString("\n") { rag ->
+                    val varPrefix = ragCodeGenerator.sanitizeVarPrefix(rag.name)
+                    "        for (t in ${varPrefix}RagTools) tool(t)"
+                }
+                registry = registry.replace("    }\n}", "$ragToolLines\n    }\n}")
+            }
+            files["${wasmPrefix}ToolRegistry.kt"] = registry
         }
 
-        // Remapped shared files (excluding JVM tool files)
+        // Remapped shared files (excluding JVM tool files and RAG files)
         files.putAll(remapSharedFiles(sharedFiles))
 
         // Wasm-compatible tool files
         files.putAll(generateWasmToolFiles(agent.tools))
+
+        // Wasm-compatible RAG files
+        for (rag in agent.ragNodes) {
+            val className = ragCodeGenerator.sanitizeClassName(rag.name) + "Rag"
+            files["${wasmPrefix}rag/$className.kt"] = ragCodeGenerator.generateWasmRagFile(rag)
+        }
 
         return files
     }
