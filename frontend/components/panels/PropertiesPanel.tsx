@@ -22,6 +22,8 @@ import { GraphAgentConfig } from "@/types/graph-agent";
 import { IOInspection } from "./IOInspection";
 import CodeProperties from "@/components/panels/CodeProperties";
 import { BuiltinToolConfig, CodeNodeConfig } from "@/types/graph";
+import { RagProperties } from "./RagProperties";
+import type { RagNodeConfig } from "@/types/rag";
 
 export function PropertiesPanel() {
   const selectedNodeIds = useEditorStore((s) => s.selectedNodeIds);
@@ -57,6 +59,7 @@ export function PropertiesPanel() {
            selectedNode.type === "output" ? "Output" :
            selectedNode.type === "graph-agent" ? "Graph Agent" :
            selectedNode.type === "code" ? "Code" :
+           selectedNode.type === "rag" ? "RAG" :
            selectedNode.type} Properties
         </h3>
         {selectedNode.type === "agent" && (
@@ -91,6 +94,9 @@ export function PropertiesPanel() {
         )}
         {selectedNode.type === "code" && (
           <CodeProperties nodeId={selectedNode.id} data={selectedNode.data as CodeNodeConfig} />
+        )}
+        {selectedNode.type === "rag" && (
+          <RagProperties nodeId={selectedNode.id} data={selectedNode.data as RagNodeConfig} />
         )}
         <IOInspection nodeId={selectedNode.id} />
       </div>
