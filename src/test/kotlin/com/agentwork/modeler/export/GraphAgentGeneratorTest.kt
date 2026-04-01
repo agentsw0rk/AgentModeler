@@ -132,6 +132,64 @@ class GraphAgentGeneratorTest {
     }
 
     @Test
+    fun `generates RAG setup and tool code for agent with RAG nodes`() {
+        val agent = KoogGraphAgent(
+            name = "ragAgent",
+            description = "An agent with RAG",
+            systemPrompt = "Help",
+            modelProvider = ModelProvider.OPENAI,
+            modelId = null,
+            temperature = null,
+            strategyNodes = listOf(
+                KoogStrategyNode("sn1", "node-start", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null),
+                KoogStrategyNode("sn2", "node-llm-request", "llm", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null),
+                KoogStrategyNode("sn3", "node-finish", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)
+            ),
+            strategyEdges = listOf(
+                KoogStrategyEdge("sn1", "sn2", "onCondition", null, null),
+                KoogStrategyEdge("sn2", "sn3", "onAssistantMessage", null, null)
+            ),
+            tools = emptyList(),
+            builtinTools = emptyList(),
+            subAgents = emptyList(),
+            mcpServers = emptyList(),
+            ragNodes = listOf(
+                KoogRagNode(
+                    id = "rag1", name = "ProductDocs",
+                    embedderProvider = "OpenAI", embedderModel = "TextEmbeddingAda3Large",
+                    apiKeyVariable = "OPENAI_API_KEY",
+                    storageType = "InMemory", storagePath = null, customStorageClass = null,
+                    similarityThreshold = 0.7,
+                    filePaths = listOf("./docs/products"),
+                    urlSources = emptyList(),
+                    maxDocuments = 5,
+                    injectAsContext = true,
+                    provideAsTool = true,
+                    toolDescription = "Search product docs"
+                )
+            ),
+            inputs = emptyList(),
+            outputs = emptyList()
+        )
+
+        val code = generator.generate(agent)
+
+        // RAG imports
+        assertContains(code, "import ai.koog.rag.base.LLMEmbedder")
+        assertContains(code, "import ai.koog.prompt.executor.clients.openai.OpenAILLMClient")
+        // RAG setup
+        assertContains(code, "val productDocsEmbedder = LLMEmbedder(")
+        assertContains(code, "productDocsStorage.store(Path.of(\"./docs/products\"))")
+        // Context injection
+        assertContains(code, "mostRelevantDocuments(query, count = 5")
+        assertContains(code, "prompt(\"rag-context-productDocs\")")
+        // Tool
+        assertContains(code, "@Tool")
+        assertContains(code, "suspend fun searchProductDocs(")
+        assertContains(code, "@LLMDescription(\"Search product docs\")")
+    }
+
+    @Test
     fun `sanitizes node IDs with hyphens and handles null labels`() {
         val agent = KoogGraphAgent(
             name = "testAgent",
