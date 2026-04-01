@@ -21,7 +21,12 @@ class RagCodeGenerator {
                 "OLLAMA" -> "OllamaClient()"
                 else -> """OpenAILLMClient(System.getenv("${rag.apiKeyVariable}"))"""
             }
-            appendLine("val ${varPrefix}Embedder = LLMEmbedder($clientExpr, \"${rag.embedderModel}\")")
+            val modelRef = when (rag.embedderProvider.uppercase()) {
+                "OPENAI" -> "OpenAIModels.Embeddings.${rag.embedderModel}"
+                "OLLAMA" -> "OllamaModels.Embeddings.${rag.embedderModel}"
+                else -> "\"${rag.embedderModel}\""
+            }
+            appendLine("val ${varPrefix}Embedder = LLMEmbedder($clientExpr, $modelRef)")
 
             // Document embedder
             appendLine("val ${varPrefix}DocumentEmbedder = JVMTextDocumentEmbedder(${varPrefix}Embedder)")
@@ -54,10 +59,11 @@ class RagCodeGenerator {
     fun generateContextInjection(rag: KoogRagNode): String {
         val varPrefix = sanitizeVarPrefix(rag.name)
         return buildString {
-            appendLine("val ${varPrefix}Docs = ${varPrefix}Storage.mostRelevantDocuments(query, count = ${rag.maxDocuments}, similarityThreshold = ${rag.similarityThreshold})")
+            appendLine("val ${varPrefix}Context = ${varPrefix}Storage.mostRelevantDocuments(query, count = ${rag.maxDocuments}, similarityThreshold = ${rag.similarityThreshold})")
             appendLine("""val ${varPrefix}ContextPrompt = prompt("rag-context-$varPrefix") {""")
             appendLine("    user {")
-            appendLine("        ${varPrefix}Docs.forEach { file(it.pathString, \"text/plain\") }")
+            appendLine("        +\"Relevant context:\"")
+            appendLine("        ${varPrefix}Context.forEach { file(it.pathString, \"text/plain\") }")
             appendLine("    }")
             append("}")
         }
@@ -88,7 +94,10 @@ class RagCodeGenerator {
             appendLine("    }")
             append("    return result.toString()")
             appendLine()
-            append("}")
+            appendLine("}")
+            appendLine()
+            appendLine("// Register in ToolRegistry:")
+            append("tool(::search${safeName}.asTool())")
         }
     }
 
@@ -108,9 +117,11 @@ class RagCodeGenerator {
             appendLine("import ai.koog.rag.base.storage.InMemoryVectorStorage")
             if (hasOpenAI) {
                 appendLine("import ai.koog.prompt.executor.clients.openai.OpenAILLMClient")
+                appendLine("import ai.koog.prompt.executor.model.OpenAIModels")
             }
             if (hasOllama) {
                 appendLine("import ai.koog.prompt.executor.clients.ollama.OllamaClient")
+                appendLine("import ai.koog.prompt.executor.model.OllamaModels")
             }
             val needsPath = hasFile || ragNodes.any { it.filePaths.isNotEmpty() }
             if (hasFile) {

@@ -436,13 +436,13 @@ class GraphToKoogAdapter {
             embedderModel = d["embedderModel"] as? String ?: "TextEmbeddingAda3Large",
             apiKeyVariable = d["apiKeyVariable"] as? String ?: "OPENAI_API_KEY",
             storageType = d["storageType"] as? String ?: "InMemory",
-            storagePath = d["storagePath"] as? String,
-            customStorageClass = d["customStorageClass"] as? String,
+            storagePath = (d["storagePath"] as? String)?.takeIf { it.isNotBlank() },
+            customStorageClass = (d["customStorageClass"] as? String)?.takeIf { it.isNotBlank() },
             similarityThreshold = (d["similarityThreshold"] as? Number)?.toDouble() ?: 0.7,
             filePaths = (d["filePaths"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
             urlSources = (d["urlSources"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
             maxDocuments = (d["maxDocuments"] as? Number)?.toInt() ?: 5,
-            injectAsContext = d["injectAsContext"] as? Boolean ?: false,
+            injectAsContext = d["injectAsContext"] as? Boolean ?: true,
             provideAsTool = d["provideAsTool"] as? Boolean ?: false,
             toolDescription = d["toolDescription"] as? String
         )

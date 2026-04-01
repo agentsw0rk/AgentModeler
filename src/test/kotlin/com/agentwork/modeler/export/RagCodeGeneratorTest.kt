@@ -100,6 +100,8 @@ class RagCodeGeneratorTest {
         assertContains(code, "similarityThreshold = 0.8")
         assertContains(code, """prompt("rag-context-supportDocs")""")
         assertContains(code, "user {")
+        assertContains(code, "+\"Relevant context:\"")
+        assertContains(code, "supportDocsContext")
         assertContains(code, "supportDocsStorage")
     }
 
@@ -142,6 +144,7 @@ class RagCodeGeneratorTest {
         assertContains(code, "import ai.koog.rag.base.files.JVMTextDocumentEmbedder")
         assertContains(code, "import ai.koog.rag.base.storage.EmbeddingBasedDocumentStorage")
         assertContains(code, "import ai.koog.prompt.executor.clients.openai.OpenAILLMClient")
+        assertContains(code, "import ai.koog.prompt.executor.model.OpenAIModels")
         assertContains(code, "import ai.koog.rag.base.files.JVMFileVectorStorage")
         assertContains(code, "import ai.koog.agents.core.tools.annotations.Tool")
         assertContains(code, "import ai.koog.agents.core.tools.annotations.LLMDescription")
