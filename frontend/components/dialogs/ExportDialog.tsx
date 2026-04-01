@@ -86,7 +86,8 @@ export function ExportDialog({ open: controlledOpen, onOpenChange: controlledOnO
 
     setStatus("exporting");
     try {
-      const blob = await exportToKotlin(graph);
+      const { useEditorStore } = await import("@/store/editorStore");
+      const blob = await exportToKotlin(graph, useEditorStore.getState().activeBackend);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

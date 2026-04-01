@@ -7,6 +7,8 @@ import { PlannerAgentConfig } from "@/types/planner";
 import { A2AAgentConfig } from "@/types/a2a";
 import { InputNodeConfig, OutputNodeConfig, migrateIONodeData } from "@/types/io";
 import { GraphAgentConfig } from "@/types/graph-agent";
+import { defaultRagData } from "@/lib/rag-defaults";
+import type { RagNodeConfig } from "@/types/rag";
 
 export const DEFAULT_WORKSPACE_NAME = "Untitled Workspace";
 
@@ -15,7 +17,9 @@ interface EditorState {
   edges: GraphEdge[];
   selectedNodeIds: string[];
   workspaceName: string;
+  activeBackend: string;
 
+  setActiveBackend: (id: string) => void;
   addNode: (type: NodeType, position: { x: number; y: number }, toolType?: BuiltinToolType, initialData?: Record<string, unknown>) => void;
   addNodes: (nodes: GraphNode[], edges: GraphEdge[]) => void;
   removeNode: (id: string) => void;
@@ -144,12 +148,17 @@ export const useEditorStore = create<EditorState>((set) => ({
   edges: [],
   selectedNodeIds: [],
   workspaceName: DEFAULT_WORKSPACE_NAME,
+  activeBackend: "spring-boot",
   otelConfig: { ...DEFAULT_OTEL_CONFIG },
+
+  setActiveBackend(id) {
+    set({ activeBackend: id });
+  },
 
   addNode(type, position, toolType?, initialData?) {
     pushHistory();
     set((state) => {
-      let data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | PlannerAgentConfig | A2AAgentConfig | InputNodeConfig | OutputNodeConfig | GraphAgentConfig | CodeNodeConfig;
+      let data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | PlannerAgentConfig | A2AAgentConfig | InputNodeConfig | OutputNodeConfig | GraphAgentConfig | CodeNodeConfig | RagNodeConfig;
       if (type === "agent") {
         data = { ...defaultAgentData };
       } else if (type === "sub-agent") {
@@ -170,6 +179,8 @@ export const useEditorStore = create<EditorState>((set) => ({
         data = { ...defaultGraphAgentData };
       } else if (type === "code") {
         data = { ...defaultCodeData, ...initialData };
+      } else if (type === "rag") {
+        data = { ...defaultRagData };
       } else {
         data = { ...defaultToolData };
       }

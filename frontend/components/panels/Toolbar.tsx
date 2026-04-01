@@ -154,6 +154,12 @@ export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspa
                 >
                   Code
                 </NavigationMenuLink>
+                <NavigationMenuLink
+                  className="cursor-pointer"
+                  onClick={() => addNode("rag", { x: 300, y: 300 })}
+                >
+                  RAG
+                </NavigationMenuLink>
               </div>
             </NavigationMenuContent>
           </NavigationMenuItem>

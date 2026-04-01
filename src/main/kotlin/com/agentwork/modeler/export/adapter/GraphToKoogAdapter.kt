@@ -322,12 +322,14 @@ class GraphToKoogAdapter {
         val mcpServerNodes = graph.nodes.filter { it.type == "mcp-server" }
         val inputNodes = graph.nodes.filter { it.type == "input" }
         val outputNodes = graph.nodes.filter { it.type == "output" }
+        val ragNodes = graph.nodes.filter { it.type == "rag" }
 
         return graph.nodes.filter { it.type == "graph-agent" }.map { gaNode ->
             val connectedIds = graph.edges
                 .filter { it.target == gaNode.id }
                 .map { it.source }
 
+            val rags = ragNodes.filter { it.id in connectedIds }.map { convertRagNode(it) }
             val tools = toolNodes.filter { it.id in connectedIds }.map { convertTool(it) }
             val builtinTools = builtinToolNodes.filter { it.id in connectedIds }.map { convertBuiltinTool(it) }
             val subAgents = subAgentNodes.filter { it.id in connectedIds }
@@ -417,10 +419,33 @@ class GraphToKoogAdapter {
                 builtinTools = builtinTools,
                 subAgents = subAgents,
                 mcpServers = mcpServers,
+                ragNodes = rags,
                 inputs = inputs,
                 outputs = outputs
             )
         }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun convertRagNode(node: GraphNode): KoogRagNode {
+        val d = node.data
+        return KoogRagNode(
+            id = node.id,
+            name = d["name"] as? String ?: "",
+            embedderProvider = d["embedderProvider"] as? String ?: "OpenAI",
+            embedderModel = d["embedderModel"] as? String ?: "TextEmbeddingAda3Large",
+            apiKeyVariable = d["apiKeyVariable"] as? String ?: "OPENAI_API_KEY",
+            storageType = d["storageType"] as? String ?: "InMemory",
+            storagePath = (d["storagePath"] as? String)?.takeIf { it.isNotBlank() },
+            customStorageClass = (d["customStorageClass"] as? String)?.takeIf { it.isNotBlank() },
+            similarityThreshold = (d["similarityThreshold"] as? Number)?.toDouble() ?: 0.7,
+            filePaths = (d["filePaths"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
+            urlSources = (d["urlSources"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
+            maxDocuments = (d["maxDocuments"] as? Number)?.toInt() ?: 5,
+            injectAsContext = d["injectAsContext"] as? Boolean ?: true,
+            provideAsTool = d["provideAsTool"] as? Boolean ?: false,
+            toolDescription = d["toolDescription"] as? String
+        )
     }
 
     private fun parseCondition(map: Map<String, Any?>): StateCondition {

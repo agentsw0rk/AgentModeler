@@ -13,9 +13,9 @@ class CodeGenerationService(
     private val exportService: ExportService,
     private val vfsService: VirtualFileSystemService
 ) {
-    fun generateForProject(projectName: String, graph: WorkspaceGraph): GenerationResult {
+    fun generateForProject(projectName: String, graph: WorkspaceGraph, backendId: String = "spring-boot"): GenerationResult {
         val files = try {
-            exportService.generateFiles(graph)
+            exportService.generateFiles(graph, backendId)
         } catch (e: ExportValidationException) {
             return GenerationResult(
                 status = GenerationStatus.INVALID,

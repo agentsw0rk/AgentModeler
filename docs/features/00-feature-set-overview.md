@@ -12,3 +12,7 @@ Abgeleitet aus der [Gap Analysis](docs/gap-analysis-banking-tutorial.md). Jedes 
 | 4 | [Erweiterte Graph-Node-Typen](./04-extended-graph-nodes.md) | `04` | — | Mittel |
 | 5 | [Custom Node im Graph-Editor](./05-custom-graph-node.md) | `05` | #1 (Code-Editor) | Mittel |
 | 6 | [Subgraphen](./06-subgraphs.md) | `06` | #4, #5 | Hoch |
+| 7 | [Gradle Build Validation](./07-gradle-build-validation.md) | `07` | — | Klein |
+| 8 | [Wasm Codegen](./08-wasm-codegen.md) | `08` | — | Mittel |
+| 9 | [Backend Selector UI](./09-backend-selector-ui.md) | `09` | #8 | Klein |
+| 10 | [RAG Node](./10-rag-node.md) | `10` | — | Mittel–Hoch |

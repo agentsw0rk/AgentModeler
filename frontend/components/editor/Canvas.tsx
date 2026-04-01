@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { createEditor } from "@/lib/rete-setup";
 import { useEditorStore } from "@/store/editorStore";
-import { AgentReteNode, ToolReteNode, BuiltinToolReteNode, SubAgentReteNode, McpServerReteNode, PlannerAgentReteNode, A2AAgentReteNode, InputReteNode, OutputReteNode, GraphAgentReteNode, CodeReteNode } from "@/lib/rete-nodes";
+import { AgentReteNode, ToolReteNode, BuiltinToolReteNode, SubAgentReteNode, McpServerReteNode, PlannerAgentReteNode, A2AAgentReteNode, InputReteNode, OutputReteNode, GraphAgentReteNode, CodeReteNode, RagReteNode } from "@/lib/rete-nodes";
 import { BuiltinToolType, BUILTIN_TOOL_LABELS, CodeNodeConfig } from "@/types/graph";
 import type { Schemes } from "@/lib/rete-setup";
 import type { NodeEditor } from "rete";
@@ -77,6 +77,7 @@ export function Canvas() {
           const isA2ASource = sourceNode instanceof A2AAgentReteNode;
           const isInputSource = sourceNode instanceof InputReteNode;
           const isCodeSource = sourceNode instanceof CodeReteNode;
+          const isRagSource = sourceNode instanceof RagReteNode;
           const isAgentSource = sourceNode instanceof AgentReteNode;
           const isPlannerAgentSource = sourceNode instanceof PlannerAgentReteNode;
           const isGraphAgentSource = sourceNode instanceof GraphAgentReteNode;
@@ -88,7 +89,7 @@ export function Canvas() {
           const isToolTarget = targetNode instanceof ToolReteNode || targetNode instanceof BuiltinToolReteNode;
 
           if (
-            ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource || isInputSource || isCodeSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget || isGraphAgentTarget)) ||
+            ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource || isInputSource || isCodeSource || isRagSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget || isGraphAgentTarget)) ||
             (isCodeSource && isToolTarget) ||
             ((isAgentSource || isSubAgentSource || isPlannerAgentSource || isGraphAgentSource) && isOutputTarget)
           ) {
@@ -114,6 +115,7 @@ export function Canvas() {
           const isA2ASource = sourceNode instanceof A2AAgentReteNode;
           const isInputSource = sourceNode instanceof InputReteNode;
           const isCodeSource = sourceNode instanceof CodeReteNode;
+          const isRagSource = sourceNode instanceof RagReteNode;
           const isAgentSource = sourceNode instanceof AgentReteNode;
           const isPlannerAgentSource = sourceNode instanceof PlannerAgentReteNode;
           const isGraphAgentSource = sourceNode instanceof GraphAgentReteNode;
@@ -125,7 +127,7 @@ export function Canvas() {
           const isToolTarget = targetNode instanceof ToolReteNode || targetNode instanceof BuiltinToolReteNode;
 
           if (
-            ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource || isInputSource || isCodeSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget || isGraphAgentTarget)) ||
+            ((isToolSource || isSubAgentSource || isMcpSource || isA2ASource || isInputSource || isCodeSource || isRagSource) && (isAgentTarget || isSubAgentTarget || isPlannerAgentTarget || isGraphAgentTarget)) ||
             (isCodeSource && isToolTarget) ||
             ((isAgentSource || isSubAgentSource || isPlannerAgentSource || isGraphAgentSource) && isOutputTarget)
           ) {
@@ -176,6 +178,8 @@ export function Canvas() {
             } else if (node.type === "code") {
               const d = node.data as CodeNodeConfig;
               reteNode = new CodeReteNode(node.id, d.fileName || "Code");
+            } else if (node.type === "rag") {
+              reteNode = new RagReteNode(node.id, (node.data as any).name || "RAG");
             } else {
               reteNode = new ToolReteNode(node.id, (node.data as any).name || "Tool");
             }
@@ -184,7 +188,8 @@ export function Canvas() {
           }
         }
 
-        for (const reteNode of editorRef!.getNodes()) {
+        const reteNodes = [...editorRef!.getNodes()];
+        for (const reteNode of reteNodes) {
           if ("storeNodeId" in reteNode) {
             const storeId = (reteNode as any).storeNodeId;
             if (!state.nodes.find((n) => n.id === storeId)) {

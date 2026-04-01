@@ -13,6 +13,7 @@ data class KoogGraphAgent(
     val builtinTools: List<KoogBuiltinTool>,
     val subAgents: List<KoogSubAgent>,
     val mcpServers: List<KoogMcpServer>,
+    val ragNodes: List<KoogRagNode>,
     val inputs: List<KoogInput>,
     val outputs: List<KoogOutput>
 )

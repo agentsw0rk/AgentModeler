@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "name": "RAG Agent Example",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "graph-agent",
+      "position": { "x": 400, "y": 200 },
+      "data": {
+        "name": "SupportAgent",
+        "description": "Customer support agent with RAG",
+        "systemPrompt": "You are a helpful customer support agent. Use the provided context to answer questions accurately.",
+        "modelProvider": "openai",
+        "modelId": "gpt-4o",
+        "temperature": 0.7,
+        "strategyNodes": [
+          { "id": "sn-1", "type": "node-start", "position": { "x": 0, "y": 100 }, "data": {} },
+          { "id": "sn-2", "type": "node-llm-request", "position": { "x": 200, "y": 100 }, "data": { "label": "llmRequest" } },
+          { "id": "sn-3", "type": "node-execute-tool", "position": { "x": 400, "y": 50 }, "data": { "label": "executeTool" } },
+          { "id": "sn-4", "type": "node-llm-send-tool-result", "position": { "x": 600, "y": 50 }, "data": { "label": "sendResult" } },
+          { "id": "sn-5", "type": "node-finish", "position": { "x": 400, "y": 200 }, "data": {} }
+        ],
+        "strategyEdges": [
+          { "id": "se-1", "source": "sn-1", "target": "sn-2", "edgeType": "onCondition" },
+          { "id": "se-2", "source": "sn-2", "target": "sn-3", "edgeType": "onToolCall" },
+          { "id": "se-3", "source": "sn-2", "target": "sn-5", "edgeType": "onAssistantMessage" },
+          { "id": "se-4", "source": "sn-3", "target": "sn-4", "edgeType": "onCondition" },
+          { "id": "se-5", "source": "sn-4", "target": "sn-3", "edgeType": "onToolCall" },
+          { "id": "se-6", "source": "sn-4", "target": "sn-5", "edgeType": "onAssistantMessage" }
+        ]
+      }
+    },
+    {
+      "id": "node-2",
+      "type": "rag",
+      "position": { "x": 100, "y": 200 },
+      "data": {
+        "name": "ProductDocs",
+        "embedderProvider": "OpenAI",
+        "embedderModel": "TextEmbeddingAda3Large",
+        "apiKeyVariable": "OPENAI_API_KEY",
+        "storageType": "InMemory",
+        "storagePath": "./vector-storage",
+        "customStorageClass": "",
+        "similarityThreshold": 0.7,
+        "filePaths": [
+          "./docs/products",
+          "./docs/faq.txt"
+        ],
+        "urlSources": [
+          "https://example.com/api-docs"
+        ],
+        "maxDocuments": 5,
+        "injectAsContext": true,
+        "provideAsTool": true,
+        "toolDescription": "Search product documentation and FAQ for relevant information"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "node-2",
+      "target": "node-1"
+    }
+  ]
+}
