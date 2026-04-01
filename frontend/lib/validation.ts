@@ -6,6 +6,7 @@ import { McpServerConfig } from "@/types/mcp";
 import { PlannerAgentConfig } from "@/types/planner";
 import { A2AAgentConfig } from "@/types/a2a";
 import { InputNodeConfig, OutputNodeConfig } from "@/types/io";
+import { RagNodeConfig } from "@/types/rag";
 
 export interface ValidationError {
   nodeId: string;
@@ -274,6 +275,26 @@ export function validateGraph(graph: WorkspaceGraph): ValidationError[] {
 
     if (node.type === "graph-agent") {
       errors.push(...validateGraphAgent(node, graph));
+    }
+
+    if (node.type === "rag") {
+      const data = node.data as RagNodeConfig;
+      if (!data.name.trim()) {
+        errors.push({ nodeId: node.id, severity: "error", message: "RAG node requires a name" });
+      }
+      if (!data.injectAsContext && !data.provideAsTool) {
+        errors.push({ nodeId: node.id, severity: "error", message: "RAG node requires at least one mode (Context or Tool)" });
+      }
+      if (data.filePaths.length === 0 && data.urlSources.length === 0) {
+        errors.push({ nodeId: node.id, severity: "warning", message: "RAG node has no document sources" });
+      }
+      if (data.storageType === "Custom" && !data.customStorageClass.trim()) {
+        errors.push({ nodeId: node.id, severity: "error", message: "Custom storage requires a class name" });
+      }
+      const isConnected = graph.edges.some((e) => e.source === node.id);
+      if (!isConnected) {
+        errors.push({ nodeId: node.id, severity: "error", message: "RAG node must be connected to an Agent" });
+      }
     }
 
     // Check: tool connected to multiple agents/sub-agents
