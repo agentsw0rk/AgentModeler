@@ -174,19 +174,13 @@ class GraphAgentGeneratorTest {
 
         val code = generator.generate(agent)
 
-        // RAG imports
-        assertContains(code, "import ai.koog.rag.base.LLMEmbedder")
-        assertContains(code, "import ai.koog.prompt.executor.clients.openai.OpenAILLMClient")
-        // RAG setup
-        assertContains(code, "val productDocsEmbedder = LLMEmbedder(")
-        assertContains(code, "productDocsStorage.store(Path.of(\"./docs/products\"))")
-        // Context injection
-        assertContains(code, "mostRelevantDocuments(query, count = 5")
-        assertContains(code, "prompt(\"rag-context-productDocs\")")
-        // Tool
-        assertContains(code, "@Tool")
-        assertContains(code, "suspend fun searchProductDocs(")
-        assertContains(code, "@LLMDescription(\"Search product docs\")")
+        // Strategy should contain only the strategy function, no RAG code
+        assertContains(code, "fun createRagAgentStrategy()")
+        assertContains(code, "val llm by nodeLLMRequest()")
+        // RAG code is now generated in separate files, not in the strategy
+        assertFalse(code.contains("LLMEmbedder"))
+        assertFalse(code.contains("@Tool"))
+        assertFalse(code.contains("productDocsStorage"))
     }
 
     @Test

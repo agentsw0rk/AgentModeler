@@ -43,6 +43,7 @@ class ExportServiceTest {
         a2aClientGenerator = A2AClientGenerator(),
         inputOutputGenerator = InputOutputGenerator(),
         graphAgentGenerator = GraphAgentGenerator(),
+        ragCodeGenerator = RagCodeGenerator(),
         zipBuilder = ZipBuilder(),
         backends = listOf(springBootBackend)
     )

@@ -6,16 +6,64 @@ import org.springframework.stereotype.Component
 @Component
 class RagCodeGenerator {
 
-    private fun sanitizeVarPrefix(name: String): String {
+    fun sanitizeVarPrefix(name: String): String {
         val cleaned = name.replace(Regex("[^a-zA-Z0-9]"), "")
         if (cleaned.isEmpty()) return "rag"
         return cleaned.replaceFirstChar { it.lowercase() }
     }
 
-    fun generateSetup(rag: KoogRagNode): String {
+    fun sanitizeClassName(name: String): String {
+        val cleaned = name.replace(Regex("[^a-zA-Z0-9]"), "")
+        if (cleaned.isEmpty()) return "Rag"
+        return cleaned.replaceFirstChar { it.uppercase() }
+    }
+
+    /**
+     * Generates a complete Kotlin file for a RAG node as an object with:
+     * - Embedder + storage setup as lazy vals
+     * - suspend fun initialize() for document loading
+     * - Optional: suspend fun getContext(query) for context injection
+     * - Optional: @Tool search function as inner ToolSet class
+     */
+    fun generateRagFile(rag: KoogRagNode): String {
         val varPrefix = sanitizeVarPrefix(rag.name)
+        val className = sanitizeClassName(rag.name) + "Rag"
+        val safeName = sanitizeClassName(rag.name)
+
         return buildString {
-            // Embedder client
+            appendLine("package generated.rag")
+            appendLine()
+            // Imports
+            appendLine("import ai.koog.prompt.embedding.LLMEmbedder")
+            appendLine("import ai.koog.rag.vectorstore.embedding.JVMTextDocumentEmbedder")
+            appendLine("import ai.koog.rag.vectorstore.EmbeddingBasedDocumentStorage")
+            appendLine("import ai.koog.rag.vectorstore.InMemoryVectorStorage")
+            when (rag.embedderProvider.uppercase()) {
+                "OPENAI" -> {
+                    appendLine("import ai.koog.prompt.executor.clients.openai.OpenAILLMClient")
+                    appendLine("import ai.koog.prompt.executor.model.OpenAIModels")
+                }
+                "OLLAMA" -> {
+                    appendLine("import ai.koog.prompt.executor.clients.ollama.OllamaClient")
+                    appendLine("import ai.koog.prompt.executor.model.OllamaModels")
+                }
+            }
+            if (rag.storageType.uppercase() == "FILE") {
+                appendLine("import ai.koog.rag.vectorstore.JVMFileVectorStorage")
+            }
+            appendLine("import java.nio.file.Path")
+            if (rag.provideAsTool) {
+                appendLine("import ai.koog.agents.core.tools.annotations.Tool")
+                appendLine("import ai.koog.agents.core.tools.annotations.LLMDescription")
+                appendLine("import ai.koog.agents.core.tools.reflect.ToolSet")
+            }
+            appendLine()
+
+            // Object
+            appendLine("object $className {")
+            appendLine()
+
+            // Embedder
             val clientExpr = when (rag.embedderProvider.uppercase()) {
                 "OPENAI" -> """OpenAILLMClient(System.getenv("${rag.apiKeyVariable}"))"""
                 "OLLAMA" -> "OllamaClient()"
@@ -26,10 +74,8 @@ class RagCodeGenerator {
                 "OLLAMA" -> "OllamaModels.Embeddings.${rag.embedderModel}"
                 else -> "\"${rag.embedderModel}\""
             }
-            appendLine("val ${varPrefix}Embedder = LLMEmbedder($clientExpr, $modelRef)")
-
-            // Document embedder
-            appendLine("val ${varPrefix}DocumentEmbedder = JVMTextDocumentEmbedder(${varPrefix}Embedder)")
+            appendLine("    private val embedder = LLMEmbedder($clientExpr, $modelRef)")
+            appendLine("    private val documentEmbedder = JVMTextDocumentEmbedder(embedder)")
 
             // Storage
             val storageExpr = when (rag.storageType.uppercase()) {
@@ -39,104 +85,59 @@ class RagCodeGenerator {
                     """JVMFileVectorStorage(root = Path.of("$path"))"""
                 }
                 "CUSTOM" -> {
-                    val cls = rag.customStorageClass ?: "CustomVectorStorage"
+                    val cls = rag.customStorageClass ?: "InMemoryVectorStorage"
                     "$cls()"
                 }
                 else -> "InMemoryVectorStorage()"
             }
-            appendLine("val ${varPrefix}Storage = EmbeddingBasedDocumentStorage(${varPrefix}DocumentEmbedder, $storageExpr)")
+            appendLine("    val storage = EmbeddingBasedDocumentStorage(documentEmbedder, $storageExpr)")
+            appendLine()
 
-            // Store documents
+            // Initialize function
+            appendLine("    suspend fun initialize() {")
             for (filePath in rag.filePaths) {
-                appendLine("""${varPrefix}Storage.store(Path.of("$filePath"))""")
+                appendLine("""        storage.store(Path.of("$filePath"))""")
             }
             for (url in rag.urlSources) {
-                appendLine("""${varPrefix}Storage.store(downloadToTempFile("$url"))""")
+                appendLine("""        // TODO: Download and store URL: $url""")
             }
-        }.trimEnd()
-    }
-
-    fun generateContextInjection(rag: KoogRagNode): String {
-        val varPrefix = sanitizeVarPrefix(rag.name)
-        return buildString {
-            appendLine("val ${varPrefix}Context = ${varPrefix}Storage.mostRelevantDocuments(query, count = ${rag.maxDocuments}, similarityThreshold = ${rag.similarityThreshold})")
-            appendLine("""val ${varPrefix}ContextPrompt = prompt("rag-context-$varPrefix") {""")
-            appendLine("    user {")
-            appendLine("        +\"Relevant context:\"")
-            appendLine("        ${varPrefix}Context.forEach { file(it.pathString, \"text/plain\") }")
             appendLine("    }")
-            append("}")
-        }
-    }
 
-    fun generateToolRegistration(rag: KoogRagNode): String {
-        val varPrefix = sanitizeVarPrefix(rag.name)
-        val safeName = rag.name.replace(Regex("[^a-zA-Z0-9]"), "").replaceFirstChar { it.uppercase() }
-        val funcName = "search$safeName"
-        val toolDesc = rag.toolDescription?.replace("\"", "\\\"")
-            ?: "Search for relevant documents in ${rag.name}"
-        return buildString {
-            appendLine("@Tool")
-            appendLine("""@LLMDescription("$toolDesc")""")
-            appendLine("suspend fun $funcName(")
-            appendLine("""    @LLMDescription("Query to search relevant documents about")""")
-            appendLine("    query: String,")
-            appendLine("""    @LLMDescription("Maximum number of documents")""")
-            appendLine("    count: Int")
-            appendLine("): String {")
-            appendLine("    val relevantDocuments = ${varPrefix}Storage.mostRelevantDocuments(query, count = count, similarityThreshold = ${rag.similarityThreshold}).toList()")
-            appendLine("    if (relevantDocuments.isEmpty()) return \"No relevant documents found for the query: \$query\"")
-            appendLine("    val result = StringBuilder(\"Found \${relevantDocuments.size} relevant documents:\\n\\n\")")
-            appendLine("    relevantDocuments.forEachIndexed { index, document ->")
-            appendLine("        val content = java.nio.file.Files.readString(document)")
-            appendLine("        result.append(\"Document \${index + 1}: \${document.fileName}\\n\")")
-            appendLine("        result.append(\"Content: \$content\\n\\n\")")
-            appendLine("    }")
-            append("    return result.toString()")
-            appendLine()
+            // Context injection helper
+            if (rag.injectAsContext) {
+                appendLine()
+                appendLine("    suspend fun getRelevantContext(query: String): List<Path> {")
+                appendLine("        return storage.mostRelevantDocuments(query, count = ${rag.maxDocuments}, similarityThreshold = ${rag.similarityThreshold}).toList()")
+                appendLine("    }")
+            }
+
             appendLine("}")
-            appendLine()
-            appendLine("// Register in ToolRegistry:")
-            append("tool(::search${safeName}.asTool())")
+
+            // Search Tool as ToolSet class
+            if (rag.provideAsTool) {
+                val toolDesc = rag.toolDescription?.replace("\"", "\\\"")
+                    ?: "Search for relevant documents in ${rag.name}"
+                appendLine()
+                appendLine("""@LLMDescription("$toolDesc")""")
+                appendLine("class ${safeName}SearchTools(private val rag: $className = $className) : ToolSet {")
+                appendLine()
+                appendLine("    @Tool")
+                appendLine("""    @LLMDescription("$toolDesc")""")
+                appendLine("    suspend fun search$safeName(")
+                appendLine("""        @LLMDescription("Query to search relevant documents about") query: String,""")
+                appendLine("""        @LLMDescription("Maximum number of documents") count: Int""")
+                appendLine("    ): String {")
+                appendLine("        val docs = rag.storage.mostRelevantDocuments(query, count = count, similarityThreshold = ${rag.similarityThreshold}).toList()")
+                appendLine("        if (docs.isEmpty()) return \"No relevant documents found for: \$query\"")
+                appendLine("        return buildString {")
+                appendLine("            docs.forEachIndexed { i, doc ->")
+                appendLine("                append(\"Document \${i + 1}: \${doc.fileName}\\n\")")
+                appendLine("                append(\"Content: \${java.nio.file.Files.readString(doc)}\\n\\n\")")
+                appendLine("            }")
+                appendLine("        }")
+                appendLine("    }")
+                appendLine("}")
+            }
         }
-    }
-
-    fun generateImports(ragNodes: List<KoogRagNode>): String {
-        if (ragNodes.isEmpty()) return ""
-
-        val hasOpenAI = ragNodes.any { it.embedderProvider.uppercase() == "OPENAI" }
-        val hasOllama = ragNodes.any { it.embedderProvider.uppercase() == "OLLAMA" }
-        val hasFile = ragNodes.any { it.storageType.uppercase() == "FILE" }
-        val hasTool = ragNodes.any { it.provideAsTool }
-        val hasUrls = ragNodes.any { it.urlSources.isNotEmpty() }
-
-        return buildString {
-            appendLine("import ai.koog.rag.base.LLMEmbedder")
-            appendLine("import ai.koog.rag.base.files.JVMTextDocumentEmbedder")
-            appendLine("import ai.koog.rag.base.storage.EmbeddingBasedDocumentStorage")
-            appendLine("import ai.koog.rag.base.storage.InMemoryVectorStorage")
-            if (hasOpenAI) {
-                appendLine("import ai.koog.prompt.executor.clients.openai.OpenAILLMClient")
-                appendLine("import ai.koog.prompt.executor.model.OpenAIModels")
-            }
-            if (hasOllama) {
-                appendLine("import ai.koog.prompt.executor.clients.ollama.OllamaClient")
-                appendLine("import ai.koog.prompt.executor.model.OllamaModels")
-            }
-            val needsPath = hasFile || ragNodes.any { it.filePaths.isNotEmpty() }
-            if (hasFile) {
-                appendLine("import ai.koog.rag.base.files.JVMFileVectorStorage")
-            }
-            if (needsPath) {
-                appendLine("import java.nio.file.Path")
-            }
-            if (hasTool) {
-                appendLine("import ai.koog.agents.core.tools.annotations.Tool")
-                appendLine("import ai.koog.agents.core.tools.annotations.LLMDescription")
-            }
-            if (hasUrls) {
-                appendLine("import ai.koog.rag.base.files.downloadToTempFile")
-            }
-        }.trimEnd()
     }
 }

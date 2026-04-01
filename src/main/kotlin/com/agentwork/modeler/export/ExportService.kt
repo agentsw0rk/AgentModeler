@@ -29,6 +29,7 @@ class ExportService(
     private val a2aClientGenerator: A2AClientGenerator,
     private val inputOutputGenerator: InputOutputGenerator,
     private val graphAgentGenerator: GraphAgentGenerator,
+    private val ragCodeGenerator: RagCodeGenerator,
     private val sharedCodeGenerator: SharedCodeGenerator = SharedCodeGenerator(),
     private val zipBuilder: ZipBuilder,
     private val backends: List<GeneratorBackend>
@@ -263,9 +264,30 @@ class ExportService(
             files["$pkg/$outName.kt"] = gaOutputCode
         }
 
-        // Tool registry
-        if (ga.tools.isNotEmpty() || ga.builtinTools.isNotEmpty() || ga.subAgents.isNotEmpty() || ga.mcpServers.isNotEmpty()) {
-            files["$pkg/ToolRegistry.kt"] = registryGenerator.generate(ga.tools, ga.builtinTools, ga.subAgents, ga.mcpServers)
+        // RAG files
+        for (rag in ga.ragNodes) {
+            val className = ragCodeGenerator.sanitizeClassName(rag.name) + "Rag"
+            files["$pkg/rag/$className.kt"] = ragCodeGenerator.generateRagFile(rag)
+        }
+
+        // Tool registry (include RAG search tools)
+        val hasRagTools = ga.ragNodes.any { it.provideAsTool }
+        if (ga.tools.isNotEmpty() || ga.builtinTools.isNotEmpty() || ga.subAgents.isNotEmpty() || ga.mcpServers.isNotEmpty() || hasRagTools) {
+            val ragToolRegistrations = ga.ragNodes.filter { it.provideAsTool }.map { rag ->
+                val safeName = ragCodeGenerator.sanitizeClassName(rag.name)
+                "        tools(${safeName}SearchTools())"
+            }
+            val baseRegistry = registryGenerator.generate(ga.tools, ga.builtinTools, ga.subAgents, ga.mcpServers)
+            if (ragToolRegistrations.isNotEmpty()) {
+                // Insert RAG tool registrations into the ToolRegistry block
+                val ragImport = "import generated.rag.*"
+                val registryWithRag = baseRegistry
+                    .replace("import ai.koog.agents.core.tools.ToolRegistry", "import ai.koog.agents.core.tools.ToolRegistry\n$ragImport")
+                    .replace("    }\n}", ragToolRegistrations.joinToString("\n") + "\n    }\n}")
+                files["$pkg/ToolRegistry.kt"] = registryWithRag
+            } else {
+                files["$pkg/ToolRegistry.kt"] = baseRegistry
+            }
         }
 
         // Shared code

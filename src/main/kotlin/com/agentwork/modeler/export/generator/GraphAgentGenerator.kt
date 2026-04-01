@@ -6,9 +6,7 @@ import com.agentwork.modeler.export.model.KoogStrategyNode
 import org.springframework.stereotype.Component
 
 @Component
-class GraphAgentGenerator(
-    private val ragCodeGenerator: RagCodeGenerator = RagCodeGenerator()
-) {
+class GraphAgentGenerator {
 
     fun generate(agent: KoogGraphAgent): String {
         val funcName = "create${agent.name.replaceFirstChar { it.uppercase() }}Strategy"
@@ -61,10 +59,6 @@ class GraphAgentGenerator(
             }
             // onCondition is a member function on AIAgentEdgeBuilderIntermediateBase, no import needed
             appendLine()
-            if (agent.ragNodes.isNotEmpty()) {
-                append(ragCodeGenerator.generateImports(agent.ragNodes))
-                appendLine()
-            }
             appendLine("fun $funcName() = strategy<String, String>(\"${agent.name}\") {")
 
             for (sn in agent.strategyNodes) {
@@ -193,22 +187,6 @@ class GraphAgentGenerator(
             }
 
             appendLine("}")
-            if (agent.ragNodes.isNotEmpty()) {
-                appendLine()
-                appendLine("// --- RAG Setup ---")
-                for (rag in agent.ragNodes) {
-                    append(ragCodeGenerator.generateSetup(rag))
-                    appendLine()
-                    if (rag.injectAsContext) {
-                        append(ragCodeGenerator.generateContextInjection(rag))
-                        appendLine()
-                    }
-                    if (rag.provideAsTool) {
-                        append(ragCodeGenerator.generateToolRegistration(rag))
-                        appendLine()
-                    }
-                }
-            }
         }
     }
 

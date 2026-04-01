@@ -12,7 +12,7 @@ class RagCodeGeneratorTest {
     private fun ragNode(
         name: String = "ProductDocs",
         embedderProvider: String = "OpenAI",
-        embedderModel: String = "text-embedding-ada-002",
+        embedderModel: String = "TextEmbeddingAda3Large",
         apiKeyVariable: String = "OPENAI_API_KEY",
         storageType: String = "InMemory",
         storagePath: String? = null,
@@ -21,134 +21,87 @@ class RagCodeGeneratorTest {
         filePaths: List<String> = emptyList(),
         urlSources: List<String> = emptyList(),
         maxDocuments: Int = 5,
-        injectAsContext: Boolean = true,
+        injectAsContext: Boolean = false,
         provideAsTool: Boolean = false,
         toolDescription: String? = null
     ) = KoogRagNode(
-        id = "rag-1",
-        name = name,
-        embedderProvider = embedderProvider,
-        embedderModel = embedderModel,
+        id = "rag-1", name = name,
+        embedderProvider = embedderProvider, embedderModel = embedderModel,
         apiKeyVariable = apiKeyVariable,
-        storageType = storageType,
-        storagePath = storagePath,
+        storageType = storageType, storagePath = storagePath,
         customStorageClass = customStorageClass,
         similarityThreshold = similarityThreshold,
-        filePaths = filePaths,
-        urlSources = urlSources,
+        filePaths = filePaths, urlSources = urlSources,
         maxDocuments = maxDocuments,
-        injectAsContext = injectAsContext,
-        provideAsTool = provideAsTool,
+        injectAsContext = injectAsContext, provideAsTool = provideAsTool,
         toolDescription = toolDescription
     )
 
     @Test
-    fun `generates OpenAI embedder with InMemory storage`() {
-        val rag = ragNode(
-            name = "ProductDocs",
-            embedderProvider = "OpenAI",
-            embedderModel = "text-embedding-ada-002",
-            apiKeyVariable = "OPENAI_API_KEY",
-            storageType = "InMemory",
-            filePaths = listOf("./docs/product.txt", "./docs/faq.txt")
-        )
-        val code = generator.generateSetup(rag)
+    fun `generates object with OpenAI embedder and InMemory storage`() {
+        val code = generator.generateRagFile(ragNode(
+            filePaths = listOf("./docs/products", "./docs/faq.txt")
+        ))
 
-        assertContains(code, "LLMEmbedder")
-        assertContains(code, "OpenAILLMClient")
-        assertContains(code, "OPENAI_API_KEY")
-        assertContains(code, "text-embedding-ada-002")
-        assertContains(code, "JVMTextDocumentEmbedder")
-        assertContains(code, "EmbeddingBasedDocumentStorage")
+        assertContains(code, "object ProductDocsRag")
+        assertContains(code, "OpenAILLMClient(System.getenv(\"OPENAI_API_KEY\"))")
+        assertContains(code, "OpenAIModels.Embeddings.TextEmbeddingAda3Large")
+        assertContains(code, "JVMTextDocumentEmbedder(embedder)")
         assertContains(code, "InMemoryVectorStorage()")
-        assertContains(code, "productDocsStorage")
-        assertContains(code, """store(Path.of("./docs/product.txt"))""")
-        assertContains(code, """store(Path.of("./docs/faq.txt"))""")
+        assertContains(code, "suspend fun initialize()")
+        assertContains(code, "storage.store(Path.of(\"./docs/products\"))")
+        assertContains(code, "storage.store(Path.of(\"./docs/faq.txt\"))")
     }
 
     @Test
-    fun `generates Ollama embedder with File storage`() {
-        val rag = ragNode(
-            name = "KnowledgeBase",
-            embedderProvider = "Ollama",
-            embedderModel = "nomic-embed-text",
-            storageType = "File",
-            storagePath = "./vector-store"
-        )
-        val code = generator.generateSetup(rag)
+    fun `generates object with Ollama embedder and File storage`() {
+        val code = generator.generateRagFile(ragNode(
+            name = "FaqDocs",
+            embedderProvider = "Ollama", embedderModel = "NOMIC_EMBED_TEXT",
+            storageType = "File", storagePath = "./vector-db",
+            filePaths = listOf("./faq.txt")
+        ))
 
+        assertContains(code, "object FaqDocsRag")
         assertContains(code, "OllamaClient()")
-        assertContains(code, "nomic-embed-text")
-        assertContains(code, "JVMFileVectorStorage")
-        assertContains(code, """Path.of("./vector-store")""")
-        assertFalse(code.contains("OpenAILLMClient"))
-        assertFalse(code.contains("InMemoryVectorStorage"))
+        assertContains(code, "OllamaModels.Embeddings.NOMIC_EMBED_TEXT")
+        assertContains(code, "JVMFileVectorStorage(root = Path.of(\"./vector-db\"))")
     }
 
     @Test
-    fun `generates context injection code`() {
-        val rag = ragNode(
-            name = "SupportDocs",
-            maxDocuments = 3,
-            similarityThreshold = 0.8,
-            injectAsContext = true
-        )
-        val code = generator.generateContextInjection(rag)
+    fun `generates context injection helper when enabled`() {
+        val code = generator.generateRagFile(ragNode(
+            injectAsContext = true, maxDocuments = 3, similarityThreshold = 0.8
+        ))
 
-        assertContains(code, "mostRelevantDocuments")
-        assertContains(code, "count = 3")
-        assertContains(code, "similarityThreshold = 0.8")
-        assertContains(code, """prompt("rag-context-supportDocs")""")
-        assertContains(code, "user {")
-        assertContains(code, "+\"Relevant context:\"")
-        assertContains(code, "supportDocsContext")
-        assertContains(code, "supportDocsStorage")
+        assertContains(code, "suspend fun getRelevantContext(query: String): List<Path>")
+        assertContains(code, "mostRelevantDocuments(query, count = 3, similarityThreshold = 0.8)")
     }
 
     @Test
-    fun `generates tool registration code`() {
-        val rag = ragNode(
-            name = "ProductDocs",
-            maxDocuments = 5,
-            similarityThreshold = 0.75,
+    fun `does not generate context helper when disabled`() {
+        val code = generator.generateRagFile(ragNode(injectAsContext = false))
+        assertFalse(code.contains("getRelevantContext"))
+    }
+
+    @Test
+    fun `generates ToolSet class when provideAsTool is enabled`() {
+        val code = generator.generateRagFile(ragNode(
             provideAsTool = true,
-            toolDescription = "Search product documentation"
-        )
-        val code = generator.generateToolRegistration(rag)
+            toolDescription = "Search product docs"
+        ))
 
+        assertContains(code, "class ProductDocsSearchTools")
+        assertContains(code, ": ToolSet")
         assertContains(code, "@Tool")
-        assertContains(code, "@LLMDescription")
-        assertContains(code, "Search product documentation")
+        assertContains(code, "@LLMDescription(\"Search product docs\")")
         assertContains(code, "suspend fun searchProductDocs(")
-        assertContains(code, "query: String")
-        assertContains(code, "count: Int")
-        assertContains(code, "mostRelevantDocuments")
-        assertContains(code, "similarityThreshold = 0.75")
-        assertContains(code, "productDocsStorage")
     }
 
     @Test
-    fun `generates imports based on configuration`() {
-        val nodes = listOf(
-            ragNode(
-                embedderProvider = "OpenAI",
-                storageType = "File",
-                storagePath = "./store",
-                provideAsTool = true,
-                urlSources = listOf("https://example.com/docs")
-            )
-        )
-        val code = generator.generateImports(nodes)
-
-        assertContains(code, "import ai.koog.rag.base.LLMEmbedder")
-        assertContains(code, "import ai.koog.rag.base.files.JVMTextDocumentEmbedder")
-        assertContains(code, "import ai.koog.rag.base.storage.EmbeddingBasedDocumentStorage")
-        assertContains(code, "import ai.koog.prompt.executor.clients.openai.OpenAILLMClient")
-        assertContains(code, "import ai.koog.prompt.executor.model.OpenAIModels")
-        assertContains(code, "import ai.koog.rag.base.files.JVMFileVectorStorage")
-        assertContains(code, "import ai.koog.agents.core.tools.annotations.Tool")
-        assertContains(code, "import ai.koog.agents.core.tools.annotations.LLMDescription")
-        assertContains(code, "import ai.koog.rag.base.files.downloadToTempFile")
-        assertFalse(code.contains("OllamaClient"))
+    fun `does not generate ToolSet when provideAsTool is disabled`() {
+        val code = generator.generateRagFile(ragNode(provideAsTool = false))
+        assertFalse(code.contains("@Tool"))
+        assertFalse(code.contains("SearchTools"))
     }
 }

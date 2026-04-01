@@ -88,7 +88,15 @@ class SpringBootBackend(
         )
 
         // Infrastructure
-        files["build.gradle.kts"] = buildGradleGenerator.generate(infraAgent)
+        var buildGradle = buildGradleGenerator.generate(infraAgent)
+        if (agent.ragNodes.isNotEmpty()) {
+            val ragDep = """    implementation("ai.koog:koog-rag:${BuildGradleGenerator.KOOG_VERSION}")"""
+            buildGradle = buildGradle.replace(
+                """    implementation("ai.koog:koog-agents:${BuildGradleGenerator.KOOG_VERSION}")""",
+                """    implementation("ai.koog:koog-agents:${BuildGradleGenerator.KOOG_VERSION}")""" + "\n" + ragDep
+            )
+        }
+        files["build.gradle.kts"] = buildGradle
         files["settings.gradle.kts"] = settingsGradleGenerator.generate(graphName)
         files["gradle.properties"] = gradlePropertiesGenerator.generate()
         files["Dockerfile"] = dockerfileGenerator.generate()
