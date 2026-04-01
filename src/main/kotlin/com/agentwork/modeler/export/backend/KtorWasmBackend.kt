@@ -2,6 +2,8 @@ package com.agentwork.modeler.export.backend
 
 import com.agentwork.modeler.export.GeneratorBackend
 import com.agentwork.modeler.export.generator.RagCodeGenerator
+import com.agentwork.modeler.export.generator.sanitizeClassName
+import com.agentwork.modeler.export.generator.sanitizeVarPrefix
 import com.agentwork.modeler.export.generator.ktor.*
 import com.agentwork.modeler.export.model.*
 import org.springframework.stereotype.Component
@@ -168,7 +170,7 @@ class KtorWasmBackend(
                     "import ai.koog.agents.core.tools.ToolRegistry\nimport generated.rag.*"
                 )
                 val ragToolLines = agent.ragNodes.filter { it.provideAsTool }.joinToString("\n") { rag ->
-                    val varPrefix = ragCodeGenerator.sanitizeVarPrefix(rag.name)
+                    val varPrefix = rag.name.sanitizeVarPrefix()
                     "        for (t in ${varPrefix}RagTools) tool(t)"
                 }
                 registry = registry.replace("    }\n}", "$ragToolLines\n    }\n}")
@@ -184,7 +186,7 @@ class KtorWasmBackend(
 
         // Wasm-compatible RAG files
         for (rag in agent.ragNodes) {
-            val className = ragCodeGenerator.sanitizeClassName(rag.name) + "Rag"
+            val className = rag.name.sanitizeClassName() + "Rag"
             files["${wasmPrefix}rag/$className.kt"] = ragCodeGenerator.generateWasmRagFile(rag)
         }
 

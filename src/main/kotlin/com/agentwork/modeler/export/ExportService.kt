@@ -266,7 +266,7 @@ class ExportService(
 
         // RAG files
         for (rag in ga.ragNodes) {
-            val className = ragCodeGenerator.sanitizeClassName(rag.name) + "Rag"
+            val className = rag.name.sanitizeClassName() + "Rag"
             files["$pkg/rag/$className.kt"] = ragCodeGenerator.generateRagFile(rag)
         }
 
@@ -274,7 +274,7 @@ class ExportService(
         val hasRagTools = ga.ragNodes.any { it.provideAsTool }
         if (ga.tools.isNotEmpty() || ga.builtinTools.isNotEmpty() || ga.subAgents.isNotEmpty() || ga.mcpServers.isNotEmpty() || hasRagTools) {
             val ragToolRegistrations = ga.ragNodes.filter { it.provideAsTool }.map { rag ->
-                val safeName = ragCodeGenerator.sanitizeClassName(rag.name)
+                val safeName = rag.name.sanitizeClassName()
                 "        tools(${safeName}SearchTools())"
             }
             val baseRegistry = registryGenerator.generate(ga.tools, ga.builtinTools, ga.subAgents, ga.mcpServers)
