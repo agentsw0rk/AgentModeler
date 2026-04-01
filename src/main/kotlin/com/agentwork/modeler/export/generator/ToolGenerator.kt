@@ -4,69 +4,95 @@ import com.agentwork.modeler.export.model.KoogParamType
 import com.agentwork.modeler.export.model.KoogTool
 import com.agentwork.modeler.export.model.KoogToolFunction
 import com.agentwork.modeler.export.model.KoogToolParameter
+import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.TypeSpec
 import org.springframework.stereotype.Component
 
 @Component
 class ToolGenerator {
 
-    fun generate(tool: KoogTool): String = buildString {
-        appendLine("package generated.tools")
-        appendLine()
-        appendLine("import ai.koog.agents.core.tools.annotations.Tool")
-        appendLine("import ai.koog.agents.core.tools.annotations.LLMDescription")
-        appendLine("import ai.koog.agents.core.tools.reflect.ToolSet")
-        appendLine("import generated.*")
-        appendLine()
+    fun generate(tool: KoogTool): String {
+        val classBuilder = TypeSpec.classBuilder(tool.name)
+            .addSuperinterface(KoogTypes.TOOL_SET)
+
         if (tool.description.isNotBlank()) {
-            appendLine("""@LLMDescription("${tool.description}")""")
+            classBuilder.addAnnotation(KoogAnnotations.llmDescription(tool.description))
         }
-        appendLine("class ${tool.name} : ToolSet {")
+
         for (fn in tool.functions) {
-            appendLine()
-            appendLine("    @Tool")
-            if (fn.description.isNotBlank()) {
-                appendLine("""    @LLMDescription("${fn.description}")""")
-            }
-            val paramStr = generateParams(fn.parameters)
-            val returnSuffix = if (fn.returnType == "Unit") "" else ": String"
-            if (paramStr.isEmpty()) {
-                appendLine("    fun ${fn.name}()$returnSuffix {")
-            } else {
-                appendLine("    fun ${fn.name}(")
-                append(paramStr)
-                appendLine("    )$returnSuffix {")
-            }
-            if (fn.body.isBlank()) {
-                appendLine("        // TODO: Implement tool logic")
-                if (fn.returnType != "Unit") {
-                    appendLine("        return \"Not implemented\"")
-                }
-            } else {
-                for (line in fn.body.lines()) {
-                    if (line.isBlank()) appendLine() else appendLine("        $line")
-                }
-            }
-            appendLine("    }")
+            classBuilder.addFunction(buildFunction(fn))
         }
-        appendLine("}")
+
+        val fileSpec = FileSpec.builder("generated.tools", tool.name)
+            .addType(classBuilder.build())
+            .build()
+
+        return fileSpec.toString()
     }
 
-    private fun generateParams(params: List<KoogToolParameter>): String {
-        if (params.isEmpty()) return ""
-        val required = params.filter { it.required }
-        val optional = params.filter { !it.required }
-        val all = required + optional
+    private fun buildFunction(fn: KoogToolFunction): FunSpec {
+        val funBuilder = FunSpec.builder(fn.name)
+            .addAnnotation(KoogAnnotations.tool())
 
-        return buildString {
-            for ((i, param) in all.withIndex()) {
-                val comma = if (i < all.size - 1) "," else ""
-                val desc = if (param.description.isNotBlank()) {
-                    """@LLMDescription("${param.description}") """
-                } else ""
-                val default = if (!param.required) " = ${defaultLiteral(param.type, param.defaultValue)}" else ""
-                appendLine("        $desc${param.name}: ${param.type.kotlinType}$default$comma")
+        if (fn.description.isNotBlank()) {
+            funBuilder.addAnnotation(KoogAnnotations.llmDescription(fn.description))
+        }
+
+        val required = fn.parameters.filter { it.required }
+        val optional = fn.parameters.filter { !it.required }
+        for (param in required + optional) {
+            funBuilder.addParameter(buildParameter(param))
+        }
+
+        if (fn.returnType != "Unit") {
+            funBuilder.returns(String::class)
+        }
+
+        if (fn.body.isBlank()) {
+            funBuilder.addStatement("// TODO: Implement tool logic")
+            if (fn.returnType != "Unit") {
+                funBuilder.addStatement("return %S", "Not implemented")
+            }
+        } else {
+            for (line in fn.body.lines()) {
+                if (line.isNotBlank()) {
+                    funBuilder.addStatement("%L", line.trim())
+                }
             }
         }
+
+        return funBuilder.build()
+    }
+
+    private fun buildParameter(param: KoogToolParameter): ParameterSpec {
+        val typeName = kotlinTypeName(param.type)
+        val paramBuilder = ParameterSpec.builder(param.name, typeName)
+
+        if (param.description.isNotBlank()) {
+            paramBuilder.addAnnotation(KoogAnnotations.llmDescription(param.description))
+        }
+
+        if (!param.required) {
+            paramBuilder.defaultValue("%L", defaultLiteral(param.type, param.defaultValue))
+        }
+
+        return paramBuilder.build()
+    }
+
+    private fun kotlinTypeName(type: KoogParamType) = when (type) {
+        KoogParamType.STRING -> ClassName("kotlin", "String")
+        KoogParamType.INT -> ClassName("kotlin", "Int")
+        KoogParamType.DOUBLE -> ClassName("kotlin", "Double")
+        KoogParamType.FLOAT -> ClassName("kotlin", "Float")
+        KoogParamType.BOOLEAN -> ClassName("kotlin", "Boolean")
+        KoogParamType.LIST_STRING -> ClassName("kotlin.collections", "List")
+            .parameterizedBy(ClassName("kotlin", "String"))
+        KoogParamType.MAP_STRING_STRING -> ClassName("kotlin.collections", "Map")
+            .parameterizedBy(ClassName("kotlin", "String"), ClassName("kotlin", "String"))
     }
 
     private fun defaultLiteral(type: KoogParamType, value: String?): String {

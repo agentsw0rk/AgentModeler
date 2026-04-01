@@ -42,7 +42,7 @@ class ToolGeneratorTest {
     fun `generates toolset with no functions`() {
         val tool = KoogTool("EmptyTools", "Empty toolset.", emptyList())
         val code = generator.generate(tool)
-        assertContains(code, "class EmptyTools : ToolSet {")
+        assertContains(code, "class EmptyTools : ToolSet")
         assertFalse(code.contains("@Tool"))
     }
 
