@@ -7,6 +7,8 @@ import { PlannerAgentConfig } from "@/types/planner";
 import { A2AAgentConfig } from "@/types/a2a";
 import { InputNodeConfig, OutputNodeConfig, migrateIONodeData } from "@/types/io";
 import { GraphAgentConfig } from "@/types/graph-agent";
+import { defaultRagData } from "@/lib/rag-defaults";
+import type { RagNodeConfig } from "@/types/rag";
 
 export const DEFAULT_WORKSPACE_NAME = "Untitled Workspace";
 
@@ -156,7 +158,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   addNode(type, position, toolType?, initialData?) {
     pushHistory();
     set((state) => {
-      let data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | PlannerAgentConfig | A2AAgentConfig | InputNodeConfig | OutputNodeConfig | GraphAgentConfig | CodeNodeConfig;
+      let data: AgentConfig | ToolConfig | BuiltinToolConfig | SubAgentConfig | McpServerConfig | PlannerAgentConfig | A2AAgentConfig | InputNodeConfig | OutputNodeConfig | GraphAgentConfig | CodeNodeConfig | RagNodeConfig;
       if (type === "agent") {
         data = { ...defaultAgentData };
       } else if (type === "sub-agent") {
@@ -177,6 +179,8 @@ export const useEditorStore = create<EditorState>((set) => ({
         data = { ...defaultGraphAgentData };
       } else if (type === "code") {
         data = { ...defaultCodeData, ...initialData };
+      } else if (type === "rag") {
+        data = { ...defaultRagData };
       } else {
         data = { ...defaultToolData };
       }
