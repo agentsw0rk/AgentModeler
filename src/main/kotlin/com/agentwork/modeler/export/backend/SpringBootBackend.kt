@@ -90,7 +90,8 @@ class SpringBootBackend(
         // Infrastructure
         var buildGradle = buildGradleGenerator.generate(infraAgent)
         if (agent.ragNodes.isNotEmpty()) {
-            val ragDep = """    implementation("ai.koog:koog-rag:${BuildGradleGenerator.KOOG_VERSION}")"""
+            val ragDep = """    implementation("ai.koog:vector-storage:${BuildGradleGenerator.KOOG_VERSION}")""" +
+                "\n" + """    implementation("ai.koog:embeddings-llm:${BuildGradleGenerator.KOOG_VERSION}")"""
             buildGradle = buildGradle.replace(
                 """    implementation("ai.koog:koog-agents:${BuildGradleGenerator.KOOG_VERSION}")""",
                 """    implementation("ai.koog:koog-agents:${BuildGradleGenerator.KOOG_VERSION}")""" + "\n" + ragDep

@@ -143,7 +143,8 @@ class KtorWasmBackend(
             buildGradle = buildGradle.replace(
                 """implementation("ai.koog:koog-agents:${WasmBuildGradleGenerator.KOOG_VERSION}")""",
                 """implementation("ai.koog:koog-agents:${WasmBuildGradleGenerator.KOOG_VERSION}")""" +
-                    "\n" + """            implementation("ai.koog:koog-rag:${WasmBuildGradleGenerator.KOOG_VERSION}")"""
+                    "\n" + """            implementation("ai.koog:vector-storage:${WasmBuildGradleGenerator.KOOG_VERSION}")""" +
+                    "\n" + """            implementation("ai.koog:embeddings-llm:${WasmBuildGradleGenerator.KOOG_VERSION}")"""
             )
         }
         files["build.gradle.kts"] = buildGradle

@@ -34,10 +34,10 @@ class RagCodeGenerator {
             appendLine("package generated.rag")
             appendLine()
             // Imports
-            appendLine("import ai.koog.prompt.embedding.LLMEmbedder")
-            appendLine("import ai.koog.rag.vectorstore.embedding.JVMTextDocumentEmbedder")
-            appendLine("import ai.koog.rag.vectorstore.EmbeddingBasedDocumentStorage")
-            appendLine("import ai.koog.rag.vectorstore.InMemoryVectorStorage")
+            appendLine("import ai.koog.embeddings.local.LLMEmbedder")
+            appendLine("import ai.koog.rag.vector.JVMTextDocumentEmbedder")
+            appendLine("import ai.koog.rag.vector.EmbeddingBasedDocumentStorage")
+            appendLine("import ai.koog.rag.vector.InMemoryVectorStorage")
             when (rag.embedderProvider.uppercase()) {
                 "OPENAI" -> {
                     appendLine("import ai.koog.prompt.executor.clients.openai.OpenAILLMClient")
@@ -49,7 +49,7 @@ class RagCodeGenerator {
                 }
             }
             if (rag.storageType.uppercase() == "FILE") {
-                appendLine("import ai.koog.rag.vectorstore.JVMFileVectorStorage")
+                appendLine("import ai.koog.rag.vector.JVMFileVectorStorage")
             }
             appendLine("import java.nio.file.Path")
             if (rag.provideAsTool) {
@@ -156,9 +156,9 @@ class RagCodeGenerator {
         return buildString {
             appendLine("package generated.rag")
             appendLine()
-            appendLine("import ai.koog.prompt.embedding.LLMEmbedder")
-            appendLine("import ai.koog.rag.vectorstore.EmbeddingBasedDocumentStorage")
-            appendLine("import ai.koog.rag.vectorstore.InMemoryVectorStorage")
+            appendLine("import ai.koog.embeddings.local.LLMEmbedder")
+            appendLine("import ai.koog.rag.vector.EmbeddingBasedDocumentStorage")
+            appendLine("import ai.koog.rag.vector.InMemoryVectorStorage")
             when (rag.embedderProvider.uppercase()) {
                 "OPENAI" -> {
                     appendLine("import ai.koog.prompt.executor.clients.openai.OpenAILLMClient")
