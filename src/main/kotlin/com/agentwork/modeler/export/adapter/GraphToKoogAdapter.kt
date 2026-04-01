@@ -417,6 +417,7 @@ class GraphToKoogAdapter {
                 builtinTools = builtinTools,
                 subAgents = subAgents,
                 mcpServers = mcpServers,
+                ragNodes = emptyList(),
                 inputs = inputs,
                 outputs = outputs
             )

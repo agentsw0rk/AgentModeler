@@ -38,6 +38,7 @@ class GraphAgentGeneratorTest {
             builtinTools = emptyList(),
             subAgents = emptyList(),
             mcpServers = emptyList(),
+            ragNodes = emptyList(),
             inputs = emptyList(),
             outputs = emptyList()
         )
@@ -89,6 +90,7 @@ class GraphAgentGeneratorTest {
             builtinTools = emptyList(),
             subAgents = emptyList(),
             mcpServers = emptyList(),
+            ragNodes = emptyList(),
             inputs = emptyList(),
             outputs = emptyList()
         )
@@ -120,6 +122,7 @@ class GraphAgentGeneratorTest {
             builtinTools = emptyList(),
             subAgents = emptyList(),
             mcpServers = emptyList(),
+            ragNodes = emptyList(),
             inputs = emptyList(),
             outputs = emptyList()
         )
@@ -150,6 +153,7 @@ class GraphAgentGeneratorTest {
             builtinTools = emptyList(),
             subAgents = emptyList(),
             mcpServers = emptyList(),
+            ragNodes = emptyList(),
             inputs = emptyList(),
             outputs = emptyList()
         )
