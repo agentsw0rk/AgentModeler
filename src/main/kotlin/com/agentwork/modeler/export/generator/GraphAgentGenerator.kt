@@ -7,6 +7,7 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import org.springframework.stereotype.Component
 
 @Component
@@ -54,6 +55,7 @@ class GraphAgentGenerator {
         strategyBody.endControlFlow()
 
         val strategyReturnType = ClassName("ai.koog.agents.core.agent.entity", "AIAgentGraphStrategy")
+            .parameterizedBy(ClassName("kotlin", "String"), ClassName("kotlin", "String"))
         val strategyFun = FunSpec.builder(funcName)
             .returns(strategyReturnType)
             .addCode(strategyBody.build())
