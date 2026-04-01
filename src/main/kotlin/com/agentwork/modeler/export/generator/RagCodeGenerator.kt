@@ -65,7 +65,8 @@ class RagCodeGenerator {
 
     fun generateToolRegistration(rag: KoogRagNode): String {
         val varPrefix = sanitizeVarPrefix(rag.name)
-        val funcName = "search${rag.name.replaceFirstChar { it.uppercase() }}"
+        val safeName = rag.name.replace(Regex("[^a-zA-Z0-9]"), "").replaceFirstChar { it.uppercase() }
+        val funcName = "search$safeName"
         val toolDesc = rag.toolDescription?.replace("\"", "\\\"")
             ?: "Search for relevant documents in ${rag.name}"
         return buildString {
@@ -111,10 +112,11 @@ class RagCodeGenerator {
             if (hasOllama) {
                 appendLine("import ai.koog.prompt.executor.clients.ollama.OllamaClient")
             }
+            val needsPath = hasFile || ragNodes.any { it.filePaths.isNotEmpty() }
             if (hasFile) {
                 appendLine("import ai.koog.rag.base.files.JVMFileVectorStorage")
-                appendLine("import java.nio.file.Path")
-            } else {
+            }
+            if (needsPath) {
                 appendLine("import java.nio.file.Path")
             }
             if (hasTool) {
