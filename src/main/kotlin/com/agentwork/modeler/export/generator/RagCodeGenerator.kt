@@ -157,9 +157,11 @@ class RagCodeGenerator {
         return buildString {
             appendLine("package generated.rag")
             appendLine()
+            appendLine("import ai.koog.embeddings.base.Embedder")
+            appendLine("import ai.koog.embeddings.base.Vector")
             appendLine("import ai.koog.embeddings.local.LLMEmbedder")
-            appendLine("import ai.koog.rag.vector.EmbeddingBasedDocumentStorage")
-            appendLine("import ai.koog.rag.vector.InMemoryVectorStorage")
+            appendLine("import ai.koog.rag.vector.DocumentEmbedder")
+            appendLine("import ai.koog.rag.vector.InMemoryDocumentEmbeddingStorage")
             appendLine("import ai.koog.rag.base.mostRelevantDocuments")
             when (rag.embedderProvider.uppercase()) {
                 "OPENAI" -> {
@@ -181,6 +183,14 @@ class RagCodeGenerator {
             appendLine("private fun getEnv(key: String): String = js(\"process.env[key] || ''\")")
             appendLine()
 
+            // DocumentEmbedder adapter for String documents
+            appendLine("private class StringDocumentEmbedder(private val embedder: Embedder) : DocumentEmbedder<String> {")
+            appendLine("    override suspend fun embed(document: String): Vector = embedder.embed(document)")
+            appendLine("    override suspend fun embed(text: String): Vector = embedder.embed(text)")
+            appendLine("    override fun diff(embedding1: Vector, embedding2: Vector): Double = embedder.diff(embedding1, embedding2)")
+            appendLine("}")
+            appendLine()
+
             // Object
             appendLine("object $className {")
             appendLine()
@@ -196,7 +206,8 @@ class RagCodeGenerator {
                 else -> "\"${rag.embedderModel}\""
             }
             appendLine("    private val embedder = LLMEmbedder($clientExpr, $modelRef)")
-            appendLine("    val storage = EmbeddingBasedDocumentStorage(embedder, InMemoryVectorStorage())")
+            appendLine("    private val documentEmbedder = StringDocumentEmbedder(embedder)")
+            appendLine("    val storage = InMemoryDocumentEmbeddingStorage<String>(documentEmbedder)")
             appendLine()
 
             // Initialize — no file system access on Wasm, document paths are placeholders
