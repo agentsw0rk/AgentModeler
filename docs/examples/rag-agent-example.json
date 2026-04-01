@@ -115,7 +115,7 @@
               }
             ],
             "returnType": "String",
-            "body": "return \"Ticket created: TICKET-${System.currentTimeMillis()} - $subject\""
+            "body": "return \"Ticket created: TICKET-12345 - $subject\""
           }
         ]
       }
