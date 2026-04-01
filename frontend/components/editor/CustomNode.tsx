@@ -15,10 +15,11 @@ import {
   OutputReteNode,
   GraphAgentReteNode,
   CodeReteNode,
+  RagReteNode,
 } from "@/lib/rete-nodes";
 import type { Schemes } from "@/lib/rete-setup";
 import type { CodeNodeConfig } from "@/types/graph";
-import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon, ArrowRightLeftIcon, ArrowDownToLineIcon, ArrowUpFromLineIcon, NetworkIcon, CodeIcon } from "lucide-react";
+import { BotIcon, WrenchIcon, UsersIcon, ServerIcon, ClipboardListIcon, ArrowRightLeftIcon, ArrowDownToLineIcon, ArrowUpFromLineIcon, NetworkIcon, CodeIcon, DatabaseIcon } from "lucide-react";
 import { useValidationStore } from "@/store/validationStore";
 
 const nodeIcons: Record<string, React.ReactNode> = {
@@ -33,6 +34,7 @@ const nodeIcons: Record<string, React.ReactNode> = {
   "output": <ArrowUpFromLineIcon size={10} />,
   "graph-agent": <NetworkIcon size={10} />,
   code: <CodeIcon size={10} />,
+  rag: <DatabaseIcon size={10} />,
 };
 
 const nodeColors: Record<string, { border: string; glow: string; badge: string; badgeText: string }> = {
@@ -77,6 +79,12 @@ const nodeColors: Record<string, { border: string; glow: string; badge: string; 
     badge: "rgba(168, 85, 247, 0.2)",
     badgeText: "rgb(192, 132, 252)",
   },
+  rag: {
+    border: "rgba(20, 184, 166, 0.4)",
+    glow: "rgba(20, 184, 166, 0.12)",
+    badge: "rgba(20, 184, 166, 0.15)",
+    badgeText: "#2dd4bf",
+  },
 };
 
 const nodeTypeLabels: Record<string, string> = {
@@ -91,6 +99,7 @@ const nodeTypeLabels: Record<string, string> = {
   "output": "OUTPUT",
   "graph-agent": "GRAPH AGENT",
   code: "CODE",
+  rag: "RAG",
 };
 
 function getNodeType(data: Schemes["Node"]): string {
@@ -105,6 +114,7 @@ function getNodeType(data: Schemes["Node"]): string {
   if (data instanceof OutputReteNode) return "output";
   if (data instanceof GraphAgentReteNode) return "graph-agent";
   if (data instanceof CodeReteNode) return "code";
+  if (data instanceof RagReteNode) return "rag";
   return "tool";
 }
 
@@ -179,6 +189,13 @@ export function CustomNode(props: {
       case "code": {
         const codeData = storeNode?.data as CodeNodeConfig | undefined;
         subtitle = codeData?.fileName || "";
+        break;
+      }
+      case "rag": {
+        const modes: string[] = [];
+        if (d.injectAsContext) modes.push("Context");
+        if (d.provideAsTool) modes.push("Tool");
+        subtitle = modes.length > 0 ? modes.join(" + ") : "Not configured";
         break;
       }
     }
