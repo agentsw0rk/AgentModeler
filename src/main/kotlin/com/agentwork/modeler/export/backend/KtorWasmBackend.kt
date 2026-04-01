@@ -139,14 +139,7 @@ class KtorWasmBackend(
 
         // Infrastructure
         var buildGradle = wasmBuildGradleGenerator.generate(infraAgent)
-        if (agent.ragNodes.isNotEmpty()) {
-            buildGradle = buildGradle.replace(
-                """implementation("ai.koog:koog-agents:${WasmBuildGradleGenerator.KOOG_VERSION}")""",
-                """implementation("ai.koog:koog-agents:${WasmBuildGradleGenerator.KOOG_VERSION}")""" +
-                    "\n" + """            implementation("ai.koog:vector-storage:${WasmBuildGradleGenerator.KOOG_VERSION}")""" +
-                    "\n" + """            implementation("ai.koog:embeddings-llm:${WasmBuildGradleGenerator.KOOG_VERSION}")"""
-            )
-        }
+        // koog-agents already includes vector-storage and embeddings-llm transitively
         files["build.gradle.kts"] = buildGradle
         files["settings.gradle.kts"] = wasmSettingsGradleGenerator.generate(graphName)
         files["gradle.properties"] = wasmGradlePropertiesGenerator.generate()

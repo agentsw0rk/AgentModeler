@@ -90,12 +90,8 @@ class SpringBootBackend(
         // Infrastructure
         var buildGradle = buildGradleGenerator.generate(infraAgent)
         if (agent.ragNodes.isNotEmpty()) {
-            val ragDep = """    implementation("ai.koog:vector-storage:${BuildGradleGenerator.KOOG_VERSION}")""" +
-                "\n" + """    implementation("ai.koog:embeddings-llm:${BuildGradleGenerator.KOOG_VERSION}")"""
-            buildGradle = buildGradle.replace(
-                """    implementation("ai.koog:koog-agents:${BuildGradleGenerator.KOOG_VERSION}")""",
-                """    implementation("ai.koog:koog-agents:${BuildGradleGenerator.KOOG_VERSION}")""" + "\n" + ragDep
-            )
+            // koog-agents already includes vector-storage and embeddings-llm transitively
+            // No extra RAG dependency needed
         }
         files["build.gradle.kts"] = buildGradle
         files["settings.gradle.kts"] = settingsGradleGenerator.generate(graphName)

@@ -38,14 +38,15 @@ class RagCodeGenerator {
             appendLine("import ai.koog.rag.vector.JVMTextDocumentEmbedder")
             appendLine("import ai.koog.rag.vector.EmbeddingBasedDocumentStorage")
             appendLine("import ai.koog.rag.vector.InMemoryVectorStorage")
+            appendLine("import ai.koog.rag.base.mostRelevantDocuments")
             when (rag.embedderProvider.uppercase()) {
                 "OPENAI" -> {
                     appendLine("import ai.koog.prompt.executor.clients.openai.OpenAILLMClient")
-                    appendLine("import ai.koog.prompt.executor.model.OpenAIModels")
+                    appendLine("import ai.koog.prompt.executor.clients.openai.OpenAIModels")
                 }
                 "OLLAMA" -> {
                     appendLine("import ai.koog.prompt.executor.clients.ollama.OllamaClient")
-                    appendLine("import ai.koog.prompt.executor.model.OllamaModels")
+                    appendLine("import ai.koog.prompt.executor.clients.ollama.OllamaModels")
                 }
             }
             if (rag.storageType.uppercase() == "FILE") {
@@ -159,14 +160,15 @@ class RagCodeGenerator {
             appendLine("import ai.koog.embeddings.local.LLMEmbedder")
             appendLine("import ai.koog.rag.vector.EmbeddingBasedDocumentStorage")
             appendLine("import ai.koog.rag.vector.InMemoryVectorStorage")
+            appendLine("import ai.koog.rag.base.mostRelevantDocuments")
             when (rag.embedderProvider.uppercase()) {
                 "OPENAI" -> {
                     appendLine("import ai.koog.prompt.executor.clients.openai.OpenAILLMClient")
-                    appendLine("import ai.koog.prompt.executor.model.OpenAIModels")
+                    appendLine("import ai.koog.prompt.executor.clients.openai.OpenAIModels")
                 }
                 "OLLAMA" -> {
                     appendLine("import ai.koog.prompt.executor.clients.ollama.OllamaClient")
-                    appendLine("import ai.koog.prompt.executor.model.OllamaModels")
+                    appendLine("import ai.koog.prompt.executor.clients.ollama.OllamaModels")
                 }
             }
             if (rag.provideAsTool) {
