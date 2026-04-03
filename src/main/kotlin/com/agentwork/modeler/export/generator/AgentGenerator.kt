@@ -51,13 +51,28 @@ class AgentGenerator {
         val providerKey = agent.modelProvider.name.lowercase()
         classBuilder.primaryConstructor(buildConstructor(agent, valueClass, providerKey, hasOtel))
 
-        // apiKey property
-        classBuilder.addProperty(
-            PropertySpec.builder("apiKey", String::class)
-                .initializer("apiKey")
-                .addModifiers(KModifier.PRIVATE)
-                .build()
-        )
+        val isBedrock = agent.modelProvider == ModelProvider.BEDROCK
+        if (isBedrock) {
+            classBuilder.addProperty(
+                PropertySpec.builder("accessKey", String::class)
+                    .initializer("accessKey")
+                    .addModifiers(KModifier.PRIVATE)
+                    .build()
+            )
+            classBuilder.addProperty(
+                PropertySpec.builder("secretKey", String::class)
+                    .initializer("secretKey")
+                    .addModifiers(KModifier.PRIVATE)
+                    .build()
+            )
+        } else {
+            classBuilder.addProperty(
+                PropertySpec.builder("apiKey", String::class)
+                    .initializer("apiKey")
+                    .addModifiers(KModifier.PRIVATE)
+                    .build()
+            )
+        }
 
         // OTel properties
         if (hasOtel) {
@@ -72,13 +87,23 @@ class AgentGenerator {
             classBuilder.addProperty(PropertySpec.builder("otelVerbose", Boolean::class).initializer("otelVerbose").addModifiers(KModifier.PRIVATE).build())
         }
 
-        // @PostConstruct validateApiKey
-        classBuilder.addFunction(
-            FunSpec.builder("validateApiKey")
-                .addAnnotation(postConstructAnnotation)
-                .addStatement("require(apiKey.isNotBlank()) { %S }", "${agent.modelProvider.name}_API_KEY environment variable must be set")
-                .build()
-        )
+        // @PostConstruct validate credentials
+        if (isBedrock) {
+            classBuilder.addFunction(
+                FunSpec.builder("validateCredentials")
+                    .addAnnotation(postConstructAnnotation)
+                    .addStatement("require(accessKey.isNotBlank()) { %S }", "AWS_BEDROCK_ACCESS_KEY environment variable must be set")
+                    .addStatement("require(secretKey.isNotBlank()) { %S }", "AWS_BEDROCK_SECRET_ACCESS_KEY environment variable must be set")
+                    .build()
+            )
+        } else {
+            classBuilder.addFunction(
+                FunSpec.builder("validateApiKey")
+                    .addAnnotation(postConstructAnnotation)
+                    .addStatement("require(apiKey.isNotBlank()) { %S }", "${agent.modelProvider.name}_API_KEY environment variable must be set")
+                    .build()
+            )
+        }
 
         // @PostConstruct initializeRag (if RAG nodes exist)
         if (agent.ragNodes.isNotEmpty()) {
@@ -137,6 +162,10 @@ class AgentGenerator {
         fileBuilder.addImport("ai.koog.prompt.executor.llms.all", agent.modelProvider.executorFactory)
         fileBuilder.addImport(agent.modelProvider.importPackage.substringBeforeLast('.'), agent.modelProvider.importPackage.substringAfterLast('.'))
 
+        if (agent.modelProvider == ModelProvider.BEDROCK) {
+            fileBuilder.addImport("ai.koog.prompt.executor.clients.bedrock", "BedrockClientSettings")
+        }
+
         if (hasOtel) {
             fileBuilder.addImport("ai.koog.agents.features.otel", "OpenTelemetry")
             when (agent.otelConfig?.exporterType) {
@@ -172,11 +201,25 @@ class AgentGenerator {
     ): com.squareup.kotlinpoet.FunSpec {
         val ctorBuilder = FunSpec.constructorBuilder()
 
-        ctorBuilder.addParameter(
-            com.squareup.kotlinpoet.ParameterSpec.builder("apiKey", String::class)
-                .addAnnotation(AnnotationSpec.builder(valueClass).addMember("%S", "\${$providerKey.api-key}").build())
-                .build()
-        )
+        val isBedrock = agent.modelProvider == ModelProvider.BEDROCK
+        if (isBedrock) {
+            ctorBuilder.addParameter(
+                com.squareup.kotlinpoet.ParameterSpec.builder("accessKey", String::class)
+                    .addAnnotation(AnnotationSpec.builder(valueClass).addMember("%S", "\${bedrock.access-key}").build())
+                    .build()
+            )
+            ctorBuilder.addParameter(
+                com.squareup.kotlinpoet.ParameterSpec.builder("secretKey", String::class)
+                    .addAnnotation(AnnotationSpec.builder(valueClass).addMember("%S", "\${bedrock.secret-key}").build())
+                    .build()
+            )
+        } else {
+            ctorBuilder.addParameter(
+                com.squareup.kotlinpoet.ParameterSpec.builder("apiKey", String::class)
+                    .addAnnotation(AnnotationSpec.builder(valueClass).addMember("%S", "\${$providerKey.api-key}").build())
+                    .build()
+            )
+        }
 
         if (hasOtel) {
             if (agent.otelConfig?.exporterType != "logging") {
@@ -227,7 +270,17 @@ class AgentGenerator {
         // Build the AIAgent(...) call with named parameters
         val aiAgentType = KoogTypes.AI_AGENT
         builder.add("return %T(\n", aiAgentType) // no beginControlFlow — raw parens
-        builder.add("    promptExecutor = %L(apiKey),\n", agent.modelProvider.executorFactory)
+        if (agent.modelProvider == ModelProvider.BEDROCK) {
+            builder.add("    promptExecutor = %L(\n", agent.modelProvider.executorFactory)
+            builder.add("        awsAccessKeyId = accessKey,\n")
+            builder.add("        awsSecretAccessKey = secretKey,\n")
+            builder.add("        settings = BedrockClientSettings(\n")
+            builder.add("            region = System.getenv(\"AWS_BEDROCK_REGION\") ?: \"us-west-2\"\n")
+            builder.add("        )\n")
+            builder.add("    ),\n")
+        } else {
+            builder.add("    promptExecutor = %L(apiKey),\n", agent.modelProvider.executorFactory)
+        }
         // Manually escape the prompt to produce a single-line string literal with \n escapes
         // (KotlinPoet's %S converts multi-line strings to trimMargin blocks)
         val escapedPrompt = effectivePrompt
