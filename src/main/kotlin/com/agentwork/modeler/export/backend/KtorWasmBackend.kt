@@ -1,5 +1,6 @@
 package com.agentwork.modeler.export.backend
 
+import com.agentwork.modeler.export.BackendConfig
 import com.agentwork.modeler.export.GeneratorBackend
 import com.agentwork.modeler.export.generator.RagCodeGenerator
 import com.agentwork.modeler.export.generator.sanitizeClassName
@@ -80,7 +81,8 @@ class KtorWasmBackend(
         graphName: String,
         sharedFiles: Map<String, String>,
         inputClassName: String?,
-        outputClassName: String?
+        outputClassName: String?,
+        config: BackendConfig
     ): Map<String, String> {
         val files = mutableMapOf<String, String>()
 
@@ -120,7 +122,8 @@ class KtorWasmBackend(
         sharedFiles: Map<String, String>,
         strategyCall: String,
         inputClassName: String?,
-        outputClassName: String?
+        outputClassName: String?,
+        config: BackendConfig
     ): Map<String, String> {
         val files = mutableMapOf<String, String>()
 
@@ -196,7 +199,8 @@ class KtorWasmBackend(
     override fun generatePlannerAgentFiles(
         agent: KoogPlannerAgent,
         graphName: String,
-        sharedFiles: Map<String, String>
+        sharedFiles: Map<String, String>,
+        config: BackendConfig
     ): Map<String, String> {
         throw UnsupportedOperationException("Planner agents are not supported on the Ktor/WasmJS backend")
     }

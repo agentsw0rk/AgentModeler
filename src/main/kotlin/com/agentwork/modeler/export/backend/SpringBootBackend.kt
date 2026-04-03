@@ -1,5 +1,6 @@
 package com.agentwork.modeler.export.backend
 
+import com.agentwork.modeler.export.BackendConfig
 import com.agentwork.modeler.export.GeneratorBackend
 import com.agentwork.modeler.export.generator.*
 import com.agentwork.modeler.export.model.*
@@ -31,7 +32,8 @@ class SpringBootBackend(
         graphName: String,
         sharedFiles: Map<String, String>,
         inputClassName: String?,
-        outputClassName: String?
+        outputClassName: String?,
+        config: BackendConfig
     ): Map<String, String> {
         val files = mutableMapOf<String, String>()
 
@@ -68,7 +70,8 @@ class SpringBootBackend(
         sharedFiles: Map<String, String>,
         strategyCall: String,
         inputClassName: String?,
-        outputClassName: String?
+        outputClassName: String?,
+        config: BackendConfig
     ): Map<String, String> {
         val files = mutableMapOf<String, String>()
 
@@ -114,7 +117,8 @@ class SpringBootBackend(
     override fun generatePlannerAgentFiles(
         agent: KoogPlannerAgent,
         graphName: String,
-        sharedFiles: Map<String, String>
+        sharedFiles: Map<String, String>,
+        config: BackendConfig
     ): Map<String, String> {
         val files = mutableMapOf<String, String>()
 

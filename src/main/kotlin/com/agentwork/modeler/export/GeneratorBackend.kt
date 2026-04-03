@@ -17,7 +17,8 @@ interface GeneratorBackend {
         graphName: String,
         sharedFiles: Map<String, String>,
         inputClassName: String?,
-        outputClassName: String?
+        outputClassName: String?,
+        config: BackendConfig = BackendConfig()
     ): Map<String, String>
 
     fun generateGraphAgentFiles(
@@ -26,12 +27,14 @@ interface GeneratorBackend {
         sharedFiles: Map<String, String>,
         strategyCall: String,
         inputClassName: String?,
-        outputClassName: String?
+        outputClassName: String?,
+        config: BackendConfig = BackendConfig()
     ): Map<String, String>
 
     fun generatePlannerAgentFiles(
         agent: KoogPlannerAgent,
         graphName: String,
-        sharedFiles: Map<String, String>
+        sharedFiles: Map<String, String>,
+        config: BackendConfig = BackendConfig()
     ): Map<String, String>
 }
