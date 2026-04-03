@@ -18,8 +18,10 @@ interface EditorState {
   selectedNodeIds: string[];
   workspaceName: string;
   activeBackend: string;
+  libraryTargets: string[];
 
   setActiveBackend: (id: string) => void;
+  setLibraryTargets: (targets: string[]) => void;
   addNode: (type: NodeType, position: { x: number; y: number }, toolType?: BuiltinToolType, initialData?: Record<string, unknown>) => void;
   addNodes: (nodes: GraphNode[], edges: GraphEdge[]) => void;
   removeNode: (id: string) => void;
@@ -149,10 +151,15 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedNodeIds: [],
   workspaceName: DEFAULT_WORKSPACE_NAME,
   activeBackend: "spring-boot",
+  libraryTargets: ["jvm", "wasmJs"] as string[],
   otelConfig: { ...DEFAULT_OTEL_CONFIG },
 
   setActiveBackend(id) {
     set({ activeBackend: id });
+  },
+
+  setLibraryTargets(targets: string[]) {
+    set({ libraryTargets: targets });
   },
 
   addNode(type, position, toolType?, initialData?) {

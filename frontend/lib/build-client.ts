@@ -17,11 +17,16 @@ export interface BuildResult {
   log: string;
 }
 
-export async function buildProject(graph: WorkspaceGraph, platform: string, backend?: string): Promise<BuildResult> {
+export async function buildProject(graph: WorkspaceGraph, platform: string, backend?: string, targets?: string[]): Promise<BuildResult> {
   const response = await fetch(`${API_BASE}/api/build`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ graph, platform, ...(backend ? { backend } : {}) }),
+    body: JSON.stringify({
+      graph,
+      platform,
+      ...(backend ? { backend } : {}),
+      ...(targets && targets.length > 0 ? { targets } : {}),
+    }),
   });
 
   if (!response.ok) {

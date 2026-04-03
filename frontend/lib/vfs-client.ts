@@ -7,9 +7,14 @@ export async function generateCode(
   projectName: string,
   graph: WorkspaceGraph,
   signal?: AbortSignal,
-  backend?: string
+  backend?: string,
+  targets?: string[]
 ): Promise<GenerationResult> {
-  const body = backend ? { graph, backend } : graph;
+  const body: Record<string, unknown> = backend ? { graph, backend } : { ...graph };
+  if (targets && targets.length > 0) {
+    body.targets = targets;
+    if (!body.graph) { body.graph = graph; }
+  }
   const response = await fetch(
     `${API_BASE}/api/vfs/${encodeURIComponent(projectName)}/generate`,
     {
