@@ -2,7 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PlannerAgentConfig } from "@/types/planner";
-import { ModelProvider } from "@/types/koog";
+import { ModelProvider, MODEL_OPTIONS } from "@/types/koog";
 
 export function SettingsTab({
   data,
@@ -38,12 +38,15 @@ export function SettingsTab({
             </Select>
           </div>
           <div>
-            <Label>Model ID</Label>
-            <Input
-              value={data.modelId ?? ""}
-              onChange={(e) => onUpdate({ modelId: e.target.value || undefined })}
-              placeholder="claude-sonnet-4"
-            />
+            <Label>Model</Label>
+            <Select value={data.modelId || ""} onValueChange={(v) => onUpdate({ modelId: v || undefined })}>
+              <SelectTrigger><SelectValue placeholder="Default" /></SelectTrigger>
+              <SelectContent>
+                {MODEL_OPTIONS[data.modelProvider || "openai"].map((m) => (
+                  <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Temperature</Label>

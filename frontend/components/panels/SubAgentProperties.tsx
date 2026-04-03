@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEditorStore } from "@/store/editorStore";
 import type { SubAgentConfig, DelegationMode } from "@/types/subagent";
-import type { ModelProvider } from "@/types/koog";
+import { type ModelProvider, MODEL_OPTIONS } from "@/types/koog";
 
 export function SubAgentProperties({ nodeId, data }: { nodeId: string; data: SubAgentConfig }) {
   const updateNodeData = useEditorStore((s) => s.updateNodeData);
@@ -43,8 +43,15 @@ export function SubAgentProperties({ nodeId, data }: { nodeId: string; data: Sub
         </Select>
       </div>
       <div>
-        <Label htmlFor="sa-model-id">Model ID (optional)</Label>
-        <Input id="sa-model-id" value={data.modelId || ""} onChange={(e) => update({ modelId: e.target.value || undefined })} placeholder="gpt-4o" />
+        <Label>Model</Label>
+        <Select value={data.modelId || ""} onValueChange={(v) => update({ modelId: v || undefined })}>
+          <SelectTrigger><SelectValue placeholder="Default" /></SelectTrigger>
+          <SelectContent>
+            {MODEL_OPTIONS[data.modelProvider].map((m) => (
+              <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="sa-temperature">Temperature (optional)</Label>

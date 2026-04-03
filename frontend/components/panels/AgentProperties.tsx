@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEditorStore } from "@/store/editorStore";
-import { AgentConfig, ModelProvider } from "@/types/koog";
+import { AgentConfig, ModelProvider, MODEL_OPTIONS } from "@/types/koog";
 import { A2AConfigSection } from "@/components/a2a/A2AConfigSection";
 
 export function AgentProperties({ nodeId, data }: { nodeId: string; data: AgentConfig }) {
@@ -35,8 +35,15 @@ export function AgentProperties({ nodeId, data }: { nodeId: string; data: AgentC
         </Select>
       </div>
       <div>
-        <Label htmlFor="agent-model-id">Model ID (optional)</Label>
-        <Input id="agent-model-id" value={data.modelId || ""} onChange={(e) => update({ modelId: e.target.value })} placeholder="gpt-4o" />
+        <Label>Model</Label>
+        <Select value={data.modelId || ""} onValueChange={(v) => update({ modelId: v || undefined })}>
+          <SelectTrigger><SelectValue placeholder="Default" /></SelectTrigger>
+          <SelectContent>
+            {MODEL_OPTIONS[data.modelProvider].map((m) => (
+              <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="agent-temperature">Temperature (optional)</Label>

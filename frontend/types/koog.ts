@@ -2,6 +2,33 @@ import type { A2AConfig } from "./a2a";
 
 export type ModelProvider = "openai" | "anthropic" | "google" | "bedrock";
 
+export const MODEL_OPTIONS: Record<ModelProvider, { id: string; label: string }[]> = {
+  openai: [
+    { id: "gpt-4o", label: "GPT-4o" },
+    { id: "gpt-4o-mini", label: "GPT-4o Mini" },
+    { id: "gpt-4-1", label: "GPT-4.1" },
+  ],
+  anthropic: [
+    { id: "claude-sonnet-4", label: "Claude Sonnet 4" },
+    { id: "claude-opus-4", label: "Claude Opus 4" },
+    { id: "claude-haiku-3.5", label: "Claude Haiku 3.5" },
+  ],
+  google: [
+    { id: "gemini-2-flash", label: "Gemini 2 Flash" },
+    { id: "gemini-2-pro", label: "Gemini 2 Pro" },
+  ],
+  bedrock: [
+    { id: "claude-4.5-sonnet", label: "Claude 4.5 Sonnet" },
+    { id: "claude-4-sonnet", label: "Claude 4 Sonnet" },
+    { id: "claude-4-opus", label: "Claude 4 Opus" },
+    { id: "nova-pro", label: "Nova Pro" },
+    { id: "nova-lite", label: "Nova Lite" },
+    { id: "nova-micro", label: "Nova Micro" },
+    { id: "llama-3.3-70b", label: "Llama 3.3 70B" },
+    { id: "llama-3.1-405b", label: "Llama 3.1 405B" },
+  ],
+};
+
 export interface AgentConfig {
   name: string;
   systemPrompt: string;

@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/store/editorStore";
 import { GraphAgentConfig } from "@/types/graph-agent";
-import { ModelProvider } from "@/types/koog";
+import { ModelProvider, MODEL_OPTIONS } from "@/types/koog";
 import { useState } from "react";
 import { GraphStrategyEditor } from "@/components/graph-agent/GraphStrategyEditor";
 
@@ -42,8 +42,15 @@ export function GraphAgentProperties({ nodeId, data }: { nodeId: string; data: G
           </Select>
         </div>
         <div>
-          <Label>Model ID</Label>
-          <Input value={data.modelId ?? ""} onChange={(e) => update({ modelId: e.target.value || undefined })} placeholder="claude-sonnet-4" />
+          <Label>Model</Label>
+          <Select value={data.modelId || ""} onValueChange={(v) => update({ modelId: v || undefined })}>
+            <SelectTrigger><SelectValue placeholder="Default" /></SelectTrigger>
+            <SelectContent>
+              {MODEL_OPTIONS[data.modelProvider as ModelProvider].map((m) => (
+                <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div>
           <Label>Temperature</Label>
