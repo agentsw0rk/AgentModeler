@@ -38,6 +38,7 @@ export function SubAgentProperties({ nodeId, data }: { nodeId: string; data: Sub
             <SelectItem value="openai">OpenAI</SelectItem>
             <SelectItem value="anthropic">Anthropic</SelectItem>
             <SelectItem value="google">Google</SelectItem>
+            <SelectItem value="bedrock">AWS Bedrock</SelectItem>
           </SelectContent>
         </Select>
       </div>

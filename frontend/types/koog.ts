@@ -1,6 +1,6 @@
 import type { A2AConfig } from "./a2a";
 
-export type ModelProvider = "openai" | "anthropic" | "google";
+export type ModelProvider = "openai" | "anthropic" | "google" | "bedrock";
 
 export interface AgentConfig {
   name: string;
