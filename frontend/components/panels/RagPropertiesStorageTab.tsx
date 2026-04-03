@@ -15,6 +15,7 @@ export function RagPropertiesStorageTab({ data, onUpdate }: { data: RagNodeConfi
           <SelectContent>
             <SelectItem value="InMemory">In-Memory</SelectItem>
             <SelectItem value="File">File-based</SelectItem>
+            <SelectItem value="PostgreSQL">PostgreSQL / pgvector</SelectItem>
             <SelectItem value="Custom">Custom</SelectItem>
           </SelectContent>
         </Select>

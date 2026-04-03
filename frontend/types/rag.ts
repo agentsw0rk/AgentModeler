@@ -1,5 +1,5 @@
 export type RagEmbedderProvider = "OpenAI" | "Ollama";
-export type RagStorageType = "InMemory" | "File" | "Custom";
+export type RagStorageType = "InMemory" | "File" | "Custom" | "PostgreSQL";
 
 export interface RagNodeConfig {
   name: string;
