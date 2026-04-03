@@ -151,7 +151,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedNodeIds: [],
   workspaceName: DEFAULT_WORKSPACE_NAME,
   activeBackend: "spring-boot",
-  libraryTargets: ["jvm", "wasmJs"] as string[],
+  libraryTargets: ["jvm"] as string[],
   otelConfig: { ...DEFAULT_OTEL_CONFIG },
 
   setActiveBackend(id) {
