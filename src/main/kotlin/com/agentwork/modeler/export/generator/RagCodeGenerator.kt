@@ -179,7 +179,7 @@ class RagCodeGenerator {
                 .beginControlFlow("return buildString")
                 .beginControlFlow("docs.forEachIndexed { i, doc ->")
                 .addStatement("append(%S)", "Document \${i + 1}: \${doc.fileName}\n")
-                .addStatement("append(%S)", "Content: \${%T.readString(doc)}\n\n")
+                .addStatement("append(%S + %T.readString(doc) + %S)", "Content: ", filesClass, "\n\n")
                 .endControlFlow()
                 .endControlFlow()
                 .build()

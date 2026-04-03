@@ -275,7 +275,7 @@ class ExportService(
         if (ga.tools.isNotEmpty() || ga.builtinTools.isNotEmpty() || ga.subAgents.isNotEmpty() || ga.mcpServers.isNotEmpty() || hasRagTools) {
             val ragToolRegistrations = ga.ragNodes.filter { it.provideAsTool }.map { rag ->
                 val safeName = rag.name.sanitizeClassName()
-                "        tools(${safeName}SearchTools())"
+                "    tools(${safeName}SearchTools())"
             }
             val baseRegistry = registryGenerator.generate(ga.tools, ga.builtinTools, ga.subAgents, ga.mcpServers)
             if (ragToolRegistrations.isNotEmpty()) {
@@ -283,7 +283,7 @@ class ExportService(
                 val ragImport = "import generated.rag.*"
                 val registryWithRag = baseRegistry
                     .replace("import ai.koog.agents.core.tools.ToolRegistry", "import ai.koog.agents.core.tools.ToolRegistry\n$ragImport")
-                    .replace("    }\n}", ragToolRegistrations.joinToString("\n") + "\n    }\n}")
+                    .replace("  }\n}", ragToolRegistrations.joinToString("\n") + "\n  }\n}")
                 files["$pkg/ToolRegistry.kt"] = registryWithRag
             } else {
                 files["$pkg/ToolRegistry.kt"] = baseRegistry

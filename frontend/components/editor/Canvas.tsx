@@ -189,13 +189,26 @@ export function Canvas() {
         }
 
         const reteNodes = [...editorRef!.getNodes()];
-        for (const reteNode of reteNodes) {
-          if ("storeNodeId" in reteNode) {
-            const storeId = (reteNode as any).storeNodeId;
-            if (!state.nodes.find((n) => n.id === storeId)) {
-              await editorRef!.removeNode(reteNode.id);
+        const staleNodes = reteNodes.filter(
+          (rn) => "storeNodeId" in rn && !state.nodes.find((n) => n.id === (rn as any).storeNodeId)
+        );
+
+        if (staleNodes.length > 0) {
+          syncing = true;
+          // Remove connections first to avoid cascading pipe issues
+          for (const conn of [...editorRef!.getConnections()]) {
+            const src = editorRef!.getNode(conn.source);
+            const tgt = editorRef!.getNode(conn.target);
+            const srcStale = src && staleNodes.some((n) => n.id === src.id);
+            const tgtStale = tgt && staleNodes.some((n) => n.id === tgt.id);
+            if (srcStale || tgtStale) {
+              try { await editorRef!.removeConnection(conn.id); } catch { /* already removed */ }
             }
           }
+          for (const reteNode of staleNodes) {
+            try { await editorRef!.removeNode(reteNode.id); } catch { /* already removed */ }
+          }
+          syncing = false;
         }
 
         for (const node of state.nodes) {

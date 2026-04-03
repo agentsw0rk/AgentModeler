@@ -80,6 +80,20 @@ class AgentGenerator {
                 .build()
         )
 
+        // @PostConstruct initializeRag (if RAG nodes exist)
+        if (agent.ragNodes.isNotEmpty()) {
+            val runBlockingType = ClassName("kotlinx.coroutines", "runBlocking")
+            val initRagBuilder = FunSpec.builder("initializeRag")
+                .addAnnotation(postConstructAnnotation)
+                .beginControlFlow("%T", runBlockingType)
+            for (rag in agent.ragNodes) {
+                val ragClassName = ClassName("generated.rag", rag.name.replaceFirstChar { it.uppercase() } + "Rag")
+                initRagBuilder.addStatement("%T.initialize()", ragClassName)
+            }
+            initRagBuilder.endControlFlow()
+            classBuilder.addFunction(initRagBuilder.build())
+        }
+
         // agentScope for MCP
         if (hasMcp) {
             val coroutineScopeType = ClassName("kotlinx.coroutines", "CoroutineScope")

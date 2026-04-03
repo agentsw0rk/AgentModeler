@@ -14,7 +14,8 @@ data class KoogAgent(
     val a2aConfig: KoogA2AConfig? = null,
     val a2aAgents: List<KoogA2AAgent> = emptyList(),
     val inputs: List<KoogInput> = emptyList(),
-    val outputs: List<KoogOutput> = emptyList()
+    val outputs: List<KoogOutput> = emptyList(),
+    val ragNodes: List<KoogRagNode> = emptyList()
 )
 
 enum class ModelProvider(val importPackage: String, val executorFactory: String, val defaultModel: String) {

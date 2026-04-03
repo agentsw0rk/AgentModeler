@@ -84,7 +84,8 @@ class SpringBootBackend(
             subAgents = agent.subAgents,
             mcpServers = agent.mcpServers,
             inputs = agent.inputs,
-            outputs = agent.outputs
+            outputs = agent.outputs,
+            ragNodes = agent.ragNodes
         )
 
         // Infrastructure

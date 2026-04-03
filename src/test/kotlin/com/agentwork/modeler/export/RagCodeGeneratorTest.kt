@@ -96,6 +96,8 @@ class RagCodeGeneratorTest {
         assertContains(code, "@Tool")
         assertContains(code, "@LLMDescription(\"Search product docs\")")
         assertContains(code, "suspend fun searchProductDocs(")
+        assertContains(code, "Files.readString(doc)")
+        assertFalse(code.contains("%T"), "KotlinPoet placeholder %T must not appear in generated code")
     }
 
     @Test
