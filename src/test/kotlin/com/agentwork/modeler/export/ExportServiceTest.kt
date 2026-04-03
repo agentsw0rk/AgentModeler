@@ -378,6 +378,67 @@ class ExportServiceTest {
         assertTrue(!props.contains("bedrock.api-key"))
     }
 
+    @Test
+    fun `exports graph agent with pgvector RAG including docker-compose`() {
+        val graph = WorkspaceGraph(1, "PgRagProject",
+            listOf(
+                GraphNode("ga1", "graph-agent", Position(0.0, 0.0), mapOf(
+                    "name" to "DocsAgent",
+                    "description" to "Searches docs",
+                    "systemPrompt" to "Help with docs",
+                    "modelProvider" to "openai",
+                    "strategyNodes" to listOf(
+                        mapOf("id" to "sn1", "type" to "node-start", "data" to emptyMap<String, Any?>()),
+                        mapOf("id" to "sn2", "type" to "node-llm-request", "data" to mapOf("label" to "answer")),
+                        mapOf("id" to "sn3", "type" to "node-finish", "data" to emptyMap<String, Any?>())
+                    ),
+                    "strategyEdges" to listOf(
+                        mapOf("source" to "sn1", "target" to "sn2", "edgeType" to "onCondition"),
+                        mapOf("source" to "sn2", "target" to "sn3", "edgeType" to "onAssistantMessage")
+                    )
+                )),
+                GraphNode("rag1", "rag", Position(-200.0, 0.0), mapOf(
+                    "name" to "ProductDocs",
+                    "embedderProvider" to "OpenAI",
+                    "embedderModel" to "TextEmbedding3Small",
+                    "apiKeyVariable" to "OPENAI_API_KEY",
+                    "storageType" to "PostgreSQL",
+                    "similarityThreshold" to 0.7,
+                    "filePaths" to listOf("./docs/manual.txt"),
+                    "urlSources" to emptyList<String>(),
+                    "maxDocuments" to 5,
+                    "injectAsContext" to true,
+                    "provideAsTool" to false,
+                    "toolDescription" to ""
+                ))
+            ),
+            listOf(GraphEdge("e1", "rag1", "ga1"))
+        )
+        val (_, files) = service.exportWithFiles(graph)
+
+        // docker-compose.yaml generated
+        assertTrue(files.containsKey("docker-compose.yaml"))
+        val compose = files["docker-compose.yaml"]!!
+        assertContains(compose, "pgvector/pgvector:pg17")
+        assertContains(compose, "PGVECTOR_HOST: db")
+        assertContains(compose, "service_healthy")
+
+        // PgVectorStorage.kt generated
+        assertTrue(files.containsKey("src/main/kotlin/generated/rag/PgVectorStorage.kt"))
+        val pgStorage = files["src/main/kotlin/generated/rag/PgVectorStorage.kt"]!!
+        assertContains(pgStorage, "class PgVectorStorage")
+        assertContains(pgStorage, "VectorStorage<String>")
+
+        // RAG file uses PgVectorStorage
+        val ragFile = files["src/main/kotlin/generated/rag/ProductDocsRag.kt"]!!
+        assertContains(ragFile, "PgVectorStorage")
+        assertContains(ragFile, "initSchema")
+
+        // build.gradle has PostgreSQL deps
+        assertContains(files["build.gradle.kts"]!!, "postgresql")
+        assertContains(files["build.gradle.kts"]!!, "pgvector")
+    }
+
     private fun readZipEntries(data: ByteArray): List<String> {
         val entries = mutableListOf<String>()
         ZipInputStream(ByteArrayInputStream(data)).use { zis ->
