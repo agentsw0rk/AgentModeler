@@ -343,6 +343,39 @@ class ExportServiceTest {
         assertContains(factoryContent, "SingleLLMPromptExecutor")
     }
 
+    @Test
+    fun `exports Bedrock agent with correct dependencies and properties`() {
+        val graph = WorkspaceGraph(1, "BedrockProject",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf(
+                    "name" to "MyAgent",
+                    "systemPrompt" to "Help",
+                    "modelProvider" to "bedrock",
+                    "modelId" to "claude-4.5-sonnet"
+                ))
+            ),
+            emptyList()
+        )
+        val (_, files) = service.exportWithFiles(graph)
+
+        // build.gradle has Bedrock dependency
+        assertContains(files["build.gradle.kts"]!!, "prompt-executor-bedrock-client")
+
+        // AgentConfig uses Bedrock executor
+        val agentCode = files["src/main/kotlin/generated/AgentConfig.kt"]!!
+        assertContains(agentCode, "simpleBedrockExecutor")
+        assertContains(agentCode, "BedrockClientSettings")
+        assertContains(agentCode, "accessKey")
+        assertContains(agentCode, "secretKey")
+        assertContains(agentCode, "BedrockModels.AnthropicClaude4_5Sonnet")
+
+        // application.properties has Bedrock keys
+        val props = files["src/main/resources/application.properties"]!!
+        assertContains(props, "bedrock.access-key")
+        assertContains(props, "bedrock.secret-key")
+        assertTrue(!props.contains("bedrock.api-key"))
+    }
+
     private fun readZipEntries(data: ByteArray): List<String> {
         val entries = mutableListOf<String>()
         ZipInputStream(ByteArrayInputStream(data)).use { zis ->
