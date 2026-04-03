@@ -34,18 +34,18 @@ class ExportService(
     private val zipBuilder: ZipBuilder,
     private val backends: List<GeneratorBackend>
 ) {
-    fun export(graph: WorkspaceGraph, backendId: String = "spring-boot"): ByteArray {
-        val files = generateFiles(graph, backendId)
+    fun export(graph: WorkspaceGraph, backendId: String = "spring-boot", targets: List<String>? = null): ByteArray {
+        val files = generateFiles(graph, backendId, targets)
         return zipBuilder.buildZip(files)
     }
 
-    fun exportWithFiles(graph: WorkspaceGraph, backendId: String = "spring-boot"): Pair<ByteArray, Map<String, String>> {
-        val files = generateFiles(graph, backendId)
+    fun exportWithFiles(graph: WorkspaceGraph, backendId: String = "spring-boot", targets: List<String>? = null): Pair<ByteArray, Map<String, String>> {
+        val files = generateFiles(graph, backendId, targets)
         val zip = zipBuilder.buildZip(files)
         return Pair(zip, files)
     }
 
-    fun generateFiles(graph: WorkspaceGraph, backendId: String = "spring-boot"): Map<String, String> {
+    fun generateFiles(graph: WorkspaceGraph, backendId: String = "spring-boot", targets: List<String>? = null): Map<String, String> {
         val validationErrors = validator.validate(graph)
         if (validationErrors.isNotEmpty()) {
             throw ExportValidationException(validationErrors)
@@ -57,11 +57,12 @@ class ExportService(
         val graphAgents = adapter.convertGraphAgents(graph)
         val sharedCodes = adapter.convertSharedCode(graph)
         val pkg = "src/main/kotlin/generated"
+        val config = BackendConfig(targets = targets ?: emptyList())
 
         if (plannerAgents.isNotEmpty()) {
             val planner = plannerAgents.first()
             val sharedFiles = generatePlannerSharedFiles(planner, sharedCodes, pkg)
-            val infraFiles = backend.generatePlannerAgentFiles(planner, graph.name, sharedFiles)
+            val infraFiles = backend.generatePlannerAgentFiles(planner, graph.name, sharedFiles, config)
             return if (backend.remapsSharedFiles) infraFiles else sharedFiles + infraFiles
         }
 
@@ -70,23 +71,23 @@ class ExportService(
             val (inputClassName, outputClassName) = ioClassNames(ga.name, ga.inputs, ga.outputs)
             val strategyCall = "create${ga.name.replaceFirstChar { it.uppercase() }}Strategy()"
             val sharedFiles = generateGraphAgentSharedFiles(ga, sharedCodes, pkg)
-            val infraFiles = backend.generateGraphAgentFiles(ga, graph.name, sharedFiles, strategyCall, inputClassName, outputClassName)
+            val infraFiles = backend.generateGraphAgentFiles(ga, graph.name, sharedFiles, strategyCall, inputClassName, outputClassName, config)
             return if (backend.remapsSharedFiles) infraFiles else sharedFiles + infraFiles
         }
 
         val agent = agents.first()
         val (inputClassName, outputClassName) = ioClassNames(agent.name, agent.inputs, agent.outputs)
         val sharedFiles = generateAgentSharedFiles(agent, sharedCodes, pkg)
-        val infraFiles = backend.generateAgentFiles(agent, graph.name, sharedFiles, inputClassName, outputClassName)
+        val infraFiles = backend.generateAgentFiles(agent, graph.name, sharedFiles, inputClassName, outputClassName, config)
         return if (backend.remapsSharedFiles) infraFiles else sharedFiles + infraFiles
     }
 
-    fun generateFilesWithMapping(graph: WorkspaceGraph, backendId: String = "spring-boot"): Pair<Map<String, String>, Map<String, String>> {
-        val files = generateFiles(graph, backendId)
+    fun generateFilesWithMapping(graph: WorkspaceGraph, backendId: String = "spring-boot", targets: List<String>? = null): Pair<Map<String, String>, Map<String, String>> {
+        val files = generateFiles(graph, backendId, targets)
         val fileToNodeId = mutableMapOf<String, String>()
 
-        // Register mappings for both JVM and WasmJS source paths
-        val prefixes = listOf("src/main/kotlin/generated", "src/wasmJsMain/kotlin/generated")
+        // Register mappings for JVM, WasmJS, and common source paths
+        val prefixes = listOf("src/main/kotlin/generated", "src/wasmJsMain/kotlin/generated", "src/commonMain/kotlin/generated")
 
         for (node in graph.nodes) {
             when (node.type) {

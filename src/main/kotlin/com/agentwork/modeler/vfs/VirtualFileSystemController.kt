@@ -19,7 +19,7 @@ class VirtualFileSystemController(
         @PathVariable projectName: String,
         @RequestBody request: GenerateRequest
     ): GenerationResult {
-        return codeGenerationService.generateForProject(projectName, request.resolveGraph(), request.backend)
+        return codeGenerationService.generateForProject(projectName, request.resolveGraph(), request.backend, request.targets)
     }
 
     @GetMapping("/{projectName}/tree")
@@ -57,6 +57,7 @@ class VirtualFileSystemController(
 data class GenerateRequest(
     val graph: WorkspaceGraph? = null,
     val backend: String = "spring-boot",
+    val targets: List<String>? = null,
     val version: Int? = null,
     val name: String? = null,
     val nodes: List<GraphNode>? = null,

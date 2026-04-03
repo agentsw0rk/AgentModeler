@@ -18,7 +18,7 @@ class ExportController(private val exportService: ExportService) {
     @PostMapping("/api/export")
     fun export(@RequestBody request: ExportRequest): ResponseEntity<ByteArray> {
         val graph = request.resolveGraph()
-        val zip = exportService.export(graph, request.backend)
+        val zip = exportService.export(graph, request.backend, request.targets)
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${graph.name}.zip\"")
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -36,6 +36,7 @@ class ExportController(private val exportService: ExportService) {
 data class ExportRequest(
     val graph: WorkspaceGraph? = null,
     val backend: String = "spring-boot",
+    val targets: List<String>? = null,
     val version: Int? = null,
     val name: String? = null,
     val nodes: List<GraphNode>? = null,

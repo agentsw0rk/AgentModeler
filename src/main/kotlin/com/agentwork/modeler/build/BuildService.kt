@@ -13,8 +13,8 @@ class BuildService(
     private val errorParser: GradleErrorParser
 ) {
 
-    fun build(graph: WorkspaceGraph, platform: String, backendId: String = "spring-boot"): BuildResult {
-        val (files, fileToNodeMap) = exportService.generateFilesWithMapping(graph, backendId)
+    fun build(graph: WorkspaceGraph, platform: String, backendId: String = "spring-boot", targets: List<String>? = null): BuildResult {
+        val (files, fileToNodeMap) = exportService.generateFilesWithMapping(graph, backendId, targets)
 
         val tempDir = Files.createTempDirectory("modeler-build-").toFile()
         try {
@@ -24,9 +24,10 @@ class BuildService(
                 file.writeText(content)
             }
 
-            val gradleTask = when (platform) {
-                "native" -> "compileKotlinNative"
-                "wasm" -> "compileKotlinWasmJs"
+            val gradleTask = when {
+                platform == "publish" -> "publishToMavenLocal"
+                platform == "native" -> "compileKotlinNative"
+                platform == "wasm" -> "compileKotlinWasmJs"
                 else -> "compileKotlin"
             }
 
