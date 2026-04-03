@@ -147,5 +147,16 @@ class SubAgentGenerator {
             "gemini-2-pro" -> "GoogleModels.Gemini2Pro"
             else -> provider.defaultModel
         }
+        ModelProvider.BEDROCK -> when (id.lowercase()) {
+            "claude-4.5-sonnet" -> "BedrockModels.AnthropicClaude4_5Sonnet"
+            "claude-4-sonnet" -> "BedrockModels.AnthropicClaude4Sonnet"
+            "claude-4-opus" -> "BedrockModels.AnthropicClaude4Opus"
+            "nova-pro" -> "BedrockModels.AmazonNovaPro"
+            "nova-lite" -> "BedrockModels.AmazonNovaLite"
+            "nova-micro" -> "BedrockModels.AmazonNovaMicro"
+            "llama-3.3-70b" -> "BedrockModels.MetaLlama3_3_70BInstruct"
+            "llama-3.1-405b" -> "BedrockModels.MetaLlama3_1_405BInstruct"
+            else -> provider.defaultModel
+        }
     }
 }

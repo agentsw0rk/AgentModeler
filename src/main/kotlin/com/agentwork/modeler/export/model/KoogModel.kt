@@ -21,7 +21,8 @@ data class KoogAgent(
 enum class ModelProvider(val importPackage: String, val executorFactory: String, val defaultModel: String) {
     OPENAI("ai.koog.prompt.executor.clients.openai.OpenAIModels", "simpleOpenAIExecutor", "OpenAIModels.Chat.GPT4o"),
     ANTHROPIC("ai.koog.prompt.executor.clients.anthropic.AnthropicModels", "simpleAnthropicExecutor", "AnthropicModels.Sonnet_4"),
-    GOOGLE("ai.koog.prompt.executor.clients.google.GoogleModels", "simpleGoogleExecutor", "GoogleModels.Gemini2Flash")
+    GOOGLE("ai.koog.prompt.executor.clients.google.GoogleModels", "simpleGoogleExecutor", "GoogleModels.Gemini2Flash"),
+    BEDROCK("ai.koog.prompt.executor.clients.bedrock.BedrockModels", "simpleBedrockExecutor", "BedrockModels.AnthropicClaude4Sonnet")
 }
 
 data class KoogTool(

@@ -5,9 +5,11 @@ import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.mcp.McpToolRegistryProvider
 import ai.koog.agents.mcp.defaultStdioTransport
 import ai.koog.prompt.executor.clients.anthropic.AnthropicModels
+import ai.koog.prompt.executor.clients.bedrock.BedrockModels
 import ai.koog.prompt.executor.clients.google.GoogleModels
 import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.all.simpleAnthropicExecutor
+import ai.koog.prompt.executor.llms.all.simpleBedrockExecutor
 import ai.koog.prompt.executor.llms.all.simpleGoogleAIExecutor
 import ai.koog.prompt.executor.llms.all.simpleOpenAIExecutor
 import ai.koog.prompt.llm.LLModel
@@ -27,6 +29,7 @@ class PreviewAgentBuilder {
             ModelProvider.OPENAI -> simpleOpenAIExecutor(apiKey)
             ModelProvider.ANTHROPIC -> simpleAnthropicExecutor(apiKey)
             ModelProvider.GOOGLE -> simpleGoogleAIExecutor(apiKey)
+            ModelProvider.BEDROCK -> throw PreviewException("Bedrock executor not yet implemented")
         }
 
         val model = agent.modelId?.let { resolveModel(agent.modelProvider, it) }
@@ -97,11 +100,23 @@ class PreviewAgentBuilder {
             "gemini-2.5-flash" -> GoogleModels.Gemini2_5Flash
             else -> GoogleModels.Gemini2_0Flash
         }
+        ModelProvider.BEDROCK -> when (id.lowercase()) {
+            "claude-4.5-sonnet" -> BedrockModels.AnthropicClaude4_5Sonnet
+            "claude-4-sonnet" -> BedrockModels.AnthropicClaude4Sonnet
+            "claude-4-opus" -> BedrockModels.AnthropicClaude4Opus
+            "nova-pro" -> BedrockModels.AmazonNovaPro
+            "nova-lite" -> BedrockModels.AmazonNovaLite
+            "nova-micro" -> BedrockModels.AmazonNovaMicro
+            "llama-3.3-70b" -> BedrockModels.MetaLlama3_3_70BInstruct
+            "llama-3.1-405b" -> BedrockModels.MetaLlama3_1_405BInstruct
+            else -> BedrockModels.AnthropicClaude4Sonnet
+        }
     }
 
     private fun resolveDefaultModel(provider: ModelProvider): LLModel = when (provider) {
         ModelProvider.OPENAI -> OpenAIModels.Chat.GPT4o
         ModelProvider.ANTHROPIC -> AnthropicModels.Sonnet_4
         ModelProvider.GOOGLE -> GoogleModels.Gemini2_0Flash
+        ModelProvider.BEDROCK -> BedrockModels.AnthropicClaude4Sonnet
     }
 }
