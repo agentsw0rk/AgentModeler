@@ -1,15 +1,21 @@
 package com.agentwork.modeler.export.generator
 
 import com.agentwork.modeler.export.model.KoogAgent
+import com.agentwork.modeler.export.model.ModelProvider
 import org.springframework.stereotype.Component
 
 @Component
 class ApplicationPropertiesGenerator {
     fun generate(agent: KoogAgent): String {
-        val providerKey = agent.modelProvider.name.lowercase()
         return buildString {
             appendLine("server.port=\${SERVER_PORT:8080}")
-            appendLine("${providerKey}.api-key=\${${agent.modelProvider.name}_API_KEY:}")
+            if (agent.modelProvider == ModelProvider.BEDROCK) {
+                appendLine("bedrock.access-key=\${AWS_BEDROCK_ACCESS_KEY:}")
+                appendLine("bedrock.secret-key=\${AWS_BEDROCK_SECRET_ACCESS_KEY:}")
+            } else {
+                val providerKey = agent.modelProvider.name.lowercase()
+                appendLine("${providerKey}.api-key=\${${agent.modelProvider.name}_API_KEY:}")
+            }
             if (agent.otelConfig?.enabled == true) {
                 val otel = agent.otelConfig!!
                 appendLine()

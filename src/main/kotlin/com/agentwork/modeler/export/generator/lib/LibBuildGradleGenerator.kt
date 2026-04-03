@@ -1,6 +1,7 @@
 package com.agentwork.modeler.export.generator.lib
 
 import com.agentwork.modeler.export.model.KoogAgent
+import com.agentwork.modeler.export.model.ModelProvider
 import org.springframework.stereotype.Component
 
 @Component
@@ -56,6 +57,9 @@ class LibBuildGradleGenerator {
         appendLine("""            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")""")
         if (agent.mcpServers.isNotEmpty()) {
             appendLine("""            implementation("ai.koog:agents-ext-mcp:$KOOG_VERSION")""")
+        }
+        if (agent.modelProvider == ModelProvider.BEDROCK) {
+            appendLine("""            implementation("ai.koog.prompt:prompt-executor-bedrock-client:$KOOG_VERSION")""")
         }
         appendLine("""        }""")
         appendLine("""        commonTest.dependencies {""")

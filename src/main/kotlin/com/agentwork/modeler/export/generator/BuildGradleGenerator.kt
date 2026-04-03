@@ -2,6 +2,7 @@ package com.agentwork.modeler.export.generator
 
 import com.agentwork.modeler.export.model.BuiltinToolType
 import com.agentwork.modeler.export.model.KoogAgent
+import com.agentwork.modeler.export.model.ModelProvider
 import com.agentwork.modeler.export.model.OtelConfig
 import org.springframework.stereotype.Component
 
@@ -48,6 +49,9 @@ class BuildGradleGenerator {
             }
             if (agent.mcpServers.isNotEmpty()) {
                 appendLine("""    implementation("ai.koog:agents-ext-mcp:$KOOG_VERSION")""")
+            }
+            if (agent.modelProvider == ModelProvider.BEDROCK) {
+                appendLine("""    implementation("ai.koog.prompt:prompt-executor-bedrock-client:$KOOG_VERSION")""")
             }
             if (agent.otelConfig?.enabled == true) {
                 appendLine("""    implementation(platform("io.opentelemetry:opentelemetry-bom:$OTEL_BOM_VERSION"))""")
