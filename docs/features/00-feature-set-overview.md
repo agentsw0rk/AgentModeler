@@ -17,3 +17,4 @@ Abgeleitet aus der [Gap Analysis](docs/gap-analysis-banking-tutorial.md). Jedes 
 | 9 | [Backend Selector UI](./09-backend-selector-ui.md) | `09` | #8 | Klein |
 | 10 | [RAG Node](./10-rag-node.md) | `10` | — | Mittel–Hoch |
 | 11 | [KotlinPoet Code Generation](./11-kotlinpoet-codegen.md) | `11` | — | Hoch |
+| 12 | [KMP Library Codegen](./12-kmp-library-codegen.md) | `12` | #8 (Generator-Backend-Abstraktion) | Mittel |
