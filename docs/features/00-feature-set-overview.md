@@ -19,3 +19,4 @@ Abgeleitet aus der [Gap Analysis](docs/gap-analysis-banking-tutorial.md). Jedes 
 | 11 | [KotlinPoet Code Generation](./11-kotlinpoet-codegen.md) | `11` | — | Hoch |
 | 12 | [KMP Library Codegen](./12-kmp-library-codegen.md) | `12` | #8 (Generator-Backend-Abstraktion) | Mittel |
 | 13 | [AWS Bedrock Provider](./13-aws-bedrock-provider.md) | `13` | — | Klein |
+| 14 | [pgvector RAG Storage](./14-pgvector-rag-storage.md) | `14` | #10 (RAG Node) | Mittel |
