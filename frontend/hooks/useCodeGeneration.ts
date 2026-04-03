@@ -71,10 +71,11 @@ async function triggerGeneration(
   store.setStatus("generating");
 
   const graph = buildWorkspaceGraph();
-  const { workspaceName, activeBackend } = useEditorStore.getState();
+  const { workspaceName, activeBackend, libraryTargets } = useEditorStore.getState();
+  const targets = activeBackend === "kmp-library" ? libraryTargets : undefined;
 
   try {
-    const result = await generateCode(workspaceName, graph, signal, activeBackend);
+    const result = await generateCode(workspaceName, graph, signal, activeBackend, targets);
 
     if (result.status === GenerationStatus.INVALID) {
       useCodeExplorerStore.getState().setStatus("invalid");

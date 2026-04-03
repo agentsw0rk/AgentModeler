@@ -87,7 +87,10 @@ export function ExportDialog({ open: controlledOpen, onOpenChange: controlledOnO
     setStatus("exporting");
     try {
       const { useEditorStore } = await import("@/store/editorStore");
-      const blob = await exportToKotlin(graph, useEditorStore.getState().activeBackend);
+      const activeBackend = useEditorStore.getState().activeBackend;
+      const libraryTargets = useEditorStore.getState().libraryTargets;
+      const targets = activeBackend === "kmp-library" ? libraryTargets : undefined;
+      const blob = await exportToKotlin(graph, activeBackend, targets);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

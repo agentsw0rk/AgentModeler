@@ -30,7 +30,7 @@ export function RagPropertiesEmbedderTab({ data, onUpdate }: { data: RagNodeConf
       </div>
       <div>
         <Label>Model</Label>
-        <Select value={data.embedderModel} onValueChange={(v) => onUpdate({ embedderModel: v })}>
+        <Select value={data.embedderModel ?? undefined} onValueChange={(v) => { if (v != null) onUpdate({ embedderModel: v }); }}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             {models.map((m) => (
