@@ -25,6 +25,7 @@ import {
   WifiIcon,
   CpuIcon,
   ChevronDownIcon,
+  CheckSquareIcon,
 } from "lucide-react";
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -43,6 +44,9 @@ export function ToolsMenuDialog({ mcpConnected = false }: { mcpConnected?: boole
   const setErrors = useValidationStore((s) => s.setErrors);
   const setBuildErrors = useValidationStore((s) => s.setBuildErrors);
   const setBuildLoading = useValidationStore((s) => s.setBuildLoading);
+  const libraryTargets = useEditorStore((s) => s.libraryTargets);
+  const setLibraryTargets = useEditorStore((s) => s.setLibraryTargets);
+  const isLibrary = activeBackend === "kmp-library";
 
   useEffect(() => {
     fetchGenerators().then(setGenerators);
@@ -71,17 +75,29 @@ export function ToolsMenuDialog({ mcpConnected = false }: { mcpConnected?: boole
     const graph = buildWorkspaceGraph();
     setBuildLoading(true);
     try {
-      const result = await buildProject(graph, platform, activeBackend);
+      const targets = isLibrary ? libraryTargets : undefined;
+      const result = await buildProject(graph, platform, activeBackend, targets);
       const errors = result.errors.map((e) => ({
         nodeId: e.nodeId || "",
         severity: e.severity === "error" ? "error" as const : "warning" as const,
         message: `[${e.file}:${e.line}] ${e.message}`,
       }));
       setBuildErrors(errors);
-    } catch (err: any) {
-      setBuildErrors([{ nodeId: "", severity: "error", message: err.message || "Build failed" }]);
+    } catch (err) {
+      setBuildErrors([{ nodeId: "", severity: "error", message: (err as Error).message || "Build failed" }]);
     } finally {
       setBuildLoading(false);
+    }
+  };
+
+  const toggleTarget = (target: string) => {
+    const current = libraryTargets;
+    if (current.includes(target)) {
+      if (current.length > 1) {
+        setLibraryTargets(current.filter((t) => t !== target));
+      }
+    } else {
+      setLibraryTargets([...current, target]);
     }
   };
 
@@ -139,22 +155,60 @@ export function ToolsMenuDialog({ mcpConnected = false }: { mcpConnected?: boole
                 )}
               </div>
             </div>
+            {isLibrary && (
+              <div className="px-4 py-2">
+                <div className="text-xs text-muted-foreground mb-1.5">Targets</div>
+                <div className="grid grid-cols-2 gap-1">
+                  {["jvm", "wasmJs", "js", "ios"].map((target) => (
+                    <button
+                      key={target}
+                      onClick={() => toggleTarget(target)}
+                      className={`flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors ${
+                        libraryTargets.includes(target)
+                          ? "bg-muted font-medium"
+                          : "hover:bg-muted/50 text-muted-foreground"
+                      }`}
+                    >
+                      <CheckSquareIcon
+                        className={`size-3.5 ${
+                          libraryTargets.includes(target)
+                            ? "text-primary"
+                            : "text-muted-foreground/30"
+                        }`}
+                      />
+                      {target === "ios" ? "iOS" : target}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="border-t my-1" />
             <Button variant="ghost" className="justify-start gap-3 h-10" onClick={handleValidate}>
               <CheckCircleIcon className="size-4 text-muted-foreground" />
               Validate (Local)
             </Button>
-            {platforms.map((platform) => (
+            {isLibrary ? (
               <Button
-                key={platform}
                 variant="ghost"
                 className="justify-start gap-3 h-10"
-                onClick={() => handleBuild(platform)}
+                onClick={() => handleBuild("publish")}
               >
-                <HammerIcon className="size-4 text-muted-foreground" />
-                {PLATFORM_LABELS[platform] ?? `Build (${platform})`}
+                <PackageIcon className="size-4 text-muted-foreground" />
+                Publish to Maven Local
               </Button>
-            ))}
+            ) : (
+              platforms.map((platform) => (
+                <Button
+                  key={platform}
+                  variant="ghost"
+                  className="justify-start gap-3 h-10"
+                  onClick={() => handleBuild(platform)}
+                >
+                  <HammerIcon className="size-4 text-muted-foreground" />
+                  {PLATFORM_LABELS[platform] ?? `Build (${platform})`}
+                </Button>
+              ))
+            )}
             <div className="border-t my-1" />
             <Button variant="ghost" className="justify-start gap-3 h-10" onClick={() => openSubDialog("save")}>
               <SaveIcon className="size-4 text-muted-foreground" />
