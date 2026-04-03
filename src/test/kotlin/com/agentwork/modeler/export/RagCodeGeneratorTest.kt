@@ -106,4 +106,19 @@ class RagCodeGeneratorTest {
         assertFalse(code.contains("@Tool"))
         assertFalse(code.contains("SearchTools"))
     }
+
+    @Test
+    fun `generates PostgreSQL storage with PgVectorStorage`() {
+        val code = generator.generateRagFile(ragNode(
+            storageType = "PostgreSQL",
+            filePaths = listOf("./docs/manual.txt")
+        ))
+
+        assertContains(code, "object ProductDocsRag")
+        assertContains(code, "PgVectorStorage()")
+        assertContains(code, "vectorStorage.initSchema()")
+        assertContains(code, "storage.store(Path.of(\"./docs/manual.txt\"))")
+        assertFalse(code.contains("InMemoryVectorStorage"))
+        assertFalse(code.contains("JVMFileVectorStorage"))
+    }
 }

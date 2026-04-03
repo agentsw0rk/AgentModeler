@@ -77,6 +77,17 @@ class RagCodeGenerator {
         )
 
         // Storage
+        val pgVectorStorageClass = ClassName("generated.rag", "PgVectorStorage")
+
+        if (rag.storageType.uppercase() == "POSTGRESQL") {
+            objectBuilder.addProperty(
+                PropertySpec.builder("vectorStorage", pgVectorStorageClass)
+                    .addModifiers(KModifier.PRIVATE)
+                    .initializer("%T()", pgVectorStorageClass)
+                    .build()
+            )
+        }
+
         val storageInitializer = when (rag.storageType.uppercase()) {
             "FILE" -> {
                 val path = rag.storagePath ?: "./rag-storage"
@@ -92,6 +103,10 @@ class RagCodeGenerator {
                     embeddingBasedStorage, cls
                 )
             }
+            "POSTGRESQL" -> CodeBlock.of(
+                "%T(documentEmbedder, vectorStorage)",
+                embeddingBasedStorage
+            )
             else -> CodeBlock.of(
                 "%T(documentEmbedder, %T())",
                 embeddingBasedStorage, inMemoryVectorStorage
@@ -107,6 +122,9 @@ class RagCodeGenerator {
         // initialize()
         val initFun = FunSpec.builder("initialize")
             .addModifiers(KModifier.SUSPEND)
+        if (rag.storageType.uppercase() == "POSTGRESQL") {
+            initFun.addStatement("vectorStorage.initSchema()")
+        }
         for (filePath in rag.filePaths) {
             initFun.addStatement("storage.store(%T.of(%S))", pathClass, filePath)
         }
