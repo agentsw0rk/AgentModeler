@@ -61,6 +61,10 @@ class LibBuildGradleGenerator {
         if (agent.modelProvider == ModelProvider.BEDROCK) {
             appendLine("""            implementation("ai.koog.prompt:prompt-executor-bedrock-client:$KOOG_VERSION")""")
         }
+        if (agent.ragNodes.any { it.storageType.uppercase() == "POSTGRESQL" }) {
+            appendLine("""            implementation("org.postgresql:postgresql:42.7.4")""")
+            appendLine("""            implementation("com.pgvector:pgvector:0.1.6")""")
+        }
         appendLine("""        }""")
         appendLine("""        commonTest.dependencies {""")
         appendLine("""            implementation(kotlin("test"))""")

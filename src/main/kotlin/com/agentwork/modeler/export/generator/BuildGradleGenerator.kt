@@ -53,6 +53,10 @@ class BuildGradleGenerator {
             if (agent.modelProvider == ModelProvider.BEDROCK) {
                 appendLine("""    implementation("ai.koog.prompt:prompt-executor-bedrock-client:$KOOG_VERSION")""")
             }
+            if (agent.ragNodes.any { it.storageType.uppercase() == "POSTGRESQL" }) {
+                appendLine("""    implementation("org.postgresql:postgresql:42.7.4")""")
+                appendLine("""    implementation("com.pgvector:pgvector:0.1.6")""")
+            }
             if (agent.otelConfig?.enabled == true) {
                 appendLine("""    implementation(platform("io.opentelemetry:opentelemetry-bom:$OTEL_BOM_VERSION"))""")
                 appendLine("""    implementation("ai.koog:koog-opentelemetry:$KOOG_VERSION")""")

@@ -43,7 +43,9 @@ class ExportServiceTest {
         settingsGradleGenerator = SettingsGradleGenerator(),
         gradlePropertiesGenerator = GradlePropertiesGenerator(),
         plannerAgentGenerator = PlannerAgentGenerator(),
-        a2aServerGenerator = A2AServerGenerator()
+        a2aServerGenerator = A2AServerGenerator(),
+        dockerComposeGenerator = DockerComposeGenerator(),
+        pgVectorStorageGenerator = PgVectorStorageGenerator()
     )
 
     private val service = ExportService(

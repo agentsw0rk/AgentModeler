@@ -18,7 +18,9 @@ class SpringBootBackend(
     private val settingsGradleGenerator: SettingsGradleGenerator,
     private val gradlePropertiesGenerator: GradlePropertiesGenerator,
     private val plannerAgentGenerator: PlannerAgentGenerator,
-    private val a2aServerGenerator: A2AServerGenerator
+    private val a2aServerGenerator: A2AServerGenerator,
+    private val dockerComposeGenerator: DockerComposeGenerator,
+    private val pgVectorStorageGenerator: PgVectorStorageGenerator
 ) : GeneratorBackend {
 
     override val id = "spring-boot"
@@ -42,6 +44,10 @@ class SpringBootBackend(
         files["settings.gradle.kts"] = settingsGradleGenerator.generate(graphName)
         files["gradle.properties"] = gradlePropertiesGenerator.generate()
         files["Dockerfile"] = dockerfileGenerator.generate()
+        if (agent.ragNodes.any { it.storageType.uppercase() == "POSTGRESQL" }) {
+            files["docker-compose.yaml"] = dockerComposeGenerator.generate(agent)
+            files["$pkg/rag/PgVectorStorage.kt"] = pgVectorStorageGenerator.generate()
+        }
         files["src/main/resources/application.properties"] = applicationPropertiesGenerator.generate(agent)
 
         // Kotlin sources
@@ -101,6 +107,10 @@ class SpringBootBackend(
         files["settings.gradle.kts"] = settingsGradleGenerator.generate(graphName)
         files["gradle.properties"] = gradlePropertiesGenerator.generate()
         files["Dockerfile"] = dockerfileGenerator.generate()
+        if (agent.ragNodes.any { it.storageType.uppercase() == "POSTGRESQL" }) {
+            files["docker-compose.yaml"] = dockerComposeGenerator.generate(infraAgent)
+            files["$pkg/rag/PgVectorStorage.kt"] = pgVectorStorageGenerator.generate()
+        }
         files["src/main/resources/application.properties"] = applicationPropertiesGenerator.generate(infraAgent)
 
         // Kotlin sources
