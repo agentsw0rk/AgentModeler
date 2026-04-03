@@ -1,8 +1,12 @@
 package com.agentwork.modeler.export
 
 import com.agentwork.modeler.export.adapter.GraphToKoogAdapter
+import com.agentwork.modeler.export.backend.KmpLibraryBackend
 import com.agentwork.modeler.export.backend.SpringBootBackend
 import com.agentwork.modeler.export.generator.*
+import com.agentwork.modeler.export.generator.lib.*
+import com.agentwork.modeler.export.generator.ktor.KtorRegistryGenerator
+import com.agentwork.modeler.export.generator.ktor.WasmToolGenerator
 import com.agentwork.modeler.export.generator.GraphAgentGenerator
 import com.agentwork.modeler.export.generator.McpServerGenerator
 import com.agentwork.modeler.export.generator.SubAgentGenerator
@@ -17,6 +21,16 @@ import kotlin.test.assertTrue
 import kotlin.test.assertContains
 
 class ExportServiceTest {
+
+    private val kmpLibraryBackend = KmpLibraryBackend(
+        libBuildGradleGenerator = LibBuildGradleGenerator(),
+        libSettingsGradleGenerator = LibSettingsGradleGenerator(),
+        libGradlePropertiesGenerator = LibGradlePropertiesGenerator(),
+        agentFactoryGenerator = AgentFactoryGenerator(),
+        smokeTestGenerator = SmokeTestGenerator(),
+        ktorRegistryGenerator = KtorRegistryGenerator(),
+        wasmToolGenerator = WasmToolGenerator()
+    )
 
     private val springBootBackend = SpringBootBackend(
         agentGenerator = AgentGenerator(),
@@ -45,7 +59,7 @@ class ExportServiceTest {
         graphAgentGenerator = GraphAgentGenerator(),
         ragCodeGenerator = RagCodeGenerator(),
         zipBuilder = ZipBuilder(),
-        backends = listOf(springBootBackend)
+        backends = listOf(springBootBackend, kmpLibraryBackend)
     )
 
     @Test
@@ -281,6 +295,52 @@ class ExportServiceTest {
         // I/O classes still generated
         assertTrue(files.containsKey("src/main/kotlin/generated/MyAgentInput.kt"))
         assertTrue(files.containsKey("src/main/kotlin/generated/MyAgentOutput.kt"))
+    }
+
+    @Test
+    fun `exports KMP library with commonMain layout`() {
+        val graph = WorkspaceGraph(1, "LibProject",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "MyAgent", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("t1", "tool", Position(200.0, 0.0), mapOf("name" to "searchTool", "description" to "Searches",
+                    "functions" to listOf(mapOf("name" to "search", "description" to "Searches", "parameters" to listOf(mapOf("id" to "p1", "name" to "query", "type" to "String", "description" to "query", "required" to true))))))
+            ),
+            listOf(GraphEdge("e1", "t1", "a1"))
+        )
+        val zip = service.export(graph, "kmp-library", listOf("jvm", "wasmJs"))
+        val entries = readZipEntries(zip)
+
+        // Infrastructure
+        assertTrue(entries.contains("build.gradle.kts"))
+        assertTrue(entries.contains("settings.gradle.kts"))
+        assertTrue(entries.contains("gradle.properties"))
+
+        // No server infrastructure
+        assertTrue(!entries.contains("Dockerfile"))
+        assertTrue(!entries.contains("src/main/resources/application.properties"))
+        assertTrue(!entries.any { it.contains("Application.kt") })
+        assertTrue(!entries.any { it.contains("Controller.kt") })
+
+        // CommonMain sources
+        assertTrue(entries.contains("src/commonMain/kotlin/generated/AgentFactory.kt"))
+        assertTrue(entries.contains("src/commonMain/kotlin/generated/ToolRegistry.kt"))
+        assertTrue(entries.contains("src/commonMain/kotlin/generated/tools/searchTool.kt"))
+
+        // WasmJS overrides
+        assertTrue(entries.contains("src/wasmJsMain/kotlin/generated/tools/searchTool.kt"))
+
+        // Test
+        assertTrue(entries.contains("src/commonTest/kotlin/generated/AgentSmokeTest.kt"))
+
+        // Verify content
+        val buildContent = readZipFileContent(zip, "build.gradle.kts")
+        assertContains(buildContent, "maven-publish")
+        assertContains(buildContent, "jvm()")
+        assertContains(buildContent, "wasmJs")
+
+        val factoryContent = readZipFileContent(zip, "src/commonMain/kotlin/generated/AgentFactory.kt")
+        assertContains(factoryContent, "createMyAgentAgent")
+        assertContains(factoryContent, "SingleLLMPromptExecutor")
     }
 
     private fun readZipEntries(data: ByteArray): List<String> {
