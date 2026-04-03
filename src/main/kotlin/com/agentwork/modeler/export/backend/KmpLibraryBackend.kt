@@ -33,7 +33,7 @@ class KmpLibraryBackend(
     private fun remapSharedFiles(sharedFiles: Map<String, String>): Map<String, String> =
         sharedFiles
             .filterKeys { path ->
-                !path.matches(Regex(".*/tools/[^/]+\\.kt$")) && !path.endsWith("ToolRegistry.kt") && !path.contains("/rag/")
+                !path.matches(Regex(".*/tools/[^/]+\\.kt$")) && !path.endsWith("ToolRegistry.kt")
             }
             .mapKeys { (path, _) ->
                 if (path.startsWith(jvmPrefix)) commonPrefix + path.removePrefix(jvmPrefix) else path
