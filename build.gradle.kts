@@ -51,3 +51,25 @@ dependencyManagement {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+// End-to-end tests against a real local Ollama are slow and need `ollama serve`, so they
+// only run via `./gradlew ollamaE2eTest` (see OllamaShellToolE2ETest).
+tasks.test {
+    useJUnitPlatform { excludeTags("ollama-e2e") }
+}
+
+val ollamaE2eTest by tasks.registering(Test::class) {
+    description = "Runs end-to-end tests against a local Ollama instance."
+    group = "verification"
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    useJUnitPlatform { includeTags("ollama-e2e") }
+    // The modeler's Spring context needs an OpenAI key bean; the e2e test itself never calls OpenAI
+    environment("OPENAI_API_KEY", System.getenv("OPENAI_API_KEY") ?: "not-used-by-e2e")
+    testLogging {
+        showStandardStreams = true
+        events("passed", "failed", "skipped")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+    outputs.upToDateWhen { false }
+}
