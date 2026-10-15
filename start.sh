@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # Koog Agent Modeler - Start Backend (8080) + Frontend (3000)
 
 cd "$(dirname "$0")"
@@ -9,10 +10,8 @@ echo "Starting Backend (Spring Boot on :8080)..."
 BACKEND_PID=$!
 
 echo "Starting Frontend (Next.js on :3000)..."
-cd frontend && npm run dev &
+(cd frontend && npm run dev) &
 FRONTEND_PID=$!
-
-cd ..
 
 echo "Starting MCP Test Server..."
 ./mcp-test/mcp-start.sh &
