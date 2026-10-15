@@ -12,9 +12,13 @@ import ai.koog.prompt.executor.clients.openai.OpenAIModels
 import ai.koog.prompt.executor.llms.all.simpleAnthropicExecutor
 import ai.koog.prompt.executor.llms.all.simpleBedrockExecutor
 import ai.koog.prompt.executor.llms.all.simpleGoogleAIExecutor
+import ai.koog.prompt.executor.llms.all.simpleOllamaAIExecutor
 import ai.koog.prompt.executor.llms.all.simpleOpenAIExecutor
 import ai.koog.prompt.executor.ollama.client.OllamaModels
+import ai.koog.prompt.llm.LLMCapability
+import ai.koog.prompt.llm.LLMProvider
 import ai.koog.prompt.llm.LLModel
+import com.agentwork.modeler.export.generator.OllamaModelMapping
 import com.agentwork.modeler.export.model.KoogAgent
 import com.agentwork.modeler.export.model.ModelProvider
 import org.springframework.stereotype.Component
@@ -23,16 +27,12 @@ import org.springframework.stereotype.Component
 class PreviewAgentBuilder {
 
     suspend fun build(agent: KoogAgent): AIAgent<String, String> {
-        val apiKeyEnv = "${agent.modelProvider.name}_API_KEY"
-        val apiKey = System.getenv(apiKeyEnv)
-            ?: throw PreviewException("Missing environment variable: $apiKeyEnv")
-
         val executor = when (agent.modelProvider) {
-            ModelProvider.OPENAI -> simpleOpenAIExecutor(apiKey)
-            ModelProvider.ANTHROPIC -> simpleAnthropicExecutor(apiKey)
-            ModelProvider.GOOGLE -> simpleGoogleAIExecutor(apiKey)
+            ModelProvider.OPENAI -> simpleOpenAIExecutor(requireApiKey(agent.modelProvider))
+            ModelProvider.ANTHROPIC -> simpleAnthropicExecutor(requireApiKey(agent.modelProvider))
+            ModelProvider.GOOGLE -> simpleGoogleAIExecutor(requireApiKey(agent.modelProvider))
             ModelProvider.BEDROCK -> throw PreviewException("Bedrock executor not yet implemented")
-            ModelProvider.OLLAMA -> throw PreviewException("Ollama executor not yet implemented")
+            ModelProvider.OLLAMA -> simpleOllamaAIExecutor(ollamaBaseUrl())
         }
 
         val model = agent.modelId?.let { resolveModel(agent.modelProvider, it) }
@@ -119,7 +119,20 @@ class PreviewAgentBuilder {
             "llama-3.1-405b" -> BedrockModels.MetaLlama3_1_405BInstruct
             else -> BedrockModels.AnthropicClaude4Sonnet
         }
-        ModelProvider.OLLAMA -> OllamaModels.Meta.LLAMA_3_2
+        ModelProvider.OLLAMA -> when (id.lowercase()) {
+            "llama3.2:latest", "llama3.2" -> OllamaModels.Meta.LLAMA_3_2
+            "llama3.2:3b" -> OllamaModels.Meta.LLAMA_3_2_3B
+            "qwen3.5:9b" -> OllamaModels.Alibaba.QWEN_3_5_9B
+            "qwen2.5-coder:32b" -> OllamaModels.Alibaba.QWEN_CODER_2_5_32B
+            "gpt-oss:20b" -> OllamaModels.OpenAI.GPT_OSS_20B
+            "llama3-groq-tool-use:8b" -> OllamaModels.Groq.LLAMA_3_GROK_TOOL_USE_8B
+            // Any other locally pulled model, see OllamaModelMapping
+            else -> LLModel(
+                LLMProvider.Ollama,
+                id,
+                listOf(LLMCapability.Temperature, LLMCapability.Schema.JSON.Standard, LLMCapability.Tools)
+            )
+        }
     }
 
     private fun resolveDefaultModel(provider: ModelProvider): LLModel = when (provider) {
@@ -129,4 +142,12 @@ class PreviewAgentBuilder {
         ModelProvider.BEDROCK -> BedrockModels.AnthropicClaude4Sonnet
         ModelProvider.OLLAMA -> OllamaModels.Meta.LLAMA_3_2
     }
+
+    private fun requireApiKey(provider: ModelProvider): String {
+        val apiKeyEnv = "${provider.name}_API_KEY"
+        return System.getenv(apiKeyEnv) ?: throw PreviewException("Missing environment variable: $apiKeyEnv")
+    }
+
+    private fun ollamaBaseUrl(): String =
+        System.getenv(OllamaModelMapping.BASE_URL_ENV) ?: OllamaModelMapping.DEFAULT_BASE_URL
 }
