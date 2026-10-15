@@ -1,11 +1,11 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ModelFields } from "@/components/shared/ModelFields";
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/store/editorStore";
 import { GraphAgentConfig } from "@/types/graph-agent";
-import { ModelProvider, MODEL_OPTIONS } from "@/types/koog";
+import { ModelProvider } from "@/types/koog";
 import { useState } from "react";
 import { GraphStrategyEditor } from "@/components/graph-agent/GraphStrategyEditor";
 
@@ -29,29 +29,7 @@ export function GraphAgentProperties({ nodeId, data }: { nodeId: string; data: G
           <Label>System Prompt</Label>
           <Textarea value={data.systemPrompt} onChange={(e) => update({ systemPrompt: e.target.value })} rows={4} placeholder="You are a helpful assistant..." />
         </div>
-        <div>
-          <Label>Model Provider</Label>
-          <Select value={data.modelProvider} onValueChange={(v) => update({ modelProvider: v as ModelProvider })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="openai">OpenAI</SelectItem>
-              <SelectItem value="anthropic">Anthropic</SelectItem>
-              <SelectItem value="google">Google</SelectItem>
-              <SelectItem value="bedrock">AWS Bedrock</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Model</Label>
-          <Select value={data.modelId || ""} onValueChange={(v) => update({ modelId: v || undefined })}>
-            <SelectTrigger><SelectValue placeholder="Default" /></SelectTrigger>
-            <SelectContent>
-              {MODEL_OPTIONS[data.modelProvider as ModelProvider].map((m) => (
-                <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <ModelFields provider={data.modelProvider as ModelProvider} modelId={data.modelId} onChange={update} />
         <div>
           <Label>Temperature</Label>
           <Input type="number" step="0.1" min="0" max="2" value={data.temperature ?? ""} onChange={(e) => update({ temperature: e.target.value ? parseFloat(e.target.value) : undefined })} placeholder="0.7" />

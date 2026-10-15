@@ -1,8 +1,8 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ModelFields } from "@/components/shared/ModelFields";
 import { PlannerAgentConfig } from "@/types/planner";
-import { ModelProvider, MODEL_OPTIONS } from "@/types/koog";
 
 export function SettingsTab({
   data,
@@ -25,29 +25,7 @@ export function SettingsTab({
       </div>
       {data.plannerType === "llm" && (
         <>
-          <div>
-            <Label>Model Provider</Label>
-            <Select value={data.modelProvider} onValueChange={(v) => onUpdate({ modelProvider: v as ModelProvider })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="openai">OpenAI</SelectItem>
-                <SelectItem value="anthropic">Anthropic</SelectItem>
-                <SelectItem value="google">Google</SelectItem>
-                <SelectItem value="bedrock">AWS Bedrock</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Model</Label>
-            <Select value={data.modelId || ""} onValueChange={(v) => onUpdate({ modelId: v || undefined })}>
-              <SelectTrigger><SelectValue placeholder="Default" /></SelectTrigger>
-              <SelectContent>
-                {MODEL_OPTIONS[data.modelProvider || "openai"].map((m) => (
-                  <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <ModelFields provider={data.modelProvider || "openai"} modelId={data.modelId} onChange={onUpdate} />
           <div>
             <Label>Temperature</Label>
             <Input

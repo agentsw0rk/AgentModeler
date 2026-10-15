@@ -4,9 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ModelFields } from "@/components/shared/ModelFields";
 import { useEditorStore } from "@/store/editorStore";
 import type { SubAgentConfig, DelegationMode } from "@/types/subagent";
-import { type ModelProvider, MODEL_OPTIONS } from "@/types/koog";
 
 export function SubAgentProperties({ nodeId, data }: { nodeId: string; data: SubAgentConfig }) {
   const updateNodeData = useEditorStore((s) => s.updateNodeData);
@@ -30,29 +30,7 @@ export function SubAgentProperties({ nodeId, data }: { nodeId: string; data: Sub
         <Label htmlFor="sa-input-desc">Input Description</Label>
         <Input id="sa-input-desc" value={data.inputDescription} onChange={(e) => update({ inputDescription: e.target.value })} placeholder="What does this Sub-Agent expect as input?" />
       </div>
-      <div>
-        <Label>Model Provider</Label>
-        <Select value={data.modelProvider} onValueChange={(v) => update({ modelProvider: v as ModelProvider })}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="openai">OpenAI</SelectItem>
-            <SelectItem value="anthropic">Anthropic</SelectItem>
-            <SelectItem value="google">Google</SelectItem>
-            <SelectItem value="bedrock">AWS Bedrock</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div>
-        <Label>Model</Label>
-        <Select value={data.modelId || ""} onValueChange={(v) => update({ modelId: v || undefined })}>
-          <SelectTrigger><SelectValue placeholder="Default" /></SelectTrigger>
-          <SelectContent>
-            {MODEL_OPTIONS[data.modelProvider].map((m) => (
-              <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <ModelFields provider={data.modelProvider} modelId={data.modelId} onChange={update} />
       <div>
         <Label htmlFor="sa-temperature">Temperature (optional)</Label>
         <Input id="sa-temperature" type="number" step="0.1" min="0" max="2" value={data.temperature ?? ""} onChange={(e) => update({ temperature: e.target.value ? parseFloat(e.target.value) : undefined })} />

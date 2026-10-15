@@ -1,6 +1,6 @@
 import type { A2AConfig } from "./a2a";
 
-export type ModelProvider = "openai" | "anthropic" | "google" | "bedrock";
+export type ModelProvider = "openai" | "anthropic" | "google" | "bedrock" | "ollama";
 
 export const MODEL_OPTIONS: Record<ModelProvider, { id: string; label: string }[]> = {
   openai: [
@@ -27,6 +27,24 @@ export const MODEL_OPTIONS: Record<ModelProvider, { id: string; label: string }[
     { id: "llama-3.3-70b", label: "Llama 3.3 70B" },
     { id: "llama-3.1-405b", label: "Llama 3.1 405B" },
   ],
+  // Ollama tags as used with `ollama pull`; all of them support tool calling.
+  // Any other tag can be entered freely (see ModelFields).
+  ollama: [
+    { id: "llama3.2:latest", label: "Llama 3.2" },
+    { id: "llama3.2:3b", label: "Llama 3.2 3B" },
+    { id: "qwen3.5:9b", label: "Qwen 3.5 9B" },
+    { id: "qwen2.5-coder:32b", label: "Qwen 2.5 Coder 32B" },
+    { id: "gpt-oss:20b", label: "GPT-OSS 20B" },
+    { id: "llama3-groq-tool-use:8b", label: "Llama 3 Groq Tool-Use 8B" },
+  ],
+};
+
+export const PROVIDER_LABELS: Record<ModelProvider, string> = {
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  google: "Google",
+  bedrock: "AWS Bedrock",
+  ollama: "Ollama (local)",
 };
 
 export interface AgentConfig {

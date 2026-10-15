@@ -1,6 +1,6 @@
 import { WorkspaceGraph, BuiltinToolConfig, BUILTIN_TOOL_TYPES } from "@/types/graph";
 import { validateGraphAgent } from "./graph-agent-validation";
-import { AgentConfig, ToolConfig } from "@/types/koog";
+import { AgentConfig, MODEL_OPTIONS, ToolConfig } from "@/types/koog";
 import { SubAgentConfig } from "@/types/subagent";
 import { McpServerConfig } from "@/types/mcp";
 import { PlannerAgentConfig } from "@/types/planner";
@@ -25,6 +25,16 @@ export function validateGraph(graph: WorkspaceGraph): ValidationError[] {
       }
       if (!data.systemPrompt.trim()) {
         errors.push({ nodeId: node.id, severity: "error", message: "Agent requires a system prompt" });
+      }
+      // Not every local model supports tool calling; the curated Ollama models do
+      if (data.modelProvider === "ollama" && data.modelId && !MODEL_OPTIONS.ollama.some((m) => m.id === data.modelId)) {
+        const usesTools = graph.edges.some((e) =>
+          e.target === node.id &&
+          ["tool", "builtin-tool", "mcp-server", "sub-agent"].includes(graph.nodes.find((n) => n.id === e.source)?.type ?? "")
+        );
+        if (usesTools) {
+          errors.push({ nodeId: node.id, severity: "warning", message: `Check that Ollama model "${data.modelId}" supports tool calling` });
+        }
       }
       // A2A config validation
       const agentData = node.data as AgentConfig;
