@@ -20,3 +20,4 @@ Abgeleitet aus der [Gap Analysis](docs/gap-analysis-banking-tutorial.md). Jedes 
 | 12 | [KMP Library Codegen](./12-kmp-library-codegen.md) | `12` | #8 (Generator-Backend-Abstraktion) | Mittel |
 | 13 | [AWS Bedrock Provider](./13-aws-bedrock-provider.md) | `13` | — | Klein |
 | 14 | [pgvector RAG Storage](./14-pgvector-rag-storage.md) | `14` | #10 (RAG Node) | Mittel |
+| 15 | [Ollama Provider](./15-ollama-provider.md) | `15` | — | Klein–Mittel |
