@@ -20,8 +20,13 @@ class SubAgentGenerator {
         val hasTools = subAgent.tools.isNotEmpty() || subAgent.builtinTools.isNotEmpty()
         val registryFuncName = "create${subAgent.name.replaceFirstChar { it.uppercase() }}ToolRegistry"
 
+        val executorArg = if (subAgent.modelProvider == ModelProvider.OLLAMA) {
+            "System.getenv(\"${OllamaModelMapping.BASE_URL_ENV}\") ?: \"${OllamaModelMapping.DEFAULT_BASE_URL}\""
+        } else {
+            """System.getenv("${subAgent.modelProvider.name}_API_KEY")"""
+        }
         val params = mutableListOf(
-            """promptExecutor = ${subAgent.modelProvider.executorFactory}(System.getenv("${subAgent.modelProvider.name}_API_KEY"))""",
+            "promptExecutor = ${subAgent.modelProvider.executorFactory}($executorArg)",
             """systemPrompt = "${subAgent.systemPrompt.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "")}"""",
             "llmModel = $modelRef"
         )

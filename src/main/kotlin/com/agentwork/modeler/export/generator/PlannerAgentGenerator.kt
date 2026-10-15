@@ -97,7 +97,12 @@ class PlannerAgentGenerator {
         appendLine("@Configuration")
         if (isLlm && planner.modelProvider != null) {
             appendLine("class PlannerAgentConfig(")
-            appendLine("    @Value(\"\${'$'}{${planner.modelProvider.name.lowercase()}.api-key}\") private val apiKey: String")
+            if (planner.modelProvider == ModelProvider.OLLAMA) {
+                // Default keeps the bean working when the main agent uses another provider
+                appendLine("    @Value(\"\${'$'}{ollama.base-url:${OllamaModelMapping.DEFAULT_BASE_URL}}\") private val baseUrl: String")
+            } else {
+                appendLine("    @Value(\"\${'$'}{${planner.modelProvider.name.lowercase()}.api-key}\") private val apiKey: String")
+            }
             appendLine(") {")
         } else {
             appendLine("class PlannerAgentConfig {")
@@ -111,7 +116,8 @@ class PlannerAgentGenerator {
         if (isLlm && planner.modelProvider != null) {
             val modelRef = planner.modelId?.let { mapModelId(planner.modelProvider, it) }
                 ?: planner.modelProvider.defaultModel
-            appendLine("        val executor = ${planner.modelProvider.executorFactory}(apiKey)")
+            val executorArg = if (planner.modelProvider == ModelProvider.OLLAMA) "baseUrl" else "apiKey"
+            appendLine("        val executor = ${planner.modelProvider.executorFactory}($executorArg)")
             appendLine("        val model = $modelRef")
             appendLine()
         }

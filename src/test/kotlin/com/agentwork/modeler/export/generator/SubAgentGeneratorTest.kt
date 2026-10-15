@@ -139,4 +139,17 @@ class SubAgentGeneratorTest {
         val code = generator.generate(subAgent)
         assertContains(code, "llmModel = ai.koog.prompt.llm.LLModel(ai.koog.prompt.llm.LLMProvider.Ollama, \"mistral:7b\"")
     }
+
+    @Test
+    fun `ollama sub-agent reads base url with default instead of api key`() {
+        val subAgent = KoogSubAgent(
+            name = "LocalHelper", description = "Runs locally", systemPrompt = "Help.",
+            modelProvider = ModelProvider.OLLAMA, modelId = "llama3.2:latest",
+            temperature = null, delegationMode = "automatic", inputDescription = "A task",
+            tools = emptyList(), builtinTools = emptyList()
+        )
+        val code = generator.generate(subAgent)
+        assertContains(code, "promptExecutor = simpleOllamaAIExecutor(System.getenv(\"OLLAMA_BASE_URL\") ?: \"http://localhost:11434\")")
+        assertFalse(code.contains("_API_KEY"))
+    }
 }

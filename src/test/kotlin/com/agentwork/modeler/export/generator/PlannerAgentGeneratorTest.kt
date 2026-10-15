@@ -110,4 +110,14 @@ class PlannerAgentGeneratorTest {
         val config = generator.generate(planner).values.joinToString("\n")
         assertContains(config, "val model = OllamaModels.Meta.LLAMA_3_2_3B")
     }
+
+    @Test
+    fun `ollama planner uses base url with default instead of api key`() {
+        val planner = llmPlanner().copy(modelProvider = ModelProvider.OLLAMA, modelId = "llama3.2:latest")
+        val config = generator.generate(planner).values.joinToString("\n")
+        assertContains(config, "ollama.base-url:http://localhost:11434}")
+        assertContains(config, "private val baseUrl: String")
+        assertContains(config, "val executor = simpleOllamaAIExecutor(baseUrl)")
+        assertFalse(config.contains("apiKey"))
+    }
 }
