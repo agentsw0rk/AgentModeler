@@ -9,7 +9,7 @@ class LibBuildGradleGenerator {
 
     companion object {
         const val KOTLIN_VERSION = "2.2.21"
-        const val KOOG_VERSION = "0.7.2"
+        const val KOOG_VERSION = "1.3.0"
     }
 
     fun generate(agent: KoogAgent, targets: List<String>): String = buildString {

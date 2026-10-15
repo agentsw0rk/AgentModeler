@@ -8,7 +8,7 @@ class WasmBuildGradleGenerator {
 
     companion object {
         const val KOTLIN_VERSION = "2.3.0"
-        const val KOOG_VERSION = "0.7.2"
+        const val KOOG_VERSION = "1.3.0"
         const val KTOR_VERSION = "3.1.3"
     }
 

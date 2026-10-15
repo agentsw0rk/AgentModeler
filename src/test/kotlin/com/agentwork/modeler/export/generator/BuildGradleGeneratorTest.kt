@@ -39,6 +39,14 @@ class BuildGradleGeneratorTest {
     }
 
     @Test
+    fun `uses published Koog versions for core and Spring starter`() {
+        val agent = KoogAgent("Agent1", "Help", ModelProvider.OPENAI, null, null, emptyList())
+        val code = generator.generate(agent)
+        assertContains(code, "ai.koog:koog-agents:1.3.0\"")
+        assertContains(code, "ai.koog:koog-spring-boot-starter:1.3.0-beta\"")
+    }
+
+    @Test
     fun `includes SQLite dependency when Memory tool present`() {
         val agent = KoogAgent("Agent1", "Help", ModelProvider.OPENAI, null, null, emptyList(),
             listOf(KoogBuiltinTool(BuiltinToolType.MEMORY)))

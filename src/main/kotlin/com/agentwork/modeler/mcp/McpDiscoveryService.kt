@@ -3,6 +3,7 @@ package com.agentwork.modeler.mcp
 import ai.koog.agents.mcp.McpToolRegistryProvider
 import ai.koog.agents.mcp.defaultStdioTransport
 import ai.koog.agents.core.tools.ToolRegistry
+import ai.koog.agents.mcp.metadata.McpServerInfo
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.springframework.stereotype.Service
@@ -32,7 +33,10 @@ class McpDiscoveryService {
         return runBlocking {
             withTimeout(DISCOVERY_TIMEOUT_MS) {
                 val transport = McpToolRegistryProvider.defaultSseTransport(url)
-                val toolRegistry = McpToolRegistryProvider.fromTransport(transport = transport)
+                val toolRegistry = McpToolRegistryProvider.fromTransport(
+                    transport = transport,
+                    serverInfo = McpServerInfo(url = url)
+                )
                 extractTools(toolRegistry)
             }
         }
@@ -57,7 +61,10 @@ class McpDiscoveryService {
             runBlocking {
                 withTimeout(DISCOVERY_TIMEOUT_MS) {
                     val transport = McpToolRegistryProvider.defaultStdioTransport(process)
-                    val toolRegistry = McpToolRegistryProvider.fromTransport(transport = transport)
+                    val toolRegistry = McpToolRegistryProvider.fromTransport(
+                        transport = transport,
+                        serverInfo = McpServerInfo(command = cmdList.joinToString(" "))
+                    )
                     extractTools(toolRegistry)
                 }
             }

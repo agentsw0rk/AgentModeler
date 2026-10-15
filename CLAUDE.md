@@ -65,7 +65,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Koog Agent Modeler — a visual editor for modeling AI agents as graph nodes and exporting them as Kotlin code targeting the JetBrains Koog framework (0.7.2). Spring Boot 4 backend + Next.js 16 frontend.
+Koog Agent Modeler — a visual editor for modeling AI agents as graph nodes and exporting them as Kotlin code targeting the JetBrains Koog framework (1.3.0). Spring Boot 4 backend + Next.js 16 frontend.
 
 ## Build & Run Commands
 
@@ -130,7 +130,7 @@ The pipeline is: **Editor Graph → GraphToKoogAdapter → KoogModel → Generat
 
 | Layer | Stack |
 |-------|-------|
-| Backend | Kotlin 2.2.21, Spring Boot 4.0.4, Java 21, Koog 0.7.2, KotlinPoet 2.2.0, JimFS 1.3.0, Spring AI (OpenAI + MCP) |
+| Backend | Kotlin 2.2.21, Spring Boot 4.0.4, Java 21, Koog 1.3.0 (Spring starter 1.3.0-beta), KotlinPoet 2.2.0, JimFS 1.3.0, Spring AI (OpenAI + MCP) |
 | Frontend | Next.js 16.2.1, React 19.2.4, Rete.js 2.x, Zustand 5, shadcn 4.1, Tailwind 4, Monaco Editor, Shiki, Zod 4 |
 | Testing | JUnit 5, Mockito 5.4, Spring Boot Test |
 | Build | Gradle 9.4.0 |

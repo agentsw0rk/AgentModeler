@@ -4,6 +4,7 @@ import ai.koog.agents.core.agent.AIAgent
 import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.mcp.McpToolRegistryProvider
 import ai.koog.agents.mcp.defaultStdioTransport
+import ai.koog.agents.mcp.metadata.McpServerInfo
 import ai.koog.prompt.executor.clients.anthropic.AnthropicModels
 import ai.koog.prompt.executor.clients.bedrock.BedrockModels
 import ai.koog.prompt.executor.clients.google.GoogleModels
@@ -71,7 +72,12 @@ class PreviewAgentBuilder {
                 }
                 else -> continue
             }
-            registries.add(McpToolRegistryProvider.fromTransport(transport = transport))
+            val serverInfo = when (mcp.transportType) {
+                "sse" -> McpServerInfo(url = mcp.url)
+                "stdio" -> McpServerInfo(command = listOfNotNull(mcp.command).plus(mcp.args ?: emptyList()).joinToString(" "))
+                else -> continue
+            }
+            registries.add(McpToolRegistryProvider.fromTransport(transport = transport, serverInfo = serverInfo))
         }
 
         return if (registries.isEmpty()) {
@@ -95,10 +101,10 @@ class PreviewAgentBuilder {
             else -> AnthropicModels.Sonnet_4
         }
         ModelProvider.GOOGLE -> when (id.lowercase()) {
-            "gemini-2.0-flash" -> GoogleModels.Gemini2_0Flash
+            "gemini-2.0-flash" -> GoogleModels.Gemini2_5Flash
             "gemini-2.5-pro" -> GoogleModels.Gemini2_5Pro
             "gemini-2.5-flash" -> GoogleModels.Gemini2_5Flash
-            else -> GoogleModels.Gemini2_0Flash
+            else -> GoogleModels.Gemini2_5Flash
         }
         ModelProvider.BEDROCK -> when (id.lowercase()) {
             "claude-4.5-sonnet" -> BedrockModels.AnthropicClaude4_5Sonnet
@@ -116,7 +122,7 @@ class PreviewAgentBuilder {
     private fun resolveDefaultModel(provider: ModelProvider): LLModel = when (provider) {
         ModelProvider.OPENAI -> OpenAIModels.Chat.GPT4o
         ModelProvider.ANTHROPIC -> AnthropicModels.Sonnet_4
-        ModelProvider.GOOGLE -> GoogleModels.Gemini2_0Flash
+        ModelProvider.GOOGLE -> GoogleModels.Gemini2_5Flash
         ModelProvider.BEDROCK -> BedrockModels.AnthropicClaude4Sonnet
     }
 }

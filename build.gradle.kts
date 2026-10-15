@@ -23,7 +23,7 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
-    implementation("ai.koog:koog-spring-boot-starter:0.7.2")
+    implementation("ai.koog:koog-spring-boot-starter:1.3.0-beta")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("tools.jackson.module:jackson-module-kotlin")
     implementation("com.google.jimfs:jimfs:1.3.0")

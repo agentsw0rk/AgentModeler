@@ -13,7 +13,8 @@ class BuildGradleGenerator {
         const val KOTLIN_VERSION = "2.3.0"
         const val SPRING_BOOT_VERSION = "4.0.4"
         const val DEPENDENCY_MANAGEMENT_VERSION = "1.1.7"
-        const val KOOG_VERSION = "0.7.2"
+        const val KOOG_VERSION = "1.3.0"
+        const val KOOG_SPRING_STARTER_VERSION = "1.3.0-beta"
         const val SQLITE_VERSION = "3.47.2.0"
         const val OTEL_BOM_VERSION = "1.48.0"
     }
@@ -42,7 +43,7 @@ class BuildGradleGenerator {
             appendLine("""    implementation("org.springframework.boot:spring-boot-starter-webflux")""")
             appendLine("""    implementation("org.jetbrains.kotlin:kotlin-reflect")""")
             appendLine("""    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")""")
-            appendLine("""    implementation("ai.koog:koog-spring-boot-starter:$KOOG_VERSION")""")
+            appendLine("""    implementation("ai.koog:koog-spring-boot-starter:$KOOG_SPRING_STARTER_VERSION")""")
             appendLine("""    implementation("ai.koog:koog-agents:$KOOG_VERSION")""")
             if (agent.builtinTools.any { it.type == BuiltinToolType.MEMORY }) {
                 appendLine("""    implementation("org.xerial:sqlite-jdbc:$SQLITE_VERSION")""")
