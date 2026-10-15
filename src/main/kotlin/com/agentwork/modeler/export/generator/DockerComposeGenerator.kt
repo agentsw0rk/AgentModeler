@@ -8,12 +8,12 @@ import org.springframework.stereotype.Component
 class DockerComposeGenerator {
 
     fun generate(agent: KoogAgent): String = buildString {
-        val apiKeyEnvVar = when (agent.modelProvider) {
+        val apiKeyEnvVar: String? = when (agent.modelProvider) {
             ModelProvider.OPENAI -> "OPENAI_API_KEY"
             ModelProvider.ANTHROPIC -> "ANTHROPIC_API_KEY"
             ModelProvider.GOOGLE -> "GOOGLE_API_KEY"
             ModelProvider.BEDROCK -> "AWS_BEDROCK_ACCESS_KEY"
-            ModelProvider.OLLAMA -> "OLLAMA_BASE_URL"
+            ModelProvider.OLLAMA -> null
         }
 
         appendLine("services:")
@@ -43,10 +43,18 @@ class DockerComposeGenerator {
         appendLine("      PGVECTOR_DB: ragdb")
         appendLine("      PGVECTOR_USER: postgres")
         appendLine("      PGVECTOR_PASSWORD: postgres")
-        appendLine("      $apiKeyEnvVar: \${$apiKeyEnvVar}")
+        if (apiKeyEnvVar != null) {
+            appendLine("      $apiKeyEnvVar: \${$apiKeyEnvVar}")
+        }
         if (agent.modelProvider == ModelProvider.BEDROCK) {
             appendLine("      AWS_BEDROCK_SECRET_ACCESS_KEY: \${AWS_BEDROCK_SECRET_ACCESS_KEY}")
             appendLine("      AWS_BEDROCK_REGION: \${AWS_BEDROCK_REGION:-us-west-2}")
+        }
+        if (agent.modelProvider == ModelProvider.OLLAMA) {
+            // Ollama usually runs on the host; localhost inside the container is the container itself
+            appendLine("      ${OllamaModelMapping.BASE_URL_ENV}: \${${OllamaModelMapping.BASE_URL_ENV}:-http://host.docker.internal:11434}")
+            appendLine("    extra_hosts:")
+            appendLine("      - \"host.docker.internal:host-gateway\"")
         }
         appendLine("    depends_on:")
         appendLine("      db:")
