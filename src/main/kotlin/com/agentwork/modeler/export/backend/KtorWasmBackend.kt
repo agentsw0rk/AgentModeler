@@ -90,7 +90,7 @@ class KtorWasmBackend(
         files["build.gradle.kts"] = wasmBuildGradleGenerator.generate(agent)
         files["settings.gradle.kts"] = wasmSettingsGradleGenerator.generate(graphName)
         files["gradle.properties"] = wasmGradlePropertiesGenerator.generate()
-        files["Dockerfile"] = wasmDockerfileGenerator.generate()
+        files["Dockerfile"] = wasmDockerfileGenerator.generate(graphName)
 
         // Kotlin sources
         files["${wasmPrefix}Main.kt"] = ktorMainGenerator.generate(agent)
@@ -148,7 +148,7 @@ class KtorWasmBackend(
         files["build.gradle.kts"] = buildGradle
         files["settings.gradle.kts"] = wasmSettingsGradleGenerator.generate(graphName)
         files["gradle.properties"] = wasmGradlePropertiesGenerator.generate()
-        files["Dockerfile"] = wasmDockerfileGenerator.generate()
+        files["Dockerfile"] = wasmDockerfileGenerator.generate(graphName)
 
         // Kotlin sources
         files["${wasmPrefix}Main.kt"] = ktorMainGenerator.generate(infraAgent, strategyCall)
