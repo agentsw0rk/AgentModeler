@@ -6,8 +6,15 @@ export interface GeneratorInfo {
   supportedPlatforms: string[];
 }
 
+const FALLBACK_GENERATORS: GeneratorInfo[] = [{ id: "spring-boot", displayName: "Spring Boot (JVM)", supportedPlatforms: ["jvm", "native"] }];
+
 export async function fetchGenerators(): Promise<GeneratorInfo[]> {
-  const response = await fetch(`${API_BASE}/api/generators`);
-  if (!response.ok) return [{ id: "spring-boot", displayName: "Spring Boot (JVM)", supportedPlatforms: ["jvm", "native"] }];
-  return response.json();
+  try {
+    const response = await fetch(`${API_BASE}/api/generators`);
+    if (!response.ok) return FALLBACK_GENERATORS;
+    return await response.json();
+  } catch {
+    // Backend not reachable (e.g. still starting): keep the dialog usable
+    return FALLBACK_GENERATORS;
+  }
 }
