@@ -192,4 +192,15 @@ class AgentGeneratorTest {
         assertContains(code, "llmModel = OllamaModels.OpenAI.GPT_OSS_20B")
         assertContains(code, "import ai.koog.prompt.executor.ollama.client.OllamaModels")
     }
+
+    @Test
+    fun `ollama agent uses base url instead of api key`() {
+        val agent = KoogAgent("LocalAgent", "Help", ModelProvider.OLLAMA, "llama3.2:latest", null, emptyList())
+        val code = generator.generate(agent)
+        assertContains(code, "promptExecutor = simpleOllamaAIExecutor(baseUrl)")
+        assertContains(code, "ollama.base-url")
+        assertContains(code, "import ai.koog.prompt.executor.llms.all.simpleOllamaAIExecutor")
+        assertFalse(code.contains("apiKey"))
+        assertFalse(code.contains("validateApiKey"))
+    }
 }

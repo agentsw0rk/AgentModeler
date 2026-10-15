@@ -52,7 +52,15 @@ class AgentGenerator {
         classBuilder.primaryConstructor(buildConstructor(agent, valueClass, providerKey, hasOtel))
 
         val isBedrock = agent.modelProvider == ModelProvider.BEDROCK
-        if (isBedrock) {
+        val isOllama = agent.modelProvider == ModelProvider.OLLAMA
+        if (isOllama) {
+            classBuilder.addProperty(
+                PropertySpec.builder("baseUrl", String::class)
+                    .initializer("baseUrl")
+                    .addModifiers(KModifier.PRIVATE)
+                    .build()
+            )
+        } else if (isBedrock) {
             classBuilder.addProperty(
                 PropertySpec.builder("accessKey", String::class)
                     .initializer("accessKey")
@@ -87,7 +95,7 @@ class AgentGenerator {
             classBuilder.addProperty(PropertySpec.builder("otelVerbose", Boolean::class).initializer("otelVerbose").addModifiers(KModifier.PRIVATE).build())
         }
 
-        // @PostConstruct validate credentials
+        // @PostConstruct validate credentials (Ollama has none)
         if (isBedrock) {
             classBuilder.addFunction(
                 FunSpec.builder("validateCredentials")
@@ -96,7 +104,7 @@ class AgentGenerator {
                     .addStatement("require(secretKey.isNotBlank()) { %S }", "AWS_BEDROCK_SECRET_ACCESS_KEY environment variable must be set")
                     .build()
             )
-        } else {
+        } else if (!isOllama) {
             classBuilder.addFunction(
                 FunSpec.builder("validateApiKey")
                     .addAnnotation(postConstructAnnotation)
@@ -202,7 +210,13 @@ class AgentGenerator {
         val ctorBuilder = FunSpec.constructorBuilder()
 
         val isBedrock = agent.modelProvider == ModelProvider.BEDROCK
-        if (isBedrock) {
+        if (agent.modelProvider == ModelProvider.OLLAMA) {
+            ctorBuilder.addParameter(
+                com.squareup.kotlinpoet.ParameterSpec.builder("baseUrl", String::class)
+                    .addAnnotation(AnnotationSpec.builder(valueClass).addMember("%S", "\${ollama.base-url}").build())
+                    .build()
+            )
+        } else if (isBedrock) {
             ctorBuilder.addParameter(
                 com.squareup.kotlinpoet.ParameterSpec.builder("accessKey", String::class)
                     .addAnnotation(AnnotationSpec.builder(valueClass).addMember("%S", "\${bedrock.access-key}").build())
@@ -278,6 +292,8 @@ class AgentGenerator {
             builder.add("            region = System.getenv(\"AWS_BEDROCK_REGION\") ?: \"us-west-2\"\n")
             builder.add("        )\n")
             builder.add("    ),\n")
+        } else if (agent.modelProvider == ModelProvider.OLLAMA) {
+            builder.add("    promptExecutor = %L(baseUrl),\n", agent.modelProvider.executorFactory)
         } else {
             builder.add("    promptExecutor = %L(apiKey),\n", agent.modelProvider.executorFactory)
         }

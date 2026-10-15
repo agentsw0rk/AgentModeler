@@ -9,7 +9,9 @@ class ApplicationPropertiesGenerator {
     fun generate(agent: KoogAgent): String {
         return buildString {
             appendLine("server.port=\${SERVER_PORT:8080}")
-            if (agent.modelProvider == ModelProvider.BEDROCK) {
+            if (agent.modelProvider == ModelProvider.OLLAMA) {
+                appendLine("ollama.base-url=\${${OllamaModelMapping.BASE_URL_ENV}:${OllamaModelMapping.DEFAULT_BASE_URL}}")
+            } else if (agent.modelProvider == ModelProvider.BEDROCK) {
                 appendLine("bedrock.access-key=\${AWS_BEDROCK_ACCESS_KEY:}")
                 appendLine("bedrock.secret-key=\${AWS_BEDROCK_SECRET_ACCESS_KEY:}")
             } else {

@@ -67,4 +67,12 @@ class ApplicationPropertiesGeneratorTest {
         val code = generator.generate(agent)
         assertFalse(code.contains("otel."))
     }
+
+    @Test
+    fun `generates ollama base url property without api key`() {
+        val agent = KoogAgent("Agent", "Help", ModelProvider.OLLAMA, null, null, emptyList())
+        val code = generator.generate(agent)
+        assertContains(code, "ollama.base-url=\${OLLAMA_BASE_URL:http://localhost:11434}")
+        assertFalse(code.contains("api-key"))
+    }
 }
