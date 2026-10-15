@@ -77,7 +77,7 @@ Koog Agent Modeler — a visual editor for modeling AI agents as graph nodes and
 ./gradlew test --tests "ClassName"       # Run specific test class
 ./gradlew test --tests "ClassName.method name*"  # Run specific test method
 ./gradlew compileKotlin                  # Compile only (no tests)
-./gradlew ollamaE2eTest                  # E2E: modeled Ollama agent + shell tool, exported, built and run (needs `ollama serve` + `ollama pull llama3.2:3b`; not part of `test`)
+./gradlew ollamaE2eTest                  # E2E: modeled Ollama agent + shell tool, exported (Spring Boot + Ktor/Wasm), built and run (needs `ollama serve` + `ollama pull llama3.2:3b`; not part of `test`). Wasm uses Docker if available (E2E_WASM_RUNTIME=docker|node|auto); in this container run it via `.devenv/bin/with-libs` (Kotlin/Wasm's Node needs libatomic)
 ```
 
 ### Frontend (Next.js)
