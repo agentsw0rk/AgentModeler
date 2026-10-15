@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component
 class WasmGradlePropertiesGenerator {
     fun generate(): String = buildString {
         appendLine("kotlin.code.style=official")
-        appendLine("org.gradle.jvmargs=-Xmx512m")
+        // Linking a Kotlin/Wasm production executable with Koog runs out of memory with less
+        appendLine("org.gradle.jvmargs=-Xmx2g")
+        appendLine("kotlin.daemon.jvmargs=-Xmx2g")
     }
 }

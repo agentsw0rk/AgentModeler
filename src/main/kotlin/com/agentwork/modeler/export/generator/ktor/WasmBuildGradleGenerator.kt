@@ -7,9 +7,13 @@ import org.springframework.stereotype.Component
 class WasmBuildGradleGenerator {
 
     companion object {
-        const val KOTLIN_VERSION = "2.3.0"
+        // Kotlin/Wasm klibs must match the compiler exactly, so use the version Koog is built with
+        const val KOTLIN_VERSION = "2.3.10"
         const val KOOG_VERSION = "1.3.0"
-        const val KTOR_VERSION = "3.1.3"
+        // simpleXxxExecutor() factories are only published with the -beta suffix
+        const val KOOG_EXECUTORS_VERSION = "1.3.0-beta"
+        // Same Ktor as Koog's own HTTP client
+        const val KTOR_VERSION = "3.3.3"
     }
 
     fun generate(agent: KoogAgent): String = buildString {
@@ -28,7 +32,9 @@ class WasmBuildGradleGenerator {
         appendLine("""    sourceSets {""")
         appendLine("""        wasmJsMain.dependencies {""")
         appendLine("""            implementation("ai.koog:koog-agents:$KOOG_VERSION")""")
+        appendLine("""            implementation("ai.koog:prompt-executor-llms-all:$KOOG_EXECUTORS_VERSION")""")
         appendLine("""            implementation("io.ktor:ktor-server-core:$KTOR_VERSION")""")
+        appendLine("""            implementation("io.ktor:ktor-server-cio:$KTOR_VERSION")""")
         appendLine("""            implementation("io.ktor:ktor-server-content-negotiation:$KTOR_VERSION")""")
         appendLine("""            implementation("io.ktor:ktor-serialization-kotlinx-json:$KTOR_VERSION")""")
         appendLine("""            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")""")
