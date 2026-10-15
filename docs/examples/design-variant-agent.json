@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "name": "Design Variant Agent",
+  "nodes": [
+    {
+      "id": "code-contract",
+      "type": "code",
+      "position": { "x": 80, "y": 440 },
+      "data": {
+        "fileName": "DesignVariantAgentContract",
+        "code": "object DesignVariantAgentContract {\n    const val AGENT_ID = \"design-variant\"\n    const val CLASS_PATH = \"backend/src/main/kotlin/com/agentwork/productspecagent/agent/DesignVariantAgent.kt\"\n    const val SERVICE = \"DesignWorkbenchService.generate\"\n    const val API = \"POST /api/v1/projects/{projectId}/design/generate\"\n    const val PROMPT_ID = \"design-variant-system\"\n    const val DEFAULT_TIER = \"MEDIUM\"\n\n    val requiredJsonKeys = listOf(\"analysis\", \"title\", \"html\", \"rationale\")\n    val forbiddenHtmlCapabilities = listOf(\"external URLs\", \"remote scripts\", \"remote styles\", \"fetch\", \"WebSocket\", \"browser storage\", \"cookies\", \"form actions\", \"parent-window access\")\n}"
+      }
+    },
+    {
+      "id": "agent-design-variant",
+      "type": "agent",
+      "position": { "x": 470, "y": 190 },
+      "data": {
+        "name": "DesignVariantAgent",
+        "description": "Generates secure standalone HTML design variants for the Design Workbench preview.",
+        "systemPrompt": "You are the Design Variant Agent for the ProductSpecAgent Design Workbench. Agent ID: design-variant. Prompt ID: design-variant-system. Default tier: MEDIUM.\n\nYou receive a projectId, an optional text description, optional image metadata and optional structured image analysis. If image analysis is provided, translate its signals visibly into layout, color, typography and components. If no image analysis is provided, rely on the written description and image metadata only.\n\nReturn only valid JSON. Do not wrap the response in Markdown. Do not include explanations outside JSON. The exact JSON shape is: {\"analysis\":{\"summary\":\"short analysis of the requested design\",\"visualDirection\":\"layout and styling direction\",\"rationale\":\"why this direction fits\"},\"title\":\"short design title\",\"html\":\"<!doctype html>...\",\"rationale\":\"why the generated layout fits\"}.\n\nHTML rules: generate one complete standalone HTML document suitable for iframe preview. It must work without external URLs. Do not use remote scripts, remote styles, fetch, WebSocket, browser storage, cookies, form actions or parent-window access. Inline CSS is allowed. Inline JavaScript is allowed only for local visual interaction. Keep the generated document self-contained and deterministic enough for DesignPreviewValidator validation.",
+        "modelProvider": "openai",
+        "modelId": "gpt-4o",
+        "temperature": 0.2
+      }
+    },
+    {
+      "id": "tool-preview-contract",
+      "type": "tool",
+      "position": { "x": 460, "y": 520 },
+      "data": {
+        "name": "DesignPreviewContractTools",
+        "description": "Local helper contract for preview validation and fallback behavior. No network or storage access.",
+        "functions": [
+          {
+            "id": "function-describe-rules",
+            "name": "describePreviewSafetyRules",
+            "description": "Returns the local HTML safety rules enforced by DesignPreviewValidator.",
+            "parameters": [],
+            "returnType": "String",
+            "body": "return listOf(\n    \"complete standalone HTML document\",\n    \"iframe preview compatible\",\n    \"no external URLs\",\n    \"no remote scripts or styles\",\n    \"no fetch, WebSocket, browser storage, cookies, form actions or parent-window access\",\n    \"inline CSS allowed\",\n    \"inline JavaScript only for local visual interaction\"\n).joinToString(\"; \")"
+          },
+          {
+            "id": "function-describe-fallback",
+            "name": "describeFallbackBehavior",
+            "description": "Returns the deterministic fallback behavior used when the agent response is missing or cannot be parsed.",
+            "parameters": [
+              {
+                "id": "param-source",
+                "name": "source",
+                "type": "String",
+                "description": "Input source summary such as description, image or description and image.",
+                "required": false,
+                "defaultValue": "description"
+              }
+            ],
+            "returnType": "String",
+            "body": "return \"If no valid agent JSON is available, generate deterministic fallback HTML from $source, then run DesignPreviewValidator.\""
+          }
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-tool-to-agent",
+      "source": "tool-preview-contract",
+      "target": "agent-design-variant"
+    }
+  ],
+  "otelConfig": {
+    "enabled": false,
+    "exporterType": "logging",
+    "serviceName": "design-variant-agent",
+    "serviceVersion": "1.0.0",
+    "verbose": false
+  }
+}
