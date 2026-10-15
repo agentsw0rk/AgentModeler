@@ -8,7 +8,7 @@ Der Modeler unterstuetzt aktuell vier LLM-Provider (OpenAI, Anthropic, Google, A
 
 `OLLAMA` als fuenfter `ModelProvider`, waehlbar bei allen Agent-Typen:
 
-1. **Provider im Dropdown** — "Ollama (lokal)" in Agent, Sub-Agent, Graph-Agent und Planner-Settings
+1. **Provider im Dropdown** — "Ollama (local)" in Agent, Sub-Agent, Graph-Agent und Planner-Settings
 2. **Kein API-Key** — stattdessen Base-URL per Env-Var `OLLAMA_BASE_URL` (Default `http://localhost:11434`)
 3. **Kuratierte Modelle + freie Eingabe** — 6 vordefinierte Modelle (gemappt auf `OllamaModels`-Konstanten), zusaetzlich beliebiger Ollama-Modellname (z. B. `mistral:7b`) als Custom-Modell
 4. **Live-Preview** — Agents mit Ollama laufen in der Preview gegen die lokale Ollama-Instanz
@@ -185,11 +185,11 @@ Da der Agent serverseitig unter Node laeuft (nicht im Browser), ist keine CORS-K
 Neuer Endpoint nach dem Muster von `mcp/McpDiscoveryController`:
 
 ```
-GET /api/ollama/models?baseUrl=http://localhost:11434
-→ [{ "id": "llama3.2:latest", "label": "llama3.2 (3.2B, Q4_K_M)", "tools": true }, ...]
+GET /api/ollama/models
+→ { "models": [{ "id": "qwen3:0.6b", "label": "qwen3:0.6b (751.6M, Q4_K_M)", "tools": true }, ...], "error": null }
 ```
 
-Implementierung ueber `OllamaClient(baseUrl).getModels()` → `OllamaModelCard` (`name`, `parameterCount`, `quantizationLevel`, `capabilities`). Ist Ollama nicht erreichbar, liefert der Endpoint eine leere Liste mit Hinweis statt eines Fehlers. Das Frontend kombiniert die installierten Modelle mit der kuratierten Liste und markiert Modelle ohne Tool-Support.
+Der Endpoint nutzt dieselbe `OLLAMA_BASE_URL` wie die Preview und nimmt bewusst **keine** URL aus dem Request entgegen — sonst liesse sich der Server beliebige Hosts abfragen (SSRF). Implementierung ueber `OllamaClient(baseUrl).getModels()` → `OllamaModelCard` (`name`, `parameterCount`, `quantizationLevel`, `capabilities`). Ist Ollama nicht erreichbar, liefert der Endpoint eine leere Liste mit Hinweis statt eines Fehlers. Das Frontend kombiniert die installierten Modelle mit der kuratierten Liste und markiert Modelle ohne Tool-Support.
 
 ## Frontend-Aenderungen
 
@@ -216,14 +216,14 @@ export const MODEL_OPTIONS: Record<ModelProvider, { id: string; label: string }[
 In allen 4 Komponenten (`AgentProperties`, `SubAgentProperties`, `GraphAgentProperties`, `planner/SettingsTab`):
 
 ```tsx
-<SelectItem value="ollama">Ollama (lokal)</SelectItem>
+<SelectItem value="ollama">Ollama (local)</SelectItem>
 ```
 
 ### Model-Auswahl mit freier Eingabe
 
-Bei `ollama` zeigt das Model-Feld die kuratierte Liste **plus** einen Eintrag "Anderes Modell…", der ein Textfeld fuer einen beliebigen Ollama-Tag einblendet (z. B. `mistral:7b`). Ein darunter angezeigter Hinweis nennt den passenden Befehl: `ollama pull <modell>`.
+Bei `ollama` zeigt das Model-Feld zuerst die in Ollama installierten Modelle (Phase 2), dann die kuratierten Vorschlaege **plus** einen Eintrag "Other model…", der ein Textfeld fuer einen beliebigen Ollama-Tag einblendet (z. B. `mistral:7b`). Fuer nicht installierte Modelle nennt ein Hinweis den passenden Befehl: `ollama pull <modell>`. Modelle ohne Tool-Support sind in der Liste markiert.
 
-Diese Logik wird in eine gemeinsame Komponente (z. B. `components/shared/ModelSelect.tsx`) ausgelagert, weil sie in allen 4 Panels identisch ist.
+Provider- und Modell-Auswahl liegen in der gemeinsamen Komponente `components/shared/ModelFields.tsx`, weil sie in allen 4 Panels identisch waren. Ein Provider-Wechsel setzt die `modelId` zurueck — sonst wuerde z. B. `gpt-4o` nach dem Wechsel zu Ollama als Custom-Ollama-Modell interpretiert.
 
 ### Client-seitige Validation
 
@@ -245,7 +245,9 @@ Diese Logik wird in eine gemeinsame Komponente (z. B. `components/shared/ModelSe
 | `export/generator/DockerComposeGenerator.kt` | `OLLAMA_BASE_URL` mit `host.docker.internal`, `extra_hosts`, kein API-Key-Eintrag (exhaustives `when` ergaenzen) |
 | `export/generator/ktor/KtorMainGenerator.kt` | Ollama-Executor mit optionaler `OLLAMA_BASE_URL` statt Pflicht-`envApiKey`, `mapModelId()` Case |
 | `export/generator/lib/AgentFactoryGenerator.kt` | `mapModelId()` Case |
-| `preview/PreviewAgentBuilder.kt` | Key-Pruefung pro Provider, Ollama-Executor, `resolveModel()`/`resolveDefaultModel()` Cases, verstaendliche Fehlermeldungen |
+| `preview/PreviewAgentBuilder.kt` | Key-Pruefung pro Provider, Ollama-Executor, `resolveModel()`/`resolveDefaultModel()` Cases |
+| `preview/PreviewErrorMessages.kt` | NEU: Ollama-Rohfehler → `ollama pull <modell>` / `ollama serve` |
+| `export/generator/OllamaModelMapping.kt` | NEU: gemeinsames Tag→Code-Mapping fuer alle Generatoren |
 | `ollama/OllamaDiscoveryController.kt`, `OllamaDiscoveryService.kt` | NEU (Phase 2): `GET /api/ollama/models` |
 
 `BuildGradleGenerator` und `LibBuildGradleGenerator` brauchen **keine** Aenderung (Ollama-Client ist in `koog-agents` enthalten).
@@ -255,13 +257,13 @@ Diese Logik wird in eine gemeinsame Komponente (z. B. `components/shared/ModelSe
 | Datei | Aenderung |
 |---|---|
 | `types/koog.ts` | `"ollama"` zu `ModelProvider`, Ollama-Eintraege in `MODEL_OPTIONS` |
-| `components/shared/ModelSelect.tsx` | NEU: Modell-Dropdown mit "Anderes Modell…"-Freitext |
-| `components/panels/AgentProperties.tsx` | Ollama SelectItem, `ModelSelect` verwenden |
-| `components/panels/SubAgentProperties.tsx` | Ollama SelectItem, `ModelSelect` verwenden |
-| `components/panels/GraphAgentProperties.tsx` | Ollama SelectItem, `ModelSelect` verwenden |
-| `components/planner/SettingsTab.tsx` | Ollama SelectItem, `ModelSelect` verwenden |
+| `components/shared/ModelFields.tsx` | NEU: Provider + Modell, "Other model…"-Freitext, installierte Ollama-Modelle |
+| `components/panels/AgentProperties.tsx` | `ModelFields` verwenden |
+| `components/panels/SubAgentProperties.tsx` | `ModelFields` verwenden |
+| `components/panels/GraphAgentProperties.tsx` | `ModelFields` verwenden |
+| `components/planner/SettingsTab.tsx` | `ModelFields` verwenden |
 | `lib/validation.ts` | `"ollama"` akzeptieren, Tool-Calling-Warnung fuer Custom-Modelle |
-| `lib/ollama-client.ts` | NEU (Phase 2): `fetchOllamaModels()` gegen `/api/ollama/models` |
+| `lib/ollama-client.ts` | NEU (Phase 2): `fetchOllamaModels()` gegen `/api/ollama/models` (einmal pro Seitenaufruf) |
 
 ### Tests
 
@@ -288,17 +290,17 @@ Allgemein: Zur Laufzeit muss eine Ollama-Instanz unter `OLLAMA_BASE_URL` erreich
 
 ## Akzeptanzkriterien
 
-- [ ] `ModelProvider.OLLAMA` existiert mit `OllamaModels`-Import und `simpleOllamaAIExecutor` als Executor-Factory
-- [ ] `mapModelId()` mappt alle 6 kuratierten Modelle auf die richtigen `OllamaModels`-Konstanten
-- [ ] Unbekannte Ollama-IDs erzeugen ein `LLModel(LLMProvider.Ollama, <id>, ...)` statt auf das Default-Modell zurueckzufallen
-- [ ] Generierter Spring-Boot-Code nutzt `simpleOllamaAIExecutor(baseUrl)` ohne API-Key-Validierung
-- [ ] `application.properties` enthaelt `ollama.base-url=${OLLAMA_BASE_URL:http://localhost:11434}` und keinen `api-key`
-- [ ] `docker-compose.yml` setzt `OLLAMA_BASE_URL` auf `host.docker.internal` inkl. `extra_hosts`
-- [ ] Live-Preview startet einen Ollama-Agent **ohne** gesetzten `*_API_KEY` und antwortet ueber die lokale Ollama-Instanz
-- [ ] Preview zeigt verstaendliche Meldungen, wenn Ollama nicht laeuft oder das Modell fehlt
-- [ ] Frontend zeigt "Ollama (lokal)" im Provider-Dropdown aller 4 Agent-Typen
-- [ ] Model-Feld bietet die 6 kuratierten Modelle und freie Eingabe eines Ollama-Tags
-- [ ] Validation warnt bei Tool-nutzenden Agents mit Custom-Ollama-Modell
-- [ ] Ein exportiertes Spring-Boot-Projekt mit Ollama-Agent kompiliert (`./gradlew build`) und beantwortet eine Anfrage gegen ein lokales `llama3.2`
-- [ ] (Phase 2) `GET /api/ollama/models` listet installierte Modelle inkl. Tool-Faehigkeit; bei nicht erreichbarem Ollama leere Liste statt Fehler
-- [ ] Bestehende Provider (OpenAI, Anthropic, Google, Bedrock) bleiben unberuehrt
+- [x] `ModelProvider.OLLAMA` existiert mit `OllamaModels`-Import und `simpleOllamaAIExecutor` als Executor-Factory
+- [x] `mapModelId()` mappt alle 6 kuratierten Modelle auf die richtigen `OllamaModels`-Konstanten
+- [x] Unbekannte Ollama-IDs erzeugen ein `LLModel(LLMProvider.Ollama, <id>, ...)` statt auf das Default-Modell zurueckzufallen
+- [x] Generierter Spring-Boot-Code nutzt `simpleOllamaAIExecutor(baseUrl)` ohne API-Key-Validierung
+- [x] `application.properties` enthaelt `ollama.base-url=${OLLAMA_BASE_URL:http://localhost:11434}` und keinen `api-key`
+- [x] `docker-compose.yml` setzt `OLLAMA_BASE_URL` auf `host.docker.internal` inkl. `extra_hosts`
+- [x] Live-Preview startet einen Ollama-Agent **ohne** gesetzten `*_API_KEY` und antwortet ueber die lokale Ollama-Instanz
+- [x] Preview zeigt verstaendliche Meldungen, wenn Ollama nicht laeuft oder das Modell fehlt
+- [x] Frontend zeigt "Ollama (local)" im Provider-Dropdown aller 4 Agent-Typen
+- [x] Model-Feld bietet die 6 kuratierten Modelle und freie Eingabe eines Ollama-Tags
+- [x] Validation warnt bei Tool-nutzenden Agents mit Custom-Ollama-Modell
+- [x] Ein exportiertes Spring-Boot-Projekt mit Ollama-Agent und Shell-Tool kompiliert und beantwortet eine Anfrage gegen ein lokales Modell — automatisiert in `OllamaShellToolE2ETest` (`./gradlew ollamaE2eTest`)
+- [x] (Phase 2) `GET /api/ollama/models` listet installierte Modelle inkl. Tool-Faehigkeit; bei nicht erreichbarem Ollama leere Liste statt Fehler
+- [x] Bestehende Provider (OpenAI, Anthropic, Google, Bedrock) bleiben unberuehrt

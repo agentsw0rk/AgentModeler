@@ -77,6 +77,7 @@ Koog Agent Modeler — a visual editor for modeling AI agents as graph nodes and
 ./gradlew test --tests "ClassName"       # Run specific test class
 ./gradlew test --tests "ClassName.method name*"  # Run specific test method
 ./gradlew compileKotlin                  # Compile only (no tests)
+./gradlew ollamaE2eTest                  # E2E: modeled Ollama agent + shell tool, exported, built and run (needs `ollama serve` + `ollama pull llama3.2:3b`; not part of `test`)
 ```
 
 ### Frontend (Next.js)
@@ -139,7 +140,7 @@ The pipeline is: **Editor Graph → GraphToKoogAdapter → KoogModel → Generat
 
 - All code generators use **KotlinPoet** (type-safe builders, no string templates)
 - Graph node types: `agent`, `tool`, `sub-agent`, `mcp-server`, `planner-agent`, `rag-agent`, `graph-agent`, `a2a-agent`, `input`, `output`
-- `ModelProvider` enum: OPENAI, ANTHROPIC, GOOGLE — each carries import path, executor factory, and default model
+- `ModelProvider` enum: OPENAI, ANTHROPIC, GOOGLE, BEDROCK, OLLAMA — each carries import path, executor factory, and default model. Ollama needs no API key (base URL via `OLLAMA_BASE_URL`, default `http://localhost:11434`); Ollama model tags map through `OllamaModelMapping`
 - Frontend uses `@base-ui/react` (not standard headless UI) and `styled-components` alongside Tailwind
 
 ## Important Notes
