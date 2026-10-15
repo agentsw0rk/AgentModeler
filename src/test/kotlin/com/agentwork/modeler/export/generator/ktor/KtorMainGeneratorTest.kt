@@ -23,7 +23,35 @@ class KtorMainGeneratorTest {
         val code = generator.generate(agent)
         assertContains(code, "process.env.OLLAMA_BASE_URL")
         assertContains(code, "ifEmpty { \"http://localhost:11434\" }")
-        assertContains(code, "promptExecutor = simpleOllamaAIExecutor(envOllamaBaseUrl)")
+        assertContains(code, "promptExecutor = simpleOllamaAIExecutor(envOllamaBaseUrl, ")
         assertFalse(code.contains("_API_KEY"))
+    }
+
+    @Test
+    fun `starts the server with startSuspend because blocking start is unavailable on Wasm`() {
+        val code = generator.generate(KoogAgent("A", "Help", ModelProvider.OLLAMA, null, null, emptyList()))
+        assertContains(code, "suspend fun main() {")
+        assertContains(code, "}.startSuspend(wait = true)")
+    }
+
+    @Test
+    fun `installs json content negotiation for the chat route`() {
+        val code = generator.generate(KoogAgent("A", "Help", ModelProvider.OLLAMA, null, null, emptyList()))
+        assertContains(code, "install(ContentNegotiation) { json() }")
+    }
+
+    @Test
+    fun `passes a Ktor http client factory to the executor on Wasm`() {
+        val ollama = generator.generate(KoogAgent("A", "Help", ModelProvider.OLLAMA, null, null, emptyList()))
+        assertContains(ollama, "simpleOllamaAIExecutor(envOllamaBaseUrl, KtorKoogHttpClient.Factory())")
+        val openAi = generator.generate(KoogAgent("A", "Help", ModelProvider.OPENAI, null, null, emptyList()))
+        assertContains(openAi, "simpleOpenAIExecutor(envApiKey, KtorKoogHttpClient.Factory())")
+    }
+
+    @Test
+    fun `reads the server port from SERVER_PORT with 8080 as default`() {
+        val code = generator.generate(KoogAgent("A", "Help", ModelProvider.OLLAMA, null, null, emptyList()))
+        assertContains(code, "process.env.SERVER_PORT")
+        assertContains(code, "embeddedServer(CIO, port = serverPort)")
     }
 }

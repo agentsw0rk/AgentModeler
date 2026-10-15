@@ -25,14 +25,23 @@ class KtorMainGenerator {
             appendLine("package generated")
             appendLine()
             appendLine("import ai.koog.agents.core.agent.AIAgent")
+            appendLine("import ai.koog.http.client.ktor.KtorKoogHttpClient")
             appendLine("import ai.koog.prompt.executor.llms.all.${agent.modelProvider.executorFactory}")
             appendLine("import ${agent.modelProvider.importPackage}")
             if (hasTools) {
                 appendLine("import ai.koog.agents.core.tools.ToolRegistry")
             }
+            appendLine("import io.ktor.serialization.kotlinx.json.json")
+            appendLine("import io.ktor.server.application.install")
             appendLine("import io.ktor.server.engine.*")
             appendLine("import io.ktor.server.cio.*")
+            appendLine("import io.ktor.server.plugins.contentnegotiation.ContentNegotiation")
             appendLine("import kotlin.js.JsString")
+            appendLine()
+            appendLine("""@JsFun("() => { try { return process.env.SERVER_PORT || '' } catch(e) { return '' } }")""")
+            appendLine("""private external fun readServerPort(): JsString""")
+            appendLine()
+            appendLine("""private val serverPort: Int = readServerPort().toString().toIntOrNull() ?: 8080""")
             appendLine()
             // WasmJS: use @JsFun for JS interop (js() has strict restrictions in Wasm)
             if (isOllama) {
@@ -49,7 +58,8 @@ class KtorMainGenerator {
                 appendLine("""}""")
             }
             appendLine()
-            appendLine("fun main() {")
+            // Ktor on Wasm only offers a suspending start
+            appendLine("suspend fun main() {")
 
             val escapedPrompt = effectivePrompt
                 .replace("\\", "\\\\")
@@ -59,7 +69,8 @@ class KtorMainGenerator {
 
             val params = mutableListOf<String>()
             val executorArg = if (isOllama) "envOllamaBaseUrl" else "envApiKey"
-            params.add("promptExecutor = ${agent.modelProvider.executorFactory}($executorArg)")
+            // The factory-less executor overloads exist on the JVM only
+            params.add("promptExecutor = ${agent.modelProvider.executorFactory}($executorArg, KtorKoogHttpClient.Factory())")
             params.add("""systemPrompt = "$escapedPrompt"""")
             params.add("llmModel = $modelRef")
             agent.temperature?.let { params.add("temperature = $it") }
@@ -77,9 +88,10 @@ class KtorMainGenerator {
             appendLine("    )")
 
             appendLine()
-            appendLine("    embeddedServer(CIO, port = 8080) {")
+            appendLine("    embeddedServer(CIO, port = serverPort) {")
+            appendLine("        install(ContentNegotiation) { json() }")
             appendLine("        configureChatRoutes(agent)")
-            appendLine("    }.start(wait = true)")
+            appendLine("    }.startSuspend(wait = true)")
             appendLine("}")
         }
     }
