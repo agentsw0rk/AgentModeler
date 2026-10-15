@@ -127,4 +127,16 @@ class SubAgentGeneratorTest {
         assertContains(code, "fun createSimple() = AIAgent(")
         assertFalse(code.contains("AIAgent<"))
     }
+
+    @Test
+    fun `maps custom ollama model tag to LLModel`() {
+        val subAgent = KoogSubAgent(
+            name = "LocalHelper", description = "Runs locally", systemPrompt = "Help.",
+            modelProvider = ModelProvider.OLLAMA, modelId = "mistral:7b",
+            temperature = null, delegationMode = "automatic", inputDescription = "A task",
+            tools = emptyList(), builtinTools = emptyList()
+        )
+        val code = generator.generate(subAgent)
+        assertContains(code, "llmModel = ai.koog.prompt.llm.LLModel(ai.koog.prompt.llm.LLMProvider.Ollama, \"mistral:7b\"")
+    }
 }

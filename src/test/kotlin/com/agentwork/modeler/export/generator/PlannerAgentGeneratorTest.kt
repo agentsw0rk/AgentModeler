@@ -103,4 +103,11 @@ class PlannerAgentGeneratorTest {
         val config = files["PlannerAgent.kt"]!!
         assertFalse(config.contains("toolRegistry"))
     }
+
+    @Test
+    fun `maps ollama model tag in planner config`() {
+        val planner = llmPlanner().copy(modelProvider = ModelProvider.OLLAMA, modelId = "llama3.2:3b")
+        val config = generator.generate(planner).values.joinToString("\n")
+        assertContains(config, "val model = OllamaModels.Meta.LLAMA_3_2_3B")
+    }
 }

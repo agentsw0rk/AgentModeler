@@ -184,4 +184,12 @@ class AgentGeneratorTest {
         val code = generator.generate(agent)
         assertContains(code, "fun agent(): AIAgent<String, String>")
     }
+
+    @Test
+    fun `maps ollama model tag to OllamaModels constant`() {
+        val agent = KoogAgent("LocalAgent", "Help", ModelProvider.OLLAMA, "gpt-oss:20b", null, emptyList())
+        val code = generator.generate(agent)
+        assertContains(code, "llmModel = OllamaModels.OpenAI.GPT_OSS_20B")
+        assertContains(code, "import ai.koog.prompt.executor.ollama.client.OllamaModels")
+    }
 }

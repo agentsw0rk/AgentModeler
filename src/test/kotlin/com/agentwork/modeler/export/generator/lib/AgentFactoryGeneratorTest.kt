@@ -65,4 +65,15 @@ class AgentFactoryGeneratorTest {
         )
         assertTrue(!result.contains("toolRegistry"))
     }
+
+    @Test
+    fun `maps ollama model tag in factory default model`() {
+        val agent = KoogAgent(
+            name = "local", systemPrompt = "Help.", modelProvider = ModelProvider.OLLAMA,
+            modelId = "qwen3.5:9b", temperature = null, tools = emptyList()
+        )
+        val result = generator.generateAgentFactory(agent)
+        assertContains(result, "model: LLMModel = OllamaModels.Alibaba.QWEN_3_5_9B")
+        assertContains(result, "import ai.koog.prompt.executor.ollama.client.OllamaModels")
+    }
 }
