@@ -28,6 +28,8 @@
 #     (tailwind!). Hence NODE_ENV=development + --include=dev.
 #   - Don't wait for "networkidle" in Playwright: the editor keeps an SSE stream open.
 #   - Backend needs OPENAI_API_KEY set (any dummy value) or the Spring context fails.
+#   - Kotlin/Wasm builds download their own Node.js, which needs libatomic.so.1 (not installed
+#     here). It is unpacked into .devenv/libroot; run such builds via .devenv/bin/with-libs.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -117,7 +119,7 @@ PY
     libglib2.0-0 libnss3 libnspr4 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
     libdrm2 libxcb1 libxkbcommon0 libx11-6 libxcomposite1 libxdamage1 libxext6 libxfixes3 \
     libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2 libatspi2.0-0 \
-    fonts-dejavu-core fontconfig > "$work/urls.txt"
+    fonts-dejavu-core fontconfig libatomic1 > "$work/urls.txt"
 
   while read -r f; do
     [ -n "$f" ] || continue
@@ -178,12 +180,19 @@ export FONTCONFIG_FILE="$DEV/fontconfig/fonts.conf"
 exec node "\$@"
 EOF
 
+  # Runs any command with the unpacked system libraries (e.g. Gradle builds of Kotlin/Wasm projects)
+  cat > "$DEV/bin/with-libs" <<EOF
+#!/usr/bin/env bash
+export LD_LIBRARY_PATH="$DEV/libroot/usr/lib/$TRIPLE:$DEV/libroot/lib/$TRIPLE\${LD_LIBRARY_PATH:+:\$LD_LIBRARY_PATH}"
+exec "\$@"
+EOF
+
   cat > "$DEV/bin/frontend-dev" <<EOF
 #!/usr/bin/env bash
 # Next dev server from the Linux copy (run ./setup-dev-env.sh frontend after code changes)
 cd "$DEV/frontend" && NODE_ENV=development exec npx next dev --webpack -p "\${PORT:-3000}"
 EOF
-  chmod +x "$DEV/bin/pw-node" "$DEV/bin/frontend-dev"
+  chmod +x "$DEV/bin/pw-node" "$DEV/bin/frontend-dev" "$DEV/bin/with-libs"
 }
 
 smoke_test() {
