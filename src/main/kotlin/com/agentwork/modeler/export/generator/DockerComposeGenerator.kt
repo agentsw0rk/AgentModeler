@@ -13,6 +13,7 @@ class DockerComposeGenerator {
             ModelProvider.ANTHROPIC -> "ANTHROPIC_API_KEY"
             ModelProvider.GOOGLE -> "GOOGLE_API_KEY"
             ModelProvider.BEDROCK -> "AWS_BEDROCK_ACCESS_KEY"
+            ModelProvider.OLLAMA -> "OLLAMA_BASE_URL"
         }
 
         appendLine("services:")

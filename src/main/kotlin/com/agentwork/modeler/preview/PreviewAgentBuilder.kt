@@ -13,6 +13,7 @@ import ai.koog.prompt.executor.llms.all.simpleAnthropicExecutor
 import ai.koog.prompt.executor.llms.all.simpleBedrockExecutor
 import ai.koog.prompt.executor.llms.all.simpleGoogleAIExecutor
 import ai.koog.prompt.executor.llms.all.simpleOpenAIExecutor
+import ai.koog.prompt.executor.ollama.client.OllamaModels
 import ai.koog.prompt.llm.LLModel
 import com.agentwork.modeler.export.model.KoogAgent
 import com.agentwork.modeler.export.model.ModelProvider
@@ -31,6 +32,7 @@ class PreviewAgentBuilder {
             ModelProvider.ANTHROPIC -> simpleAnthropicExecutor(apiKey)
             ModelProvider.GOOGLE -> simpleGoogleAIExecutor(apiKey)
             ModelProvider.BEDROCK -> throw PreviewException("Bedrock executor not yet implemented")
+            ModelProvider.OLLAMA -> throw PreviewException("Ollama executor not yet implemented")
         }
 
         val model = agent.modelId?.let { resolveModel(agent.modelProvider, it) }
@@ -117,6 +119,7 @@ class PreviewAgentBuilder {
             "llama-3.1-405b" -> BedrockModels.MetaLlama3_1_405BInstruct
             else -> BedrockModels.AnthropicClaude4Sonnet
         }
+        ModelProvider.OLLAMA -> OllamaModels.Meta.LLAMA_3_2
     }
 
     private fun resolveDefaultModel(provider: ModelProvider): LLModel = when (provider) {
@@ -124,5 +127,6 @@ class PreviewAgentBuilder {
         ModelProvider.ANTHROPIC -> AnthropicModels.Sonnet_4
         ModelProvider.GOOGLE -> GoogleModels.Gemini2_5Flash
         ModelProvider.BEDROCK -> BedrockModels.AnthropicClaude4Sonnet
+        ModelProvider.OLLAMA -> OllamaModels.Meta.LLAMA_3_2
     }
 }

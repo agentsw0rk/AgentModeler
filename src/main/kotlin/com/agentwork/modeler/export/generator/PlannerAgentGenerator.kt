@@ -188,5 +188,6 @@ class PlannerAgentGenerator {
             "llama-3.1-405b" -> "BedrockModels.MetaLlama3_1_405BInstruct"
             else -> provider.defaultModel
         }
+        ModelProvider.OLLAMA -> provider.defaultModel
     }
 }

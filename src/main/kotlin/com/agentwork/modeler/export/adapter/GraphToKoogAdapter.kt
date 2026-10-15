@@ -474,6 +474,7 @@ class GraphToKoogAdapter {
         "anthropic" -> ModelProvider.ANTHROPIC
         "google" -> ModelProvider.GOOGLE
         "bedrock" -> ModelProvider.BEDROCK
+        "ollama" -> ModelProvider.OLLAMA
         else -> ModelProvider.OPENAI
     }
 

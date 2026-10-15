@@ -11,6 +11,27 @@ class GraphToKoogAdapterTest {
     private val adapter = GraphToKoogAdapter()
 
     @Test
+    fun `maps ollama provider and keeps the ollama model tag`() {
+        val graph = WorkspaceGraph(
+            version = 1,
+            name = "OllamaProject",
+            nodes = listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf(
+                    "name" to "LocalAgent",
+                    "systemPrompt" to "You run locally.",
+                    "modelProvider" to "ollama",
+                    "modelId" to "llama3.2:latest"
+                ))
+            ),
+            edges = emptyList()
+        )
+
+        val agents = adapter.convert(graph)
+        assertEquals(ModelProvider.OLLAMA, agents[0].modelProvider)
+        assertEquals("llama3.2:latest", agents[0].modelId)
+    }
+
+    @Test
     fun `converts a valid graph with one agent and one tool`() {
         val graph = WorkspaceGraph(
             version = 1,
