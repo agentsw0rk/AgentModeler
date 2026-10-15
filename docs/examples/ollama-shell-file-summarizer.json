@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "name": "Ollama Shell File Summarizer",
+  "nodes": [
+    {
+      "id": "agent",
+      "type": "agent",
+      "position": { "x": 420, "y": 160 },
+      "data": {
+        "name": "FileSummarizer",
+        "systemPrompt": "You are an assistant that answers questions about local files. Always use the executeCommand tool to read files; never guess their content.",
+        "modelProvider": "ollama",
+        "modelId": "llama3.2:3b",
+        "temperature": 0.0
+      }
+    },
+    {
+      "id": "shell",
+      "type": "builtin-tool",
+      "position": { "x": 80, "y": 160 },
+      "data": {
+        "toolType": "shell",
+        "workingDir": "."
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "source": "shell", "target": "agent" }
+  ]
+}
