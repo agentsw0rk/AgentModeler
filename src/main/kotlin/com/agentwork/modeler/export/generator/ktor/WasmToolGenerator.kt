@@ -18,6 +18,7 @@ class WasmToolGenerator {
         appendLine("package generated.tools")
         appendLine()
         appendLine("import ai.koog.agents.core.tools.SimpleTool")
+        appendLine("import ai.koog.serialization.typeToken")
         appendLine("import kotlinx.serialization.Serializable")
         appendLine("import kotlinx.serialization.SerialName")
         appendLine("import generated.*")
@@ -77,7 +78,8 @@ class WasmToolGenerator {
 
         // Generate the SimpleTool that delegates to the helper
         appendLine("val ${fn.name}Tool = object : SimpleTool<$argsClass>(")
-        appendLine("    argsSerializer = $argsClass.serializer(),")
+        // Koog 1.x: SimpleTool takes a type token instead of a serializer
+        appendLine("    argsType = typeToken<$argsClass>(),")
         appendLine("    name = \"${fn.name}\",")
         appendLine("    description = \"$escapedDesc\"")
         appendLine(") {")
