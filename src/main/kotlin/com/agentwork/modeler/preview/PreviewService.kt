@@ -54,7 +54,7 @@ class PreviewService(
 
                 executeMessage(session, initialMessage)
             } catch (e: Exception) {
-                sendEvent(emitter, PreviewEvent.Error(e.message ?: "Unknown error"))
+                sendEvent(emitter, PreviewEvent.Error(describePreviewError(e)))
                 sendEvent(emitter, PreviewEvent.StreamComplete)
                 emitter.complete()
             }
@@ -71,7 +71,7 @@ class PreviewService(
             try {
                 executeMessage(session, message)
             } catch (e: Exception) {
-                sendEvent(session.emitter, PreviewEvent.Error(e.message ?: "Unknown error"))
+                sendEvent(session.emitter, PreviewEvent.Error(describePreviewError(e)))
                 sendEvent(session.emitter, PreviewEvent.StreamComplete)
             }
         }
