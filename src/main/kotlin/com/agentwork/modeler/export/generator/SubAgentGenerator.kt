@@ -79,7 +79,6 @@ class SubAgentGenerator {
             appendLine("package generated.subagents")
             appendLine()
             appendLine("import ai.koog.agents.core.tools.ToolRegistry")
-            appendLine("import ai.koog.agents.core.tools.reflect.tools")
             if (subAgent.tools.isNotEmpty() || customBuiltins.isNotEmpty()) {
                 appendLine("import generated.tools.*")
             }

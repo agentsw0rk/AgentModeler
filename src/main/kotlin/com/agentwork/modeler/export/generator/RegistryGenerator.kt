@@ -149,11 +149,7 @@ class RegistryGenerator {
         val fileBuilder = FileSpec.builder("generated", "ToolRegistry")
             .addFunction(funBuilder.build())
 
-        // Add specific typed imports (KotlinPoet handles %T auto-imports)
-        // For reflect tools (ToolSet registration helper)
-        if (tools.isNotEmpty() || customBuiltins.isNotEmpty()) {
-            fileBuilder.addImport("ai.koog.agents.core.tools.reflect", "tools")
-        }
+        // tools(ToolSet) is a ToolRegistryBuilder member since Koog 1.x, so no extra import is needed
 
         // Add specific subagent IO imports
         for (sa in subAgents) {

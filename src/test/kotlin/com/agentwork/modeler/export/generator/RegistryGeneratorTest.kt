@@ -156,4 +156,13 @@ class RegistryGeneratorTest {
         assertContains(code, "weatherTool()")
         assertContains(code, "createMapsRegistry()")
     }
+
+    @Test
+    fun `tool set registry compiles against Koog 1_x without removed reflect tools import`() {
+        // Koog 1.x made tools(ToolSet) a ToolRegistryBuilder member; the old top-level import no longer exists
+        val builtinTools = listOf(KoogBuiltinTool(BuiltinToolType.SHELL, mapOf("workingDir" to "/app")))
+        val code = generator.generate(listOf(KoogTool("searchTool", "Searches", emptyList())), builtinTools)
+        assertContains(code, "tools(ShellToolSet(")
+        assertFalse(code.contains("import ai.koog.agents.core.tools.reflect.tools"))
+    }
 }

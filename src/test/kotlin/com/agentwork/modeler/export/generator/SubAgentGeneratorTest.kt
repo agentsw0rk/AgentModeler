@@ -152,4 +152,18 @@ class SubAgentGeneratorTest {
         assertContains(code, "promptExecutor = simpleOllamaAIExecutor(System.getenv(\"OLLAMA_BASE_URL\") ?: \"http://localhost:11434\")")
         assertFalse(code.contains("_API_KEY"))
     }
+
+    @Test
+    fun `sub-agent registry compiles against Koog 1_x without removed reflect tools import`() {
+        val subAgent = KoogSubAgent(
+            name = "ShellAgent", description = "Has shell",
+            systemPrompt = "Prompt", modelProvider = ModelProvider.OPENAI,
+            modelId = null, temperature = null, delegationMode = "automatic",
+            inputDescription = "Input",
+            tools = emptyList(),
+            builtinTools = listOf(KoogBuiltinTool(BuiltinToolType.SHELL, mapOf("workingDir" to "/app")))
+        )
+        val code = generator.generateRegistry(subAgent)!!
+        assertFalse(code.contains("import ai.koog.agents.core.tools.reflect.tools"))
+    }
 }
