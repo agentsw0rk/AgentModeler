@@ -5,6 +5,11 @@
 
 cd "$(dirname "$0")"
 
+# Load local secrets (e.g. OPENAI_API_KEY) from .env if present
+if [ -f .env ]; then
+  set -a; . ./.env; set +a
+fi
+
 echo "Starting Backend (Spring Boot on :8080)..."
 ./gradlew bootRun &
 BACKEND_PID=$!
