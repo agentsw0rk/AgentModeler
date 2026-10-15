@@ -1,188 +1,69 @@
-# Agent-studio
+<div align="center">
 
-Visueller Editor zum Modellieren, Konfigurieren und Exportieren von **AI-Agenten** als **Kotlin-Code**.
+# 🧩 Koog Agent Modeler
 
-## Überblick.
+**AI-Agenten visuell modellieren – als lauffähigen Kotlin-Code exportieren.**
 
-Der **Koog Agent Editor** ist ein visuelles Tool für Entwickler, die AI-Agenten mit dem JetBrains-Framework **Koog** erstellen möchten.  
-Statt Agenten, Tools, Workflows und Sub-Agents manuell im Code zusammenzubauen, können diese Bausteine in einem graphbasierten Editor modelliert und anschließend als ausführbarer Kotlin-Code exportiert werden.
+![Kotlin](https://img.shields.io/badge/Kotlin-2.2-7f52ff?logo=kotlin&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4-6db33f?logo=springboot&logoColor=white)
+![Koog](https://img.shields.io/badge/JetBrains_Koog-1.3.0-00a3ff)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs)
+![Rete.js](https://img.shields.io/badge/Canvas-Rete.js-6d28d9)
+![MVP](https://img.shields.io/badge/MVP-done-success)
+![License](https://img.shields.io/badge/License-Apache_2.0-blue)
 
-Der Fokus liegt darauf, den Einstieg zu beschleunigen, Boilerplate zu reduzieren und komplexere Agent-Architekturen besser verständlich und wartbar zu machen. Grundlage dafür sind die im Roadmap-Dokument beschriebenen Produktziele, MVP-Phasen und Architekturideen.  [oai_citation:0‡Koog Agent Editor Roadmap.docx](sediment://file_00000000b758724698d7ca090f240a7b)
+![Koog Agent Modeler](AgentModler.png)
 
----
+</div>
 
-## Vision
+Agenten, Tools, Sub-Agents und MCP-Server per Drag & Drop auf den Canvas ziehen, verbinden, validieren – und mit einem Klick ein kompilierbares [JetBrains Koog](https://github.com/JetBrains/koog)-Projekt erhalten. Kein Boilerplate.
 
-Ein Entwickler soll in der Lage sein, einen Koog-Agenten visuell zusammenzustellen, zu validieren und mit einem Klick als kompilierbaren Kotlin-Code zu exportieren.
+## ✅ MVP
 
-Ziel ist ein Editor, der sowohl einfache Single-Agent-Setups als auch komplexere Multi-Agent-Architekturen mit Tools, Memory, Delegation und späteren Runtime-Integrationen unterstützt.  [oai_citation:1‡Koog Agent Editor Roadmap.docx](sediment://file_00000000b758724698d7ca090f240a7b)
+> **Ziel:** Ein Agent mit mehreren Tools – modelliert und als lauffähiger Kotlin-Code exportiert in **unter 5 Minuten**.
 
----
+| | Feature | Beschreibung |
+|---|---|---|
+| 🎨 | **Canvas Engine** | Node-/Edge-Editor auf Basis von Rete.js |
+| 🤖 | **Agent-Node** | Name, System-Prompt, Modell, Temperatur |
+| 🛠️ | **Tool-Node** | Eigene Tools mit Parametern + Builtins (Shell, Filesystem, Fetch, …) |
+| 🔌 | **Input / Output** | Grundmodell für Ein- und Ausgaben des Agenten |
+| 🧠 | **LLM-Provider** | OpenAI, Anthropic, Google, Bedrock, Ollama |
+| 🔍 | **Validierung** | Fehler pro Node, live im Editor und serverseitig |
+| 💾 | **JSON-Persistenz** | Projekte speichern, laden, importieren |
+| 📦 | **Kotlin-Export** | ZIP mit `build.gradle.kts`, Agent, ToolRegistry, Dockerfile |
 
-## Kernfunktionen
+**Workflow:** Agent anlegen → Tools verbinden → validieren → exportieren.
 
-- **Visuelle Modellierung von Agenten** über ein Canvas mit Nodes und Verbindungen
-- **Konfiguration von Agenten** inklusive Name, Prompt und Modellanbieter
-- **Definition von Tools** mit Parametern und Metadaten
-- **Live- oder On-Demand-Codegenerierung** für Kotlin / Koog
-- **Validierung des Graphen** zur Erkennung fehlerhafter Konfigurationen
-- **Persistenz von Projekten** über JSON
-- **Spätere Erweiterung** um Workflows, Sub-Agents, MCP, Memory und Observability  [oai_citation:2‡Koog Agent Editor Roadmap.docx](sediment://file_00000000b758724698d7ca090f240a7b)
+## 🚀 Darüber hinaus
 
----
+- **Live Code Explorer** – generierter Code in Echtzeit neben dem Graphen
+- **Agent Preview** – Agent direkt in der App chatten, mit Execution-Timeline
+- **LLM Code Review** – Review des Exports nach Critical / Warning / Suggestion
+- **Erweiterte Nodes** – Sub-Agent, Planner, RAG, Graph-Agent, A2A, MCP-Server
+- **Export-Ziele** – Spring Boot oder Ktor / Wasm
 
-## Tech Stack
+## ⚡ Quickstart
 
-### Frontend
-- **Next.js**
-- **React**
-- **shadcn/ui**
-- **Rete.js**
+```bash
+./gradlew bootRun                 # Backend  → :8080
+cd frontend && npm run dev        # Frontend → :3000
+```
 
-### Backend / Runtime
-- **Kotlin**
-- **JetBrains Koog**
-- Optional: **Spring Boot** oder **Ktor** für Export, Preview und Integrationen
+Für Preview & Review wird `OPENAI_API_KEY` benötigt – exportierte Agenten laufen mit **Ollama** auch lokal ohne Key.
+Beispielprojekte zum Importieren: [`docs/examples/`](docs/examples/).
 
-### Weitere Bausteine
-- **JSON / kotlinx.serialization** für Persistenz
-- **OpenTelemetry / Langfuse** für Observability
-- **OpenAI / Anthropic / Google** als unterstützte LLM-Provider laut Zielbild  [oai_citation:3‡Koog Agent Editor Roadmap.docx](sediment://file_00000000b758724698d7ca090f240a7b)
+## 🏗️ Architektur
 
----
+```
+Editor-Graph ─▶ GraphToKoogAdapter ─▶ KoogModel ─▶ KotlinPoet-Generatoren ─▶ ZIP / VFS
+```
 
-## Warum Next.js, shadcn/ui und Rete.js?
+| Schicht | Stack |
+|---|---|
+| Frontend | Next.js 16, React 19, Rete.js, Zustand, Tailwind, Monaco |
+| Backend | Kotlin, Spring Boot 4, Koog 1.3.0, KotlinPoet, JimFS |
 
-Für den visuellen Editor ist die Kombination aus **Next.js**, **shadcn/ui** und **Rete.js** besonders geeignet:
+## 📄 Lizenz
 
-- **Next.js** liefert die stabile Basis für eine moderne Web-Anwendung
-- **shadcn/ui** ermöglicht eine konsistente und gut anpassbare UI
-- **Rete.js** eignet sich als Kern für einen flexiblen Node-/Graph-Editor
-
-Damit lässt sich der Canvas nicht als proprietärer Eigenbau entwickeln, sondern auf einem passenden Ökosystem aufsetzen, was Risiko und Implementierungsaufwand reduziert. Das unterstützt direkt die Roadmap-Anforderung, früh einen funktionierenden graphbasierten Editor bereitzustellen.  [oai_citation:4‡Koog Agent Editor Roadmap.docx](sediment://file_00000000b758724698d7ca090f240a7b)
-
----
-
-## MVP
-
-Das MVP fokussiert sich bewusst auf den Kernnutzen:
-
-1. Agent auf dem Canvas anlegen
-2. Tools hinzufügen und verbinden
-3. Graph validieren
-4. Kotlin-Code exportieren
-
-### Geplante MVP-Features
-
-- Canvas Engine mit Node-/Edge-Rendering
-- Agent-Node
-- Tool-Node
-- Input-/Output-Grundmodell
-- Kotlin-Export
-- Basis-Validierung
-- Lokale JSON-Persistenz
-- Auswahl des LLM-Providers  
-
-### MVP-Ziel
-
-Ein Entwickler soll in weniger als 5 Minuten einen einfachen Agenten mit mehreren Tools modellieren und als lauffähigen Kotlin-Code exportieren können.
-
----
-
-## Roadmap
-
-### Phase 1 — MVP
-- Canvas Engine aufbauen
-- Agent- und Tool-Nodes implementieren
-- Properties Panel ergänzen
-- Kotlin-Codegenerator erstellen
-- Graph-Validierung integrieren
-- JSON-Speicherung und Export-Dialog hinzufügen  
-
-### Phase 2 — Beta
-- Workflow-Editor mit Branches, Loops und Fallbacks
-- Sub-Agent-Modellierung
-- MCP-Integration
-- Live-Preview und Testausführung
-- Undo/Redo sowie Copy/Paste für Nodes 
-
-### Phase 3 — Production
-- Memory- und RAG-Nodes
-- Prompt-Template-Editor
-- Integrations-Export für Spring Boot / Ktor
-- Observability-Konfiguration
-- Template-Bibliothek für typische Agent-Patterns  
-
-### Phase 4 — Advanced
-- A2A-Kommunikation
-- Kollaborativer Multi-User-Modus
-- IntelliJ-Plugin
-- CI/CD-Integration
-- AI-gestützte Vorschläge im Editor  
-
----
-
-## Beispiel-Workflow
-
-Ein typischer Ablauf im Editor könnte so aussehen:
-
-1. Neuer Agent wird auf dem Canvas angelegt
-2. System-Prompt und Modellanbieter werden konfiguriert
-3. Zwei oder mehr Tools werden ergänzt
-4. Der Graph wird verbunden und validiert
-5. Der Editor generiert Kotlin-Code für:
-    - Agent-Definition
-    - ToolRegistry
-    - Basis-Konfiguration für den gewählten Provider
-
-So entsteht aus einer visuellen Modellierung direkt eine Grundlage für ein ausführbares Koog-Projekt.  
-
----
-
-## Risiken
-
-Zu den wichtigsten Risiken zählen:
-
-- Änderungen an der Koog-API
-- unterschätzte Komplexität im Canvas-/Graph-Editor
-- Performance bei großen Graphen
-- Scope Creep durch zu viele Features zu früh
-
-Die Roadmap empfiehlt deshalb eine klare MVP-Grenze und einen Architekturansatz mit Adapter-Layer zwischen Editor-Modell und Koog-spezifischer DSL.  
-
----
-
-## Erfolgskriterien
-
-Der Erfolg des MVP lässt sich daran messen, ob neue Entwickler:
-
-- schnell einen ersten Agenten bauen können
-- ohne viel Boilerplate zu nutzbarem Kotlin-Code kommen
-- typische Modellierungsfehler früh erkennen
-- den visuellen Editor als produktivere Alternative zur rein manuellen Implementierung wahrnehmen  [oai_citation:13‡Koog Agent Editor Roadmap.docx](sediment://file_00000000b758724698d7ca090f240a7b)
-
----
-
-## Status
-
-**Stand:** März 2026  
-**Phase:** Konzept / MVP-Planung  
-
----
-
-## Nächste sinnvolle Schritte
-
-- Domain-Modell für Nodes, Ports, Edges und Projektdaten definieren
-- UI-Grundgerüst in Next.js mit shadcn/ui aufsetzen
-- Rete.js-basierte Canvas Engine integrieren
-- Erste Codegenerierung für Agent + ToolRegistry implementieren
-- JSON-Speicherformat festlegen
-- Validierungsregeln für MVP definieren
-
----
-
-## Lizenz
-
-Aktuell offen / noch festzulegen.
-
----
+[Apache License 2.0](LICENSE)
