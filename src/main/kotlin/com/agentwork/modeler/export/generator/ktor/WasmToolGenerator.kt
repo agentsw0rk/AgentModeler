@@ -41,6 +41,44 @@ class WasmToolGenerator {
         appendLine(")")
     }
 
+    /**
+     * Built-in shell tool for the Ktor/Wasm export. Same tool name as the JVM ShellToolSet
+     * (`executeCommand`); the server runs under Node.js, so commands go through child_process.
+     * The module is ESM, hence `process.getBuiltinModule` instead of `require` (Node >= 22.3).
+     */
+    fun generateShellTool(): String = """
+        |package generated.tools
+        |
+        |import ai.koog.agents.core.tools.SimpleTool
+        |import ai.koog.serialization.typeToken
+        |import kotlinx.serialization.SerialName
+        |import kotlinx.serialization.Serializable
+        |import kotlin.js.JsString
+        |import kotlin.js.toJsString
+        |
+        |@JsFun(""${'"'}(command, cwd) => {
+        |    const { execSync } = process.getBuiltinModule('child_process');
+        |    try {
+        |        return execSync(command, { cwd, encoding: 'utf8', timeout: 60000, maxBuffer: 10 * 1024 * 1024 });
+        |    } catch (e) {
+        |        return String(e.stdout ?? '') + String(e.stderr ?? '') + String(e.message ?? '');
+        |    }
+        |}""${'"'})
+        |private external fun runShellCommand(command: JsString, cwd: JsString): JsString
+        |
+        |@Serializable
+        |data class ExecuteCommandArgs(@SerialName("command") val command: String)
+        |
+        |class ShellTool(private val workingDir: String) : SimpleTool<ExecuteCommandArgs>(
+        |    argsType = typeToken<ExecuteCommandArgs>(),
+        |    name = "executeCommand",
+        |    description = "Execute a shell command and return its output"
+        |) {
+        |    override suspend fun execute(args: ExecuteCommandArgs): String =
+        |        runShellCommand(args.command.toJsString(), workingDir.toJsString()).toString().take(100_000)
+        |}
+        |""".trimMargin()
+
     private fun StringBuilder.generateArgsClass(fn: KoogToolFunction) {
         val className = "${fn.name.replaceFirstChar { it.uppercase() }}Args"
         if (fn.parameters.isEmpty()) {

@@ -45,8 +45,11 @@ class KtorWasmBackend(
             }
 
     /** Generate Wasm-compatible tool files using SimpleTool instead of ToolSet */
-    private fun generateWasmToolFiles(tools: List<KoogTool>): Map<String, String> {
+    private fun generateWasmToolFiles(tools: List<KoogTool>, builtinTools: List<KoogBuiltinTool>): Map<String, String> {
         val files = mutableMapOf<String, String>()
+        if (builtinTools.any { it.type == BuiltinToolType.SHELL }) {
+            files["${wasmPrefix}tools/ShellTool.kt"] = wasmToolGenerator.generateShellTool()
+        }
         for (tool in tools) {
             files["${wasmPrefix}tools/${tool.name}.kt"] = wasmToolGenerator.generate(tool)
         }
@@ -103,7 +106,8 @@ class KtorWasmBackend(
                 tools = agent.tools,
                 builtinTools = agent.builtinTools,
                 subAgents = agent.subAgents,
-                mcpServers = agent.mcpServers
+                mcpServers = agent.mcpServers,
+                includeShellTool = true
             )
         }
 
@@ -111,7 +115,7 @@ class KtorWasmBackend(
         files.putAll(remapSharedFiles(sharedFiles))
 
         // Wasm-compatible tool files (override shared ToolSet-based ones)
-        files.putAll(generateWasmToolFiles(agent.tools))
+        files.putAll(generateWasmToolFiles(agent.tools, agent.builtinTools))
 
         return files
     }
@@ -164,7 +168,8 @@ class KtorWasmBackend(
                 tools = infraAgent.tools,
                 builtinTools = infraAgent.builtinTools,
                 subAgents = infraAgent.subAgents,
-                mcpServers = infraAgent.mcpServers
+                mcpServers = infraAgent.mcpServers,
+                includeShellTool = true
             )
             if (hasRagTools) {
                 // Add RAG tool imports and registrations
@@ -185,7 +190,7 @@ class KtorWasmBackend(
         files.putAll(remapSharedFiles(sharedFiles))
 
         // Wasm-compatible tool files
-        files.putAll(generateWasmToolFiles(agent.tools))
+        files.putAll(generateWasmToolFiles(agent.tools, agent.builtinTools))
 
         // Wasm-compatible RAG files
         for (rag in agent.ragNodes) {

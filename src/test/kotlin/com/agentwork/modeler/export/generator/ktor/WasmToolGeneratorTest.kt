@@ -28,4 +28,14 @@ class WasmToolGeneratorTest {
         assertContains(code, "import ai.koog.serialization.typeToken")
         assertFalse(code.contains("argsSerializer"))
     }
+
+    @Test
+    fun `shell tool runs commands through node child_process in the configured directory`() {
+        val code = WasmToolGenerator().generateShellTool()
+        assertContains(code, "process.getBuiltinModule('child_process')")
+        assertContains(code, "execSync(command, { cwd")
+        assertContains(code, "class ShellTool(private val workingDir: String) : SimpleTool<ExecuteCommandArgs>(")
+        assertContains(code, "argsType = typeToken<ExecuteCommandArgs>(),")
+        assertContains(code, "name = \"executeCommand\"")
+    }
 }
