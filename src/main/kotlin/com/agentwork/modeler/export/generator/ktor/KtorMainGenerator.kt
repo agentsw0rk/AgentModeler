@@ -18,6 +18,7 @@ class KtorMainGenerator {
         }
         val modelRef = agent.modelId?.let { mapModelId(agent.modelProvider, it) } ?: agent.modelProvider.defaultModel
         val envVarName = "${agent.modelProvider.name}_API_KEY"
+        val isOllama = agent.modelProvider == ModelProvider.OLLAMA
         val hasTools = agent.tools.isNotEmpty() || agent.builtinTools.isNotEmpty() || agent.subAgents.isNotEmpty() || agent.mcpServers.isNotEmpty()
 
         return buildString {
@@ -34,12 +35,19 @@ class KtorMainGenerator {
             appendLine("import kotlin.js.JsString")
             appendLine()
             // WasmJS: use @JsFun for JS interop (js() has strict restrictions in Wasm)
-            appendLine("""@JsFun("() => { try { return process.env.$envVarName || '' } catch(e) { return '' } }")""")
-            appendLine("""private external fun readApiKey(): JsString""")
-            appendLine()
-            appendLine("""private val envApiKey: String = readApiKey().toString().also {""")
-            appendLine("""    require(it.isNotEmpty()) { "$envVarName environment variable must be set" }""")
-            appendLine("""}""")
+            if (isOllama) {
+                appendLine("""@JsFun("() => { try { return process.env.${OllamaModelMapping.BASE_URL_ENV} || '' } catch(e) { return '' } }")""")
+                appendLine("""private external fun readOllamaBaseUrl(): JsString""")
+                appendLine()
+                appendLine("""private val envOllamaBaseUrl: String = readOllamaBaseUrl().toString().ifEmpty { "${OllamaModelMapping.DEFAULT_BASE_URL}" }""")
+            } else {
+                appendLine("""@JsFun("() => { try { return process.env.$envVarName || '' } catch(e) { return '' } }")""")
+                appendLine("""private external fun readApiKey(): JsString""")
+                appendLine()
+                appendLine("""private val envApiKey: String = readApiKey().toString().also {""")
+                appendLine("""    require(it.isNotEmpty()) { "$envVarName environment variable must be set" }""")
+                appendLine("""}""")
+            }
             appendLine()
             appendLine("fun main() {")
 
@@ -50,7 +58,8 @@ class KtorMainGenerator {
                 .replace("\r", "")
 
             val params = mutableListOf<String>()
-            params.add("""promptExecutor = ${agent.modelProvider.executorFactory}(envApiKey)""")
+            val executorArg = if (isOllama) "envOllamaBaseUrl" else "envApiKey"
+            params.add("promptExecutor = ${agent.modelProvider.executorFactory}($executorArg)")
             params.add("""systemPrompt = "$escapedPrompt"""")
             params.add("llmModel = $modelRef")
             agent.temperature?.let { params.add("temperature = $it") }
