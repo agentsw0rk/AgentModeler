@@ -12,7 +12,7 @@ import { useReviewStore } from "@/store/reviewStore";
 import { startExportReview, ReviewSSEEvent } from "@/lib/review-client";
 import { ReviewResult } from "@/types/review";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export function ExportDialog({ open: controlledOpen, onOpenChange: controlledOnOpenChange }: { open?: boolean; onOpenChange?: (open: boolean) => void } = {}) {
   const isControlled = controlledOpen !== undefined;

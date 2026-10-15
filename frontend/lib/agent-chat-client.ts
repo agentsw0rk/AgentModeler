@@ -1,6 +1,6 @@
 import { parseSSEStream } from "./sse-utils";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export interface AgentChatSseEvent {
   type: "tool-call" | "agent-message" | "stream-complete" | "error";

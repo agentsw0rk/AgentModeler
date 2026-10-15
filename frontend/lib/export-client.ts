@@ -1,6 +1,6 @@
 import { WorkspaceGraph } from "@/types/graph";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export async function exportToKotlin(graph: WorkspaceGraph, backend?: string, targets?: string[]): Promise<Blob> {
   const body: Record<string, unknown> = backend ? { graph, backend } : { ...graph };

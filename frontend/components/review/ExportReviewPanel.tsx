@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useReviewStore } from "@/store/reviewStore";
 import { FindingSeverity } from "@/types/review";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
   pass: { label: "PASS", variant: "default" },

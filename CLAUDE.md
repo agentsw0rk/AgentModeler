@@ -87,7 +87,7 @@ npm run build     # Production build
 npm run lint      # ESLint
 ```
 
-Full-stack dev: run `./gradlew bootRun` and `cd frontend && npm run dev` in parallel. Frontend proxies API calls to :8080.
+Full-stack dev: run `./gradlew bootRun` and `cd frontend && npm run dev` in parallel. Frontend proxies `/api/*` to :8080 via rewrites in `frontend/next.config.ts` (override target with `BACKEND_URL`); clients use relative URLs, so no CORS in dev.
 
 ## Architecture
 
