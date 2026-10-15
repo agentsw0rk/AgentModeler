@@ -351,8 +351,10 @@ export function CustomConnection(props: { data: { id: string; source: string; ta
     }
   };
 
+  // Explicit size like Rete's classic preset: the connection container is 0x0, so
+  // "100%" made the svg 0x0, which Chrome does not render at all (Firefox does).
   return (
-    <svg data-testid="connection" style={{ overflow: "visible", position: "absolute", pointerEvents: "none", width: "100%", height: "100%" }}>
+    <svg data-testid="connection" style={{ overflow: "visible", position: "absolute", pointerEvents: "none", width: 9999, height: 9999 }}>
       {/* Invisible wider path for easier clicking */}
       <path
         d={path}
