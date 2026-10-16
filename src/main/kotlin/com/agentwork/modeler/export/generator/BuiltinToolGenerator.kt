@@ -30,6 +30,7 @@ class BuiltinToolGenerator {
         BuiltinToolType.MEMORY -> generateMemory(tool)
         BuiltinToolType.TODO -> generateTodo()
         BuiltinToolType.JIRA -> generateJira(tool)
+        BuiltinToolType.CONFLUENCE -> generateConfluence(tool)
     }
 
     private fun generateShell(tool: KoogBuiltinTool): String {
@@ -492,6 +493,99 @@ class BuiltinToolGenerator {
             .toString()
     }
 
+    private fun generateConfluence(tool: KoogBuiltinTool): String {
+        val storageFun = FunSpec.builder("storage")
+            .addModifiers(KModifier.PRIVATE)
+            .addParameter("value", STRING)
+            .returns(JSON_OBJECT)
+            .addStatement("return %M { %M(\"representation\", \"storage\"); %M(\"value\", value) }", BUILD_JSON_OBJECT, PUT, PUT)
+            .build()
+
+        val classSpec = atlassianToolSet(tool, "ConfluenceToolSet", "Tools for searching, reading, creating and updating Confluence pages")
+            .addFunction(storageFun)
+            .addFunction(
+                atlassianTool(
+                    "searchPages", "Search Confluence content with CQL. Returns id, title and excerpt per result.",
+                    listOf(
+                        Triple("cql", STRING, "CQL query, e.g. type = page AND text ~ \"onboarding\""),
+                        Triple("limit", INT, "Maximum number of results (1-50)")
+                    ),
+                    CodeBlock.of("return text(call(\"GET\", \"/wiki/rest/api/search?cql=\" + enc(cql) + \"&limit=\" + limit.coerceIn(1, 50)))\n")
+                )
+            )
+            .addFunction(
+                atlassianTool(
+                    "getPage", "Get a Confluence page with its content in storage format",
+                    listOf(Triple("pageId", STRING, "Page ID")),
+                    CodeBlock.of("return text(call(\"GET\", \"/wiki/api/v2/pages/\" + pageId + \"?body-format=storage\"))\n")
+                )
+            )
+            .addFunction(
+                atlassianTool(
+                    "createPage", "Create a Confluence page",
+                    listOf(
+                        Triple("spaceKey", STRING, "Space key, e.g. TEAM"),
+                        Triple("title", STRING, "Page title"),
+                        Triple("body", STRING, PAGE_BODY_DESCRIPTION),
+                        Triple("parentId", STRING, "ID of the parent page, empty for a top-level page")
+                    ),
+                    CodeBlock.of(
+                        """
+                        |val spaces = call("GET", "/wiki/api/v2/spaces?keys=" + enc(spaceKey))
+                        |if (spaces.statusCode() !in 200..299) return text(spaces)
+                        |val spaceId = %T.parseToJsonElement(spaces.body()).%M["results"]?.%M?.firstOrNull()
+                        |    ?.%M?.get("id")?.%M?.content
+                        |    ?: return "Space '" + spaceKey + "' not found"
+                        |val page = %M {
+                        |    %M("spaceId", spaceId)
+                        |    %M("status", "current")
+                        |    %M("title", title)
+                        |    if (parentId.isNotBlank()) %M("parentId", parentId)
+                        |    put("body", storage(body))
+                        |}
+                        |return text(call("POST", "/wiki/api/v2/pages", page))
+                        |""".trimMargin(),
+                        JSON, JSON_OBJECT_EXT, JSON_ARRAY_EXT, JSON_OBJECT_EXT, JSON_PRIMITIVE_EXT,
+                        BUILD_JSON_OBJECT, PUT, PUT, PUT, PUT
+                    )
+                )
+            )
+            .addFunction(
+                atlassianTool(
+                    "updatePage", "Replace title and content of a Confluence page",
+                    listOf(
+                        Triple("pageId", STRING, "Page ID"),
+                        Triple("title", STRING, "Page title"),
+                        Triple("body", STRING, PAGE_BODY_DESCRIPTION)
+                    ),
+                    CodeBlock.of(
+                        """
+                        |val path = "/wiki/api/v2/pages/" + pageId
+                        |val current = call("GET", path)
+                        |if (current.statusCode() !in 200..299) return text(current)
+                        |val version = %T.parseToJsonElement(current.body()).%M["version"]!!.%M["number"]!!.%M.%M
+                        |val page = %M {
+                        |    %M("id", pageId)
+                        |    %M("status", "current")
+                        |    %M("title", title)
+                        |    put("body", storage(body))
+                        |    %M("version") { %M("number", version + 1) }
+                        |}
+                        |return text(call("PUT", path, page))
+                        |""".trimMargin(),
+                        JSON, JSON_OBJECT_EXT, JSON_OBJECT_EXT, JSON_PRIMITIVE_EXT, MemberName(JSON_PKG, "int"),
+                        BUILD_JSON_OBJECT, PUT, PUT, PUT, PUT_JSON_OBJECT, PUT
+                    )
+                )
+            )
+            .build()
+
+        return FileSpec.builder("generated.tools", "ConfluenceToolSet")
+            .addType(classSpec)
+            .build()
+            .toString()
+    }
+
     /** Class skeleton shared by the Atlassian Cloud tool sets: base URL, Basic auth from env, HTTP helpers. */
     private fun atlassianToolSet(tool: KoogBuiltinTool, className: String, description: String): TypeSpec.Builder {
         val httpClient = ClassName("java.net.http", "HttpClient")
@@ -587,6 +681,7 @@ class BuiltinToolGenerator {
 
     private companion object {
         const val JSON_PKG = "kotlinx.serialization.json"
+        const val PAGE_BODY_DESCRIPTION = "Page content in Confluence storage format (XHTML, e.g. <p>Text</p>)"
         val JSON = ClassName(JSON_PKG, "Json")
         val JSON_OBJECT = ClassName(JSON_PKG, "JsonObject")
         val BUILD_JSON_OBJECT = MemberName(JSON_PKG, "buildJsonObject")

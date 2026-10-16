@@ -59,7 +59,7 @@ enum class KoogParamType(val kotlinType: String) {
 }
 
 enum class BuiltinToolType {
-    THINK, SHELL, FILESYSTEM, FETCH, MEMORY, TODO, USER_PROMPT, JIRA;
+    THINK, SHELL, FILESYSTEM, FETCH, MEMORY, TODO, USER_PROMPT, JIRA, CONFLUENCE;
 
     fun toFileName(): String? = when (this) {
         SHELL -> "ShellToolSet.kt"
@@ -67,6 +67,7 @@ enum class BuiltinToolType {
         MEMORY -> "MemoryToolSet.kt"
         TODO -> "TodoToolSet.kt"
         JIRA -> "JiraToolSet.kt"
+        CONFLUENCE -> "ConfluenceToolSet.kt"
         else -> null
     }
 }

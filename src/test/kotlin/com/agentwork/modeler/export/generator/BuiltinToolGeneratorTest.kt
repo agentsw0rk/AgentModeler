@@ -100,4 +100,26 @@ class BuiltinToolGeneratorTest {
         assertContains(code, "ignoreCase = true")
         assertContains(code, "Available:")
     }
+
+    @Test
+    fun `generates ConfluenceToolSet with all confluence tools`() {
+        val code = generator.generate(KoogBuiltinTool(BuiltinToolType.CONFLUENCE))!!
+        assertContains(code, "class ConfluenceToolSet")
+        listOf("fun searchPages(", "fun getPage(", "fun createPage(", "fun updatePage(")
+            .forEach { assertContains(code, it) }
+        assertContains(code, "/wiki/rest/api/search?cql=")
+        assertContains(code, "/wiki/api/v2/pages")
+        assertContains(code, "body-format=storage")
+        assertContains(code, "\"ATLASSIAN_API_TOKEN\"")
+        assertContains(code, "URLEncoder.encode(")
+    }
+
+    @Test
+    fun `confluence tool set resolves space id and bumps page version`() {
+        val code = generator.generate(KoogBuiltinTool(BuiltinToolType.CONFLUENCE))!!
+        assertContains(code, "/wiki/api/v2/spaces?keys=")
+        assertContains(code, "\"representation\"")
+        assertContains(code, "\"storage\"")
+        assertContains(code, "+ 1")
+    }
 }
