@@ -1,10 +1,10 @@
-# Koog Agent Modeler
+# Agent Modeler
 
 Ein visueller Editor zum Erstellen, Konfigurieren und Exportieren von KI-Agenten auf Basis des [Koog Agent Framework](https://github.com/JetBrains/koog).
 
 ## Was ist das?
 
-Der Koog Agent Modeler ist eine Web-Anwendung, mit der sich KI-Agenten per Drag & Drop zusammenbauen lassen — ohne manuell Kotlin-Code schreiben zu müssen. Der fertige Agent wird als kompilierbares Spring Boot-Projekt exportiert.
+Der Agent Modeler ist eine Web-Anwendung, mit der sich KI-Agenten per Drag & Drop zusammenbauen lassen — ohne manuell Kotlin-Code schreiben zu müssen. Der fertige Agent wird als kompilierbares Spring Boot-Projekt exportiert.
 
 ## Kernfunktionen
 

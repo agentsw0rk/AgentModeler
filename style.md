@@ -1,4 +1,4 @@
-# Frontend Style Reference — Koog Agent Modeler
+# Frontend Style Reference — Agent Modeler
 
 Snapshot des aktuellen Frontend-Stylings (Stand: 2026-04-07), als Vorlage zum Übernehmen in andere Projekte.
 

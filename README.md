@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🧩 Koog Agent Modeler
+# 🧩 Agent Modeler
 
 **AI-Agenten visuell modellieren – als lauffähigen Kotlin-Code exportieren.**
 
@@ -12,11 +12,11 @@
 ![MVP](https://img.shields.io/badge/MVP-done-success)
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue)
 
-![Koog Agent Modeler](AgentModler.png)
+![Agent Modeler](AgentModler.png)
 
 </div>
 
-Agenten, Tools, Sub-Agents und MCP-Server per Drag & Drop auf den Canvas ziehen, verbinden, validieren – und mit einem Klick ein kompilierbares [JetBrains Koog](https://github.com/JetBrains/koog)-Projekt erhalten. Kein Boilerplate.
+Agenten, Tools, Sub-Agents und MCP-Server per Drag & Drop auf den Canvas ziehen, verbinden, validieren – und als kompilierbares [JetBrains Koog](https://github.com/JetBrains/koog)-Projekt exportieren.
 
 ## ✅ MVP
 

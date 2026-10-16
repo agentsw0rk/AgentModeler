@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-# Koog Agent Modeler - Start Backend (8080) + Frontend (3000)
+# Agent Modeler - Start Backend (8080) + Frontend (3000)
 
 cd "$(dirname "$0")"
 
