@@ -417,7 +417,8 @@ class BuiltinToolGenerator {
                 atlassianTool(
                     "getIssue", "Get a Jira issue with all its fields",
                     listOf(Triple("issueKey", STRING, "Issue key, e.g. ABC-123")),
-                    CodeBlock.of("return text(call(\"GET\", \"/rest/api/3/issue/\" + issueKey))\n")
+                    CodeBlock.of("return text(call(\"GET\", \"/rest/api/3/issue/\" + issueKey))\n"),
+                    "issueKey" to ISSUE_KEY_PATTERN
                 )
             )
             .addFunction(
@@ -455,7 +456,8 @@ class BuiltinToolGenerator {
                     CodeBlock.of(
                         "return text(call(\"POST\", \"/rest/api/3/issue/\" + issueKey + \"/comment\", %M { put(\"body\", adf(comment)) }))\n",
                         BUILD_JSON_OBJECT
-                    )
+                    ),
+                    "issueKey" to ISSUE_KEY_PATTERN
                 )
             )
             .addFunction(
@@ -482,7 +484,8 @@ class BuiltinToolGenerator {
                         JSON, JSON_OBJECT_EXT, JSON_ARRAY_EXT, JSON_OBJECT_EXT,
                         JSON_PRIMITIVE_EXT, JSON_OBJECT_EXT, JSON_PRIMITIVE_EXT, JSON_PRIMITIVE_EXT, JSON_PRIMITIVE_EXT,
                         BUILD_JSON_OBJECT, PUT_JSON_OBJECT, PUT
-                    )
+                    ),
+                    "issueKey" to ISSUE_KEY_PATTERN
                 )
             )
             .build()
@@ -517,7 +520,8 @@ class BuiltinToolGenerator {
                 atlassianTool(
                     "getPage", "Get a Confluence page with its content in storage format",
                     listOf(Triple("pageId", STRING, "Page ID")),
-                    CodeBlock.of("return text(call(\"GET\", \"/wiki/api/v2/pages/\" + pageId + \"?body-format=storage\"))\n")
+                    CodeBlock.of("return text(call(\"GET\", \"/wiki/api/v2/pages/\" + pageId + \"?body-format=storage\"))\n"),
+                    "pageId" to PAGE_ID_PATTERN
                 )
             )
             .addFunction(
@@ -575,7 +579,8 @@ class BuiltinToolGenerator {
                         |""".trimMargin(),
                         JSON, JSON_OBJECT_EXT, JSON_OBJECT_EXT, JSON_PRIMITIVE_EXT, MemberName(JSON_PKG, "int"),
                         BUILD_JSON_OBJECT, PUT, PUT, PUT, PUT_JSON_OBJECT, PUT
-                    )
+                    ),
+                    "pageId" to PAGE_ID_PATTERN
                 )
             )
             .build()
@@ -645,7 +650,12 @@ class BuiltinToolGenerator {
                     )
                     .build()
             )
-            .addProperty(PropertySpec.builder("baseUrl", STRING, KModifier.PRIVATE).initializer("baseUrl.trimEnd('/')").build())
+            // Only scheme and host: a pasted browser URL like https://x.atlassian.net/wiki would break every REST path
+            .addProperty(
+                PropertySpec.builder("baseUrl", STRING, KModifier.PRIVATE)
+                    .initializer("%T.create(baseUrl).let { it.scheme + \"://\" + it.authority }", ClassName("java.net", "URI"))
+                    .build()
+            )
             .addProperty(PropertySpec.builder("client", httpClient, KModifier.PRIVATE).initializer("%T.newHttpClient()", httpClient).build())
             // Read in the constructor so a missing variable fails at startup, not on the first tool call
             .addProperty(
@@ -666,7 +676,8 @@ class BuiltinToolGenerator {
         name: String,
         description: String,
         params: List<Triple<String, TypeName, String>>,
-        body: CodeBlock
+        body: CodeBlock,
+        pathId: Pair<String, String>? = null
     ): FunSpec = FunSpec.builder(name)
         .addAnnotation(KoogAnnotations.tool())
         .addAnnotation(KoogAnnotations.llmDescription(description))
@@ -676,11 +687,19 @@ class BuiltinToolGenerator {
                 .build()
         })
         .returns(STRING)
+        .apply {
+            // The id goes into the URL path; reject anything that could point the request elsewhere
+            pathId?.let { (param, pattern) ->
+                addStatement("if (!Regex(%S).matches($param)) return %S + $param", pattern, "Invalid $param: ")
+            }
+        }
         .addCode(body)
         .build()
 
     private companion object {
         const val JSON_PKG = "kotlinx.serialization.json"
+        const val ISSUE_KEY_PATTERN = "[A-Za-z][A-Za-z0-9_]*-\\d+|\\d+"
+        const val PAGE_ID_PATTERN = "\\d+"
         const val PAGE_BODY_DESCRIPTION = "Page content in Confluence storage format (XHTML, e.g. <p>Text</p>)"
         val JSON = ClassName(JSON_PKG, "Json")
         val JSON_OBJECT = ClassName(JSON_PKG, "JsonObject")

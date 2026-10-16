@@ -88,7 +88,7 @@ class BuiltinToolGeneratorTest {
         val code = generator.generate(KoogBuiltinTool(BuiltinToolType.JIRA))!!
         assertContains(code, "URLEncoder.encode(")
         assertContains(code, "buildJsonObject")
-        assertContains(code, "trimEnd('/')")
+        assertContains(code, "it.scheme + \"://\" + it.authority")
     }
 
     @Test
@@ -121,5 +121,15 @@ class BuiltinToolGeneratorTest {
         assertContains(code, "\"representation\"")
         assertContains(code, "\"storage\"")
         assertContains(code, "+ 1")
+    }
+
+    @Test
+    fun `atlassian tool sets reject ids that would change the request path`() {
+        val jira = generator.generate(KoogBuiltinTool(BuiltinToolType.JIRA))!!
+        assertContains(jira, "Regex(\"[A-Za-z][A-Za-z0-9_]*-\\\\d+|\\\\d+\").matches(issueKey)")
+        assertContains(jira, "\"Invalid issueKey: \"")
+        val confluence = generator.generate(KoogBuiltinTool(BuiltinToolType.CONFLUENCE))!!
+        assertContains(confluence, "Regex(\"\\\\d+\").matches(pageId)")
+        assertContains(confluence, "\"Invalid pageId: \"")
     }
 }
