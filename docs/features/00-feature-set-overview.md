@@ -1,6 +1,6 @@
 # Feature Set: Banking Tutorial Parity
 
-Abgeleitet aus der [Gap Analysis](docs/gap-analysis-banking-tutorial.md). Jedes Feature ist eine eigenständige, implementierbare Einheit. Die Reihenfolge ist so gewählt, dass jedes Feature auf dem vorherigen aufbaut.
+Jedes Feature ist eine eigenständige, implementierbare Einheit. Die Reihenfolge ist so gewählt, dass jedes Feature auf dem vorherigen aufbaut.
 
 ## Reihenfolge
 
