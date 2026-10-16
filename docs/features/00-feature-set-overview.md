@@ -22,3 +22,4 @@ Jedes Feature ist eine eigenständige, implementierbare Einheit. Die Reihenfolge
 | 14 | [pgvector RAG Storage](./14-pgvector-rag-storage.md) | `14` | #10 (RAG Node) | Mittel |
 | 15 | [Ollama Provider](./15-ollama-provider.md) | `15` | — | Klein–Mittel |
 | 16 | [Parallel Node im Graph-Editor](./16-parallel-graph-node.md) | `16` | #5 (Custom Node) | Mittel |
+| 17 | [Jira- und Confluence-Tools (Cloud)](./17-jira-confluence-tools.md) | `17` | — | Mittel |
