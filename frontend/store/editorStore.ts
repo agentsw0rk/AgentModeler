@@ -125,6 +125,8 @@ const builtinToolDefaults: Record<BuiltinToolType, BuiltinToolConfig> = {
   memory:      { toolType: "memory" },
   todo:        { toolType: "todo" },
   user_prompt: { toolType: "user_prompt" },
+  jira:        { toolType: "jira" },
+  confluence:  { toolType: "confluence" },
 };
 
 export const DEFAULT_OTEL_CONFIG: OtelConfig = {
