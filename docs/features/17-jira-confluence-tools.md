@@ -163,9 +163,9 @@ Fehler, wenn `baseUrl` leer ist oder nicht mit `https://` beginnt. Keine Warnung
 
 ## Akzeptanzkriterien
 
-- [ ] Jira- und Confluence-Node lassen sich auf den Canvas ziehen, mit einem Agenten verbinden und konfigurieren
-- [ ] Export (Spring Boot) enthaelt `JiraToolSet.kt` / `ConfluenceToolSet.kt`, registriert mit der konfigurierten `baseUrl`, und baut (Gradle Build Validation, Feature 07)
-- [ ] Kein Token und keine E-Mail im Graph-JSON oder im exportierten Code; nur die Env-Variablennamen
-- [ ] Fehlende Env-Variable fuehrt zu einer klaren Fehlermeldung beim Start
+- [x] Jira- und Confluence-Node lassen sich auf den Canvas ziehen, mit einem Agenten verbinden und konfigurieren
+- [x] Export (Spring Boot) enthaelt `JiraToolSet.kt` / `ConfluenceToolSet.kt`, registriert mit der konfigurierten `baseUrl`, und baut (Gradle Build Validation, Feature 07). `docker-compose.yaml` bekommt die Env-Variablen nur, wenn es generiert wird (heute nur bei pgvector-RAG)
+- [x] Kein Token und keine E-Mail im Graph-JSON oder im exportierten Code; nur die Env-Variablennamen
+- [x] Fehlende Env-Variable fuehrt zu einer klaren Fehlermeldung beim Start
 - [ ] Manueller Test gegen eine echte Cloud-Instanz: Issue suchen, anlegen, kommentieren, Status wechseln; Seite suchen, anlegen, aendern
-- [ ] Bestehende Builtin-Tools exportieren unveraendert
+- [x] Bestehende Builtin-Tools exportieren unveraendert

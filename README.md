@@ -26,7 +26,7 @@ Agenten, Tools, Sub-Agents und MCP-Server per Drag & Drop auf den Canvas ziehen,
 |---|---|---|
 | 🎨 | **Canvas Engine** | Node-/Edge-Editor auf Basis von Rete.js |
 | 🤖 | **Agent-Node** | Name, System-Prompt, Modell, Temperatur |
-| 🛠️ | **Tool-Node** | Eigene Tools mit Parametern + Builtins (Shell, Filesystem, Fetch, …) |
+| 🛠️ | **Tool-Node** | Eigene Tools mit Parametern + Builtins (Shell, Filesystem, Fetch, Jira, Confluence, …) |
 | 🔌 | **Input / Output** | Grundmodell für Ein- und Ausgaben des Agenten |
 | 🧠 | **LLM-Provider** | OpenAI, Anthropic, Google, Bedrock, Ollama |
 | 🔍 | **Validierung** | Fehler pro Node, live im Editor und serverseitig |
