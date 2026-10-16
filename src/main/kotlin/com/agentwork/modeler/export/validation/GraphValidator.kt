@@ -69,11 +69,14 @@ class GraphValidator {
                 }
                 "builtin-tool" -> {
                     val toolType = node.data["toolType"] as? String ?: ""
-                    val validTypes = setOf("think", "shell", "filesystem", "fetch", "memory", "todo", "user_prompt")
+                    val validTypes = setOf("think", "shell", "filesystem", "fetch", "memory", "todo", "user_prompt", "jira", "confluence")
                     if (toolType.isBlank()) {
                         errors.add("[${node.id}] Built-in tool requires a toolType")
                     } else if (toolType !in validTypes) {
                         errors.add("[${node.id}] Invalid toolType: $toolType")
+                    }
+                    if (toolType in setOf("jira", "confluence") && !(node.data["baseUrl"] as? String).orEmpty().startsWith("https://")) {
+                        errors.add("[${node.id}] ${toolType.replaceFirstChar { it.uppercase() }} requires an https:// Atlassian URL")
                     }
                     val isConnected = graph.edges.any { it.source == node.id }
                     if (!isConnected) errors.add("[${node.id}] Built-in tool must be connected to an Agent")
