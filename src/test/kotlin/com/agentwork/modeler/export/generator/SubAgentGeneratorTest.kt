@@ -166,4 +166,22 @@ class SubAgentGeneratorTest {
         val code = generator.generateRegistry(subAgent)!!
         assertFalse(code.contains("import ai.koog.agents.core.tools.reflect.tools"))
     }
+
+    @Test
+    fun `sub-agent registry registers jira and confluence tool sets`() {
+        val subAgent = KoogSubAgent(
+            name = "TicketAgent", description = "Handles tickets",
+            systemPrompt = "Prompt", modelProvider = ModelProvider.OPENAI,
+            modelId = null, temperature = null, delegationMode = "automatic",
+            inputDescription = "Input",
+            tools = emptyList(),
+            builtinTools = listOf(
+                KoogBuiltinTool(BuiltinToolType.JIRA, mapOf("baseUrl" to "https://x.atlassian.net")),
+                KoogBuiltinTool(BuiltinToolType.CONFLUENCE, mapOf("baseUrl" to "https://x.atlassian.net"))
+            )
+        )
+        val code = generator.generateRegistry(subAgent)!!
+        assertContains(code, "tools(JiraToolSet(baseUrl = \"https://x.atlassian.net\"))")
+        assertContains(code, "tools(ConfluenceToolSet(baseUrl = \"https://x.atlassian.net\"))")
+    }
 }

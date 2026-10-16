@@ -165,4 +165,15 @@ class RegistryGeneratorTest {
         assertContains(code, "tools(ShellToolSet(")
         assertFalse(code.contains("import ai.koog.agents.core.tools.reflect.tools"))
     }
+
+    @Test
+    fun `generates registry with jira and confluence tool sets`() {
+        val builtinTools = listOf(
+            KoogBuiltinTool(BuiltinToolType.JIRA, mapOf("baseUrl" to "https://x.atlassian.net")),
+            KoogBuiltinTool(BuiltinToolType.CONFLUENCE, mapOf("baseUrl" to "https://x.atlassian.net"))
+        )
+        val code = generator.generate(emptyList(), builtinTools)
+        assertContains(code, "tools(JiraToolSet(baseUrl = \"https://x.atlassian.net\"))")
+        assertContains(code, "tools(ConfluenceToolSet(baseUrl = \"https://x.atlassian.net\"))")
+    }
 }
