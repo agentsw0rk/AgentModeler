@@ -18,8 +18,6 @@
 
 Agenten, Tools, Sub-Agents und MCP-Server per Drag & Drop auf den Canvas ziehen, verbinden, validieren – und als kompilierbares [JetBrains Koog](https://github.com/JetBrains/koog)-Projekt exportieren.
 
-## ✅ MVP
-
 > **Ziel:** Ein Agent mit mehreren Tools – modelliert und als lauffähiger Kotlin-Code exportiert in **unter 5 Minuten**.
 
 | | Feature | Beschreibung |
