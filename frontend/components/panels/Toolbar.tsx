@@ -27,6 +27,8 @@ const builtinToolOptions: { type: BuiltinToolType; label: string }[] = [
   { type: "memory", label: "Memory" },
   { type: "todo", label: "Todo" },
   { type: "user_prompt", label: "User Prompt" },
+  { type: "jira", label: "Jira" },
+  { type: "confluence", label: "Confluence" },
 ];
 
 export function Toolbar({ onNewWorkspace, mcpConnected = false }: { onNewWorkspace: () => void; mcpConnected?: boolean }) {

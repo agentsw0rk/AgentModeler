@@ -72,7 +72,10 @@ class SubAgentGenerator {
         val hasUserPrompt = subAgent.builtinTools.any { it.type == BuiltinToolType.USER_PROMPT }
         val hasFilesystem = subAgent.builtinTools.any { it.type == BuiltinToolType.FILESYSTEM }
         val customBuiltins = subAgent.builtinTools.filter {
-            it.type in setOf(BuiltinToolType.SHELL, BuiltinToolType.FETCH, BuiltinToolType.MEMORY, BuiltinToolType.TODO)
+            it.type in setOf(
+                BuiltinToolType.SHELL, BuiltinToolType.FETCH, BuiltinToolType.MEMORY, BuiltinToolType.TODO,
+                BuiltinToolType.JIRA, BuiltinToolType.CONFLUENCE
+            )
         }
 
         return buildString {
@@ -114,6 +117,11 @@ class SubAgentGenerator {
                         """tools(MemoryToolSet(path = "$p"))"""
                     }
                     BuiltinToolType.TODO -> "tools(TodoToolSet())"
+                    BuiltinToolType.JIRA, BuiltinToolType.CONFLUENCE -> {
+                        val bu = bt.config["baseUrl"] as? String ?: ""
+                        val className = if (bt.type == BuiltinToolType.JIRA) "JiraToolSet" else "ConfluenceToolSet"
+                        """tools($className(baseUrl = "$bu"))"""
+                    }
                     else -> null
                 }
                 reg?.let { appendLine("        $it") }

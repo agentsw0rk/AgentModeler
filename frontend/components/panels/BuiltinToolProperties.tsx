@@ -14,11 +14,14 @@ const toolDescriptions: Record<BuiltinToolType, string> = {
   memory: "Persistent key-value storage backed by SQLite.",
   todo: "In-memory task list management for complex workflows.",
   user_prompt: "Ask users questions and collect interactive input using Koog built-in tools.",
+  jira: "Search, read, create, comment on and transition Jira Cloud issues.",
+  confluence: "Search, read, create and update Confluence Cloud pages.",
 };
 
 export function BuiltinToolProperties({ nodeId, data }: { nodeId: string; data: BuiltinToolConfig }) {
   const updateNodeData = useEditorStore((s) => s.updateNodeData);
   const update = (field: Partial<BuiltinToolConfig>) => updateNodeData(nodeId, field);
+  const isAtlassian = data.toolType === "jira" || data.toolType === "confluence";
 
   return (
     <div className="space-y-4">
@@ -55,15 +58,20 @@ export function BuiltinToolProperties({ nodeId, data }: { nodeId: string; data: 
         </div>
       )}
 
-      {data.toolType === "fetch" && (
+      {(data.toolType === "fetch" || isAtlassian) && (
         <div>
-          <Label htmlFor="bt-baseUrl">Base URL</Label>
+          <Label htmlFor="bt-baseUrl">{isAtlassian ? "Atlassian URL" : "Base URL"}</Label>
           <Input
             id="bt-baseUrl"
             value={data.baseUrl ?? ""}
             onChange={(e) => update({ baseUrl: e.target.value || undefined })}
-            placeholder="https://api.example.com"
+            placeholder={isAtlassian ? "https://your-company.atlassian.net" : "https://api.example.com"}
           />
+          {isAtlassian && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Credentials are read at runtime from ATLASSIAN_EMAIL and ATLASSIAN_API_TOKEN.
+            </p>
+          )}
         </div>
       )}
 

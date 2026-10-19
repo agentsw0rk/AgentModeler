@@ -23,7 +23,10 @@ class RegistryGenerator {
         val hasUserPrompt = builtinTools.any { it.type == BuiltinToolType.USER_PROMPT }
         val hasFilesystem = builtinTools.any { it.type == BuiltinToolType.FILESYSTEM }
         val customBuiltins = builtinTools.filter {
-            it.type in setOf(BuiltinToolType.SHELL, BuiltinToolType.FETCH, BuiltinToolType.MEMORY, BuiltinToolType.TODO)
+            it.type in setOf(
+                BuiltinToolType.SHELL, BuiltinToolType.FETCH, BuiltinToolType.MEMORY, BuiltinToolType.TODO,
+                BuiltinToolType.JIRA, BuiltinToolType.CONFLUENCE
+            )
         }
         val hasBaseTools = tools.isNotEmpty() || customBuiltins.isNotEmpty() || hasUserPrompt || hasFilesystem || subAgents.isNotEmpty()
         val hasMcp = mcpServers.isNotEmpty()
@@ -81,6 +84,11 @@ class RegistryGenerator {
                         bodyBuilder.addStatement("tools(MemoryToolSet(path = %S))", p)
                     }
                     BuiltinToolType.TODO -> bodyBuilder.addStatement("tools(TodoToolSet())")
+                    BuiltinToolType.JIRA, BuiltinToolType.CONFLUENCE -> {
+                        val bu = bt.config["baseUrl"] as? String ?: ""
+                        val className = if (bt.type == BuiltinToolType.JIRA) "JiraToolSet" else "ConfluenceToolSet"
+                        bodyBuilder.addStatement("tools(%L(baseUrl = %S))", className, bu)
+                    }
                     else -> { /* skip */ }
                 }
             }

@@ -337,4 +337,29 @@ class GraphValidatorTest {
             listOf(GraphEdge("e1", "mcp1", "a1")))
         assertFalse(validator.validate(graph).any { it.contains("single-agent") || it.contains("Only single") })
     }
+
+    @Test
+    fun `valid jira builtin passes validation`() {
+        val graph = WorkspaceGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("bt1", "builtin-tool", Position(200.0, 0.0), mapOf("toolType" to "jira", "baseUrl" to "https://x.atlassian.net"))
+            ),
+            listOf(GraphEdge("e1", "bt1", "a1")))
+        assertTrue(validator.validate(graph).isEmpty())
+    }
+
+    @Test
+    fun `reports confluence builtin without https base url`() {
+        val graph = WorkspaceGraph(1, "Test",
+            listOf(
+                GraphNode("a1", "agent", Position(0.0, 0.0), mapOf("name" to "Agent1", "systemPrompt" to "Help", "modelProvider" to "openai")),
+                GraphNode("bt1", "builtin-tool", Position(200.0, 0.0), mapOf("toolType" to "confluence")),
+                GraphNode("bt2", "builtin-tool", Position(200.0, 100.0), mapOf("toolType" to "confluence", "baseUrl" to "http://x.atlassian.net"))
+            ),
+            listOf(GraphEdge("e1", "bt1", "a1"), GraphEdge("e2", "bt2", "a1")))
+        val errors = validator.validate(graph)
+        assertTrue(errors.any { it.startsWith("[bt1]") && it.contains("requires an https:// Atlassian URL") })
+        assertTrue(errors.any { it.startsWith("[bt2]") && it.contains("requires an https:// Atlassian URL") })
+    }
 }

@@ -7,9 +7,9 @@ import { InputNodeConfig, OutputNodeConfig } from "./io";
 import { GraphAgentConfig } from "./graph-agent";
 import { RagNodeConfig } from "./rag";
 
-export type BuiltinToolType = "think" | "shell" | "filesystem" | "fetch" | "memory" | "todo" | "user_prompt";
+export type BuiltinToolType = "think" | "shell" | "filesystem" | "fetch" | "memory" | "todo" | "user_prompt" | "jira" | "confluence";
 
-export const BUILTIN_TOOL_TYPES: BuiltinToolType[] = ["think", "shell", "filesystem", "fetch", "memory", "todo", "user_prompt"];
+export const BUILTIN_TOOL_TYPES: BuiltinToolType[] = ["think", "shell", "filesystem", "fetch", "memory", "todo", "user_prompt", "jira", "confluence"];
 
 export const BUILTIN_TOOL_LABELS: Record<BuiltinToolType, string> = {
   think: "Think",
@@ -19,6 +19,8 @@ export const BUILTIN_TOOL_LABELS: Record<BuiltinToolType, string> = {
   memory: "Memory",
   todo: "Todo",
   user_prompt: "User Prompt",
+  jira: "Jira",
+  confluence: "Confluence",
 };
 
 export interface BuiltinToolConfig {

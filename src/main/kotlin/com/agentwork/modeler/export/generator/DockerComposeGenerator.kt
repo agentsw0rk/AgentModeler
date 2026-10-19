@@ -1,5 +1,6 @@
 package com.agentwork.modeler.export.generator
 
+import com.agentwork.modeler.export.model.BuiltinToolType
 import com.agentwork.modeler.export.model.KoogAgent
 import com.agentwork.modeler.export.model.ModelProvider
 import org.springframework.stereotype.Component
@@ -49,6 +50,11 @@ class DockerComposeGenerator {
         if (agent.modelProvider == ModelProvider.BEDROCK) {
             appendLine("      AWS_BEDROCK_SECRET_ACCESS_KEY: \${AWS_BEDROCK_SECRET_ACCESS_KEY}")
             appendLine("      AWS_BEDROCK_REGION: \${AWS_BEDROCK_REGION:-us-west-2}")
+        }
+        val atlassianTypes = setOf(BuiltinToolType.JIRA, BuiltinToolType.CONFLUENCE)
+        if ((agent.builtinTools + agent.subAgents.flatMap { it.builtinTools }).any { it.type in atlassianTypes }) {
+            appendLine("      ATLASSIAN_EMAIL: \${ATLASSIAN_EMAIL}")
+            appendLine("      ATLASSIAN_API_TOKEN: \${ATLASSIAN_API_TOKEN}")
         }
         if (agent.modelProvider == ModelProvider.OLLAMA) {
             // Ollama usually runs on the host; localhost inside the container is the container itself

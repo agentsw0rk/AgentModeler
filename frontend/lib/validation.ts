@@ -1,4 +1,4 @@
-import { WorkspaceGraph, BuiltinToolConfig, BUILTIN_TOOL_TYPES } from "@/types/graph";
+import { WorkspaceGraph, BuiltinToolConfig, BUILTIN_TOOL_TYPES, BUILTIN_TOOL_LABELS } from "@/types/graph";
 import { validateGraphAgent } from "./graph-agent-validation";
 import { AgentConfig, MODEL_OPTIONS, ToolConfig } from "@/types/koog";
 import { SubAgentConfig } from "@/types/subagent";
@@ -79,6 +79,9 @@ export function validateGraph(graph: WorkspaceGraph): ValidationError[] {
       const data = node.data as BuiltinToolConfig;
       if (!data.toolType || !BUILTIN_TOOL_TYPES.includes(data.toolType)) {
         errors.push({ nodeId: node.id, severity: "error", message: "Built-in tool has invalid type" });
+      }
+      if ((data.toolType === "jira" || data.toolType === "confluence") && !data.baseUrl?.startsWith("https://")) {
+        errors.push({ nodeId: node.id, severity: "error", message: `${BUILTIN_TOOL_LABELS[data.toolType]} requires an https:// Atlassian URL` });
       }
       const isConnected = graph.edges.some((e) => e.source === node.id);
       if (!isConnected) {

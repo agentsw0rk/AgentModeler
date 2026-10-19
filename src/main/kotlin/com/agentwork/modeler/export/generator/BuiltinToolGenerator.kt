@@ -6,11 +6,15 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.INT
 import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.MemberName
+import com.squareup.kotlinpoet.STRING
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import org.springframework.stereotype.Component
 
@@ -25,6 +29,8 @@ class BuiltinToolGenerator {
         BuiltinToolType.FETCH -> generateFetch(tool)
         BuiltinToolType.MEMORY -> generateMemory(tool)
         BuiltinToolType.TODO -> generateTodo()
+        BuiltinToolType.JIRA -> generateJira(tool)
+        BuiltinToolType.CONFLUENCE -> generateConfluence(tool)
     }
 
     private fun generateShell(tool: KoogBuiltinTool): String {
@@ -364,5 +370,346 @@ class BuiltinToolGenerator {
             .addType(classSpec)
             .build()
             .toString()
+    }
+
+    private fun generateJira(tool: KoogBuiltinTool): String {
+        val adfFun = FunSpec.builder("adf")
+            .addModifiers(KModifier.PRIVATE)
+            .addParameter("text", STRING)
+            .returns(JSON_OBJECT)
+            // ADF forbids empty text nodes, so blank lines become empty paragraphs
+            .addCode(
+                """
+                |return %M {
+                |    %M("type", "doc")
+                |    %M("version", 1)
+                |    %M("content") {
+                |        for (line in text.lines()) {
+                |            %M {
+                |                %M("type", "paragraph")
+                |                if (line.isNotBlank()) %M("content") {
+                |                    %M { %M("type", "text"); %M("text", line) }
+                |                }
+                |            }
+                |        }
+                |    }
+                |}
+                |""".trimMargin(),
+                BUILD_JSON_OBJECT, PUT, PUT, PUT_JSON_ARRAY, ADD_JSON_OBJECT, PUT, PUT_JSON_ARRAY, ADD_JSON_OBJECT, PUT, PUT
+            )
+            .build()
+
+        val classSpec = atlassianToolSet(tool, "JiraToolSet", "Tools for searching, reading, creating and updating Jira issues")
+            .addFunction(adfFun)
+            .addFunction(
+                atlassianTool(
+                    "searchIssues", "Search Jira issues with JQL. Returns key, summary, status and assignee per issue.",
+                    listOf(
+                        Triple("jql", STRING, "JQL query, e.g. project = ABC AND status = 'In Progress'"),
+                        Triple("maxResults", INT, "Maximum number of issues (1-50)")
+                    ),
+                    CodeBlock.of(
+                        "return text(call(\"GET\", \"/rest/api/3/search/jql?jql=\" + enc(jql) + \"&maxResults=\" + maxResults.coerceIn(1, 50) + \"&fields=summary,status,assignee\"))\n"
+                    )
+                )
+            )
+            .addFunction(
+                atlassianTool(
+                    "getIssue", "Get a Jira issue with all its fields",
+                    listOf(Triple("issueKey", STRING, "Issue key, e.g. ABC-123")),
+                    CodeBlock.of("return text(call(\"GET\", \"/rest/api/3/issue/\" + issueKey))\n"),
+                    "issueKey" to ISSUE_KEY_PATTERN
+                )
+            )
+            .addFunction(
+                atlassianTool(
+                    "createIssue", "Create a Jira issue",
+                    listOf(
+                        Triple("projectKey", STRING, "Project key, e.g. ABC"),
+                        Triple("issueType", STRING, "Issue type name, e.g. Task, Bug, Story"),
+                        Triple("summary", STRING, "One-line summary"),
+                        Triple("description", STRING, "Plain text; line breaks start new paragraphs")
+                    ),
+                    CodeBlock.of(
+                        """
+                        |val body = %M {
+                        |    %M("fields") {
+                        |        %M("project") { %M("key", projectKey) }
+                        |        %M("issuetype") { %M("name", issueType) }
+                        |        %M("summary", summary)
+                        |        put("description", adf(description))
+                        |    }
+                        |}
+                        |return text(call("POST", "/rest/api/3/issue", body))
+                        |""".trimMargin(),
+                        BUILD_JSON_OBJECT, PUT_JSON_OBJECT, PUT_JSON_OBJECT, PUT, PUT_JSON_OBJECT, PUT, PUT
+                    )
+                )
+            )
+            .addFunction(
+                atlassianTool(
+                    "addComment", "Add a comment to a Jira issue",
+                    listOf(
+                        Triple("issueKey", STRING, "Issue key, e.g. ABC-123"),
+                        Triple("comment", STRING, "Plain text; line breaks start new paragraphs")
+                    ),
+                    CodeBlock.of(
+                        "return text(call(\"POST\", \"/rest/api/3/issue/\" + issueKey + \"/comment\", %M { put(\"body\", adf(comment)) }))\n",
+                        BUILD_JSON_OBJECT
+                    ),
+                    "issueKey" to ISSUE_KEY_PATTERN
+                )
+            )
+            .addFunction(
+                atlassianTool(
+                    "transitionIssue", "Move a Jira issue to another status",
+                    listOf(
+                        Triple("issueKey", STRING, "Issue key, e.g. ABC-123"),
+                        Triple("statusName", STRING, "Target status name, e.g. Done")
+                    ),
+                    CodeBlock.of(
+                        """
+                        |val path = "/rest/api/3/issue/" + issueKey + "/transitions"
+                        |val response = call("GET", path)
+                        |if (response.statusCode() !in 200..299) return text(response)
+                        |val transitions = %T.parseToJsonElement(response.body()).%M["transitions"]?.%M.orEmpty().map { it.%M }
+                        |val match = transitions.firstOrNull { t ->
+                        |    t["name"]?.%M?.content.equals(statusName, ignoreCase = true) ||
+                        |        t["to"]?.%M?.get("name")?.%M?.content.equals(statusName, ignoreCase = true)
+                        |} ?: return "No transition to '" + statusName + "'. Available: " +
+                        |    transitions.joinToString { it["name"]?.%M?.content.orEmpty() }
+                        |val id = match["id"]!!.%M.content
+                        |return text(call("POST", path, %M { %M("transition") { %M("id", id) } }))
+                        |""".trimMargin(),
+                        JSON, JSON_OBJECT_EXT, JSON_ARRAY_EXT, JSON_OBJECT_EXT,
+                        JSON_PRIMITIVE_EXT, JSON_OBJECT_EXT, JSON_PRIMITIVE_EXT, JSON_PRIMITIVE_EXT, JSON_PRIMITIVE_EXT,
+                        BUILD_JSON_OBJECT, PUT_JSON_OBJECT, PUT
+                    ),
+                    "issueKey" to ISSUE_KEY_PATTERN
+                )
+            )
+            .build()
+
+        return FileSpec.builder("generated.tools", "JiraToolSet")
+            .addType(classSpec)
+            .build()
+            .toString()
+    }
+
+    private fun generateConfluence(tool: KoogBuiltinTool): String {
+        val storageFun = FunSpec.builder("storage")
+            .addModifiers(KModifier.PRIVATE)
+            .addParameter("value", STRING)
+            .returns(JSON_OBJECT)
+            .addStatement("return %M { %M(\"representation\", \"storage\"); %M(\"value\", value) }", BUILD_JSON_OBJECT, PUT, PUT)
+            .build()
+
+        val classSpec = atlassianToolSet(tool, "ConfluenceToolSet", "Tools for searching, reading, creating and updating Confluence pages")
+            .addFunction(storageFun)
+            .addFunction(
+                atlassianTool(
+                    "searchPages", "Search Confluence content with CQL. Returns id, title and excerpt per result.",
+                    listOf(
+                        Triple("cql", STRING, "CQL query, e.g. type = page AND text ~ \"onboarding\""),
+                        Triple("limit", INT, "Maximum number of results (1-50)")
+                    ),
+                    CodeBlock.of("return text(call(\"GET\", \"/wiki/rest/api/search?cql=\" + enc(cql) + \"&limit=\" + limit.coerceIn(1, 50)))\n")
+                )
+            )
+            .addFunction(
+                atlassianTool(
+                    "getPage", "Get a Confluence page with its content in storage format",
+                    listOf(Triple("pageId", STRING, "Page ID")),
+                    CodeBlock.of("return text(call(\"GET\", \"/wiki/api/v2/pages/\" + pageId + \"?body-format=storage\"))\n"),
+                    "pageId" to PAGE_ID_PATTERN
+                )
+            )
+            .addFunction(
+                atlassianTool(
+                    "createPage", "Create a Confluence page",
+                    listOf(
+                        Triple("spaceKey", STRING, "Space key, e.g. TEAM"),
+                        Triple("title", STRING, "Page title"),
+                        Triple("body", STRING, PAGE_BODY_DESCRIPTION),
+                        Triple("parentId", STRING, "ID of the parent page, empty for a top-level page")
+                    ),
+                    CodeBlock.of(
+                        """
+                        |val spaces = call("GET", "/wiki/api/v2/spaces?keys=" + enc(spaceKey))
+                        |if (spaces.statusCode() !in 200..299) return text(spaces)
+                        |val spaceId = %T.parseToJsonElement(spaces.body()).%M["results"]?.%M?.firstOrNull()
+                        |    ?.%M?.get("id")?.%M?.content
+                        |    ?: return "Space '" + spaceKey + "' not found"
+                        |val page = %M {
+                        |    %M("spaceId", spaceId)
+                        |    %M("status", "current")
+                        |    %M("title", title)
+                        |    if (parentId.isNotBlank()) %M("parentId", parentId)
+                        |    put("body", storage(body))
+                        |}
+                        |return text(call("POST", "/wiki/api/v2/pages", page))
+                        |""".trimMargin(),
+                        JSON, JSON_OBJECT_EXT, JSON_ARRAY_EXT, JSON_OBJECT_EXT, JSON_PRIMITIVE_EXT,
+                        BUILD_JSON_OBJECT, PUT, PUT, PUT, PUT
+                    )
+                )
+            )
+            .addFunction(
+                atlassianTool(
+                    "updatePage", "Replace title and content of a Confluence page",
+                    listOf(
+                        Triple("pageId", STRING, "Page ID"),
+                        Triple("title", STRING, "Page title"),
+                        Triple("body", STRING, PAGE_BODY_DESCRIPTION)
+                    ),
+                    CodeBlock.of(
+                        """
+                        |val path = "/wiki/api/v2/pages/" + pageId
+                        |val current = call("GET", path)
+                        |if (current.statusCode() !in 200..299) return text(current)
+                        |val version = %T.parseToJsonElement(current.body()).%M["version"]!!.%M["number"]!!.%M.%M
+                        |val page = %M {
+                        |    %M("id", pageId)
+                        |    %M("status", "current")
+                        |    %M("title", title)
+                        |    put("body", storage(body))
+                        |    %M("version") { %M("number", version + 1) }
+                        |}
+                        |return text(call("PUT", path, page))
+                        |""".trimMargin(),
+                        JSON, JSON_OBJECT_EXT, JSON_OBJECT_EXT, JSON_PRIMITIVE_EXT, MemberName(JSON_PKG, "int"),
+                        BUILD_JSON_OBJECT, PUT, PUT, PUT, PUT_JSON_OBJECT, PUT
+                    ),
+                    "pageId" to PAGE_ID_PATTERN
+                )
+            )
+            .build()
+
+        return FileSpec.builder("generated.tools", "ConfluenceToolSet")
+            .addType(classSpec)
+            .build()
+            .toString()
+    }
+
+    /** Class skeleton shared by the Atlassian Cloud tool sets: base URL, Basic auth from env, HTTP helpers. */
+    private fun atlassianToolSet(tool: KoogBuiltinTool, className: String, description: String): TypeSpec.Builder {
+        val httpClient = ClassName("java.net.http", "HttpClient")
+        val httpRequest = ClassName("java.net.http", "HttpRequest")
+        val httpResponse = ClassName("java.net.http", "HttpResponse")
+        val responseType = httpResponse.parameterizedBy(STRING)
+
+        val envFun = FunSpec.builder("env")
+            .addModifiers(KModifier.PRIVATE)
+            .addParameter("name", STRING)
+            .returns(STRING)
+            .addStatement("return System.getenv(name)?.takeIf { it.isNotBlank() } ?: error(name + %S)", " is not set")
+            .build()
+
+        val callFun = FunSpec.builder("call")
+            .addModifiers(KModifier.PRIVATE)
+            .addParameter("method", STRING)
+            .addParameter("path", STRING)
+            .addParameter(ParameterSpec.builder("body", JSON_OBJECT.copy(nullable = true)).defaultValue("null").build())
+            .returns(responseType)
+            .addCode(
+                """
+                |val request = %T.newBuilder(%T.create(baseUrl + path))
+                |    .header("Authorization", auth)
+                |    .header("Accept", "application/json")
+                |if (body != null) request.header("Content-Type", "application/json")
+                |request.method(method, if (body != null) %T.BodyPublishers.ofString(body.toString()) else %T.BodyPublishers.noBody())
+                |return client.send(request.build(), %T.BodyHandlers.ofString())
+                |""".trimMargin(),
+                httpRequest, ClassName("java.net", "URI"), httpRequest, httpRequest, httpResponse
+            )
+            .build()
+
+        val textFun = FunSpec.builder("text")
+            .addModifiers(KModifier.PRIVATE)
+            .addParameter("response", responseType)
+            .returns(STRING)
+            .addStatement("""return "HTTP " + response.statusCode() + "\n" + response.body()""")
+            .build()
+
+        val encFun = FunSpec.builder("enc")
+            .addModifiers(KModifier.PRIVATE)
+            .addParameter("value", STRING)
+            .returns(STRING)
+            .addStatement("return %T.encode(value, Charsets.UTF_8)", ClassName("java.net", "URLEncoder"))
+            .build()
+
+        return TypeSpec.classBuilder(className)
+            .addSuperinterface(KoogTypes.TOOL_SET)
+            .addAnnotation(KoogAnnotations.llmDescription(description))
+            .primaryConstructor(
+                FunSpec.constructorBuilder()
+                    .addParameter(
+                        ParameterSpec.builder("baseUrl", STRING)
+                            .defaultValue("%S", tool.config["baseUrl"] as? String ?: "")
+                            .build()
+                    )
+                    .build()
+            )
+            // Only scheme and host: a pasted browser URL like https://x.atlassian.net/wiki would break every REST path
+            .addProperty(
+                PropertySpec.builder("baseUrl", STRING, KModifier.PRIVATE)
+                    .initializer("%T.create(baseUrl).let { it.scheme + \"://\" + it.authority }", ClassName("java.net", "URI"))
+                    .build()
+            )
+            .addProperty(PropertySpec.builder("client", httpClient, KModifier.PRIVATE).initializer("%T.newHttpClient()", httpClient).build())
+            // Read in the constructor so a missing variable fails at startup, not on the first tool call
+            .addProperty(
+                PropertySpec.builder("auth", STRING, KModifier.PRIVATE)
+                    .initializer(
+                        "\"Basic \" + %T.getEncoder().encodeToString((env(%S) + \":\" + env(%S)).toByteArray())",
+                        ClassName("java.util", "Base64"), "ATLASSIAN_EMAIL", "ATLASSIAN_API_TOKEN"
+                    )
+                    .build()
+            )
+            .addFunction(envFun)
+            .addFunction(callFun)
+            .addFunction(textFun)
+            .addFunction(encFun)
+    }
+
+    private fun atlassianTool(
+        name: String,
+        description: String,
+        params: List<Triple<String, TypeName, String>>,
+        body: CodeBlock,
+        pathId: Pair<String, String>? = null
+    ): FunSpec = FunSpec.builder(name)
+        .addAnnotation(KoogAnnotations.tool())
+        .addAnnotation(KoogAnnotations.llmDescription(description))
+        .addParameters(params.map { (paramName, type, paramDescription) ->
+            ParameterSpec.builder(paramName, type)
+                .addAnnotation(KoogAnnotations.llmDescription(paramDescription))
+                .build()
+        })
+        .returns(STRING)
+        .apply {
+            // The id goes into the URL path; reject anything that could point the request elsewhere
+            pathId?.let { (param, pattern) ->
+                addStatement("if (!Regex(%S).matches($param)) return %S + $param", pattern, "Invalid $param: ")
+            }
+        }
+        .addCode(body)
+        .build()
+
+    private companion object {
+        const val JSON_PKG = "kotlinx.serialization.json"
+        const val ISSUE_KEY_PATTERN = "[A-Za-z][A-Za-z0-9_]*-\\d+|\\d+"
+        const val PAGE_ID_PATTERN = "\\d+"
+        const val PAGE_BODY_DESCRIPTION = "Page content in Confluence storage format (XHTML, e.g. <p>Text</p>)"
+        val JSON = ClassName(JSON_PKG, "Json")
+        val JSON_OBJECT = ClassName(JSON_PKG, "JsonObject")
+        val BUILD_JSON_OBJECT = MemberName(JSON_PKG, "buildJsonObject")
+        val PUT = MemberName(JSON_PKG, "put")
+        val PUT_JSON_OBJECT = MemberName(JSON_PKG, "putJsonObject")
+        val PUT_JSON_ARRAY = MemberName(JSON_PKG, "putJsonArray")
+        val ADD_JSON_OBJECT = MemberName(JSON_PKG, "addJsonObject")
+        val JSON_OBJECT_EXT = MemberName(JSON_PKG, "jsonObject")
+        val JSON_ARRAY_EXT = MemberName(JSON_PKG, "jsonArray")
+        val JSON_PRIMITIVE_EXT = MemberName(JSON_PKG, "jsonPrimitive")
     }
 }
